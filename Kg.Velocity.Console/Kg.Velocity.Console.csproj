@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Math\Math.csproj" />
+    <ProjectReference Include="..\Kg.Velocity.Math\Kg.Velocity.Math.csproj" />
   </ItemGroup>
 
 </Project>

@@ -18,9 +18,10 @@ public static class PhysicsConstants
     /// <summary>
     /// Distance to target destination in light years.
     /// This value can be adjusted to simulate different journey lengths.
-    /// Default: 7,100 light years.
+    /// Default: Saturn - approximately 0.00015 light years (average distance ~886 million miles).
+    /// Note: Saturn's distance varies from ~746 million miles (closest) to ~1.03 billion miles (farthest).
     /// </summary>
-    public const double TargetDistanceLightYears = 7_100.0;
+    public const double TargetDistanceLightYears = 0.00015;
 
     /// <summary>
     /// Exponential growth rate for acceleration per second.
