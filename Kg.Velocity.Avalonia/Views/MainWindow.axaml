@@ -83,15 +83,22 @@
                                        Foreground="#9fa8b8"
                                        VerticalAlignment="Center"
                                        Margin="0,0,12,0"/>
-                            <TextBox Grid.Row="1" Grid.Column="1"
-                                     Text="{Binding DestinationLocation}"
-                                     FontSize="13"
-                                     Background="#0a0e1a"
-                                     Foreground="#e0e6ed"
-                                     BorderBrush="#1e2a47"
-                                     BorderThickness="1"
-                                     Padding="8,5"
-                                     CornerRadius="4"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1"
+                                      ItemsSource="{Binding Destinations}"
+                                      SelectedItem="{Binding SelectedDestination}"
+                                      FontSize="13"
+                                      Background="#0a0e1a"
+                                      Foreground="#e0e6ed"
+                                      BorderBrush="#1e2a47"
+                                      BorderThickness="1"
+                                      Padding="8,5"
+                                      CornerRadius="4">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayName}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -171,7 +178,7 @@
                             
                             <!-- Destination (Right) -->
                             <TextBlock Grid.Column="2" 
-                                       Text="{Binding DestinationLocation}" 
+                                       Text="{Binding SelectedDestination.Name}" 
                                        FontSize="12"
                                        Foreground="#9fa8b8"
                                        VerticalAlignment="Center"
@@ -185,15 +192,24 @@
                                        FontSize="10"
                                        Foreground="#78909c"
                                        HorizontalAlignment="Left"/>
-                            <TextBlock Grid.Column="1" 
-                                       FontSize="11"
-                                       Foreground="#4fc3f7"
-                                       HorizontalAlignment="Center">
-                                <Run Text="{Binding DistanceLightYears, StringFormat='{}{0:N2} ly'}"/>
-                                <Run Text=" (" Foreground="#78909c"/>
-                                <Run Text="{Binding JourneyProgressPercentage, StringFormat='{}{0:F1}%'}"/>
-                                <Run Text=")" Foreground="#78909c"/>
-                            </TextBlock>
+                            <StackPanel Grid.Column="1" 
+                                        HorizontalAlignment="Center"
+                                        Spacing="2">
+                                <TextBlock FontSize="11"
+                                           Foreground="#4fc3f7"
+                                           HorizontalAlignment="Center">
+                                    <Run Text="{Binding DistanceLightYears, StringFormat='{}{0:N2} ly'}"/>
+                                    <Run Text=" (" Foreground="#78909c"/>
+                                    <Run Text="{Binding JourneyProgressPercentage, StringFormat='{}{0:F1}%'}"/>
+                                    <Run Text=")" Foreground="#78909c"/>
+                                </TextBlock>
+                                <TextBlock FontSize="10"
+                                           Foreground="#69f0ae"
+                                           HorizontalAlignment="Center">
+                                    <Run Text="ETA: " Foreground="#78909c"/>
+                                    <Run Text="{Binding EstimatedTimeOfArrival}"/>
+                                </TextBlock>
+                            </StackPanel>
                             <TextBlock Grid.Column="2" 
                                        FontSize="10"
                                        Foreground="#78909c"
@@ -382,34 +398,56 @@
                 Margin="0,15,0,0"
                 BorderBrush="#1e2a47"
                 BorderThickness="1">
-            <StackPanel Spacing="5">
-                <TextBlock Text="CONTROLS" 
-                           FontSize="10" 
-                           FontWeight="SemiBold"
-                           Foreground="#4fc3f7"
-                           LetterSpacing="1"
-                           HorizontalAlignment="Center"/>
-                <StackPanel Orientation="Horizontal" 
-                            HorizontalAlignment="Center" 
-                            Spacing="20">
-                    <TextBlock FontSize="12">
-                        <Run Text="X" FontWeight="Bold" Foreground="#4fc3f7"/>
-                        <Run Text=" Accelerate" Foreground="#9fa8b8"/>
-                    </TextBlock>
-                    <TextBlock FontSize="12">
-                        <Run Text="W" FontWeight="Bold" Foreground="#4fc3f7"/>
-                        <Run Text=" Decelerate" Foreground="#9fa8b8"/>
-                    </TextBlock>
-                    <TextBlock FontSize="12">
-                        <Run Text="S" FontWeight="Bold" Foreground="#4fc3f7"/>
-                        <Run Text=" Slow modifier" Foreground="#9fa8b8"/>
-                    </TextBlock>
-                    <TextBlock FontSize="12">
-                        <Run Text="Q" FontWeight="Bold" Foreground="#4fc3f7"/>
-                        <Run Text=" Quit" Foreground="#9fa8b8"/>
+            <Grid ColumnDefinitions="*,Auto,*">
+                <!-- Time Difference (Left) -->
+                <StackPanel Grid.Column="0" 
+                            VerticalAlignment="Center"
+                            Spacing="2">
+                    <TextBlock Text="TIME DILATION" 
+                               FontSize="9" 
+                               FontWeight="SemiBold"
+                               Foreground="#4fc3f7"
+                               LetterSpacing="1"/>
+                    <TextBlock FontSize="11"
+                               Foreground="#9fa8b8">
+                        <Run Text="Difference: " Foreground="#78909c"/>
+                        <Run Text="{Binding TimeDifference}" Foreground="#69f0ae"/>
                     </TextBlock>
                 </StackPanel>
-            </StackPanel>
+                
+                <!-- Controls (Center) -->
+                <StackPanel Grid.Column="1" Spacing="5">
+                    <TextBlock Text="CONTROLS" 
+                               FontSize="10" 
+                               FontWeight="SemiBold"
+                               Foreground="#4fc3f7"
+                               LetterSpacing="1"
+                               HorizontalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" 
+                                HorizontalAlignment="Center" 
+                                Spacing="20">
+                        <TextBlock FontSize="12">
+                            <Run Text="X" FontWeight="Bold" Foreground="#4fc3f7"/>
+                            <Run Text=" Accelerate" Foreground="#9fa8b8"/>
+                        </TextBlock>
+                        <TextBlock FontSize="12">
+                            <Run Text="W" FontWeight="Bold" Foreground="#4fc3f7"/>
+                            <Run Text=" Decelerate" Foreground="#9fa8b8"/>
+                        </TextBlock>
+                        <TextBlock FontSize="12">
+                            <Run Text="S" FontWeight="Bold" Foreground="#4fc3f7"/>
+                            <Run Text=" Slow modifier" Foreground="#9fa8b8"/>
+                        </TextBlock>
+                        <TextBlock FontSize="12">
+                            <Run Text="Q" FontWeight="Bold" Foreground="#4fc3f7"/>
+                            <Run Text=" Quit" Foreground="#9fa8b8"/>
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+                
+                <!-- Spacer (Right) -->
+                <Border Grid.Column="2"/>
+            </Grid>
         </Border>
     </Grid>
 

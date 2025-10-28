@@ -38,7 +38,7 @@ public class SimulationState
     /// <summary>
     /// Target distance in miles.
     /// </summary>
-    public double TargetDistanceMiles { get; }
+    public double TargetDistanceMiles { get; set; }
 
     /// <summary>
     /// Remaining distance to destination in miles.
@@ -53,6 +53,15 @@ public class SimulationState
     public SimulationState()
     {
         TargetDistanceMiles = PhysicsConstants.TargetDistanceLightYears * PhysicsConstants.LightYearMiles;
+    }
+    
+    /// <summary>
+    /// Updates the target distance for a new destination.
+    /// </summary>
+    /// <param name="newTargetMiles">New target distance in miles.</param>
+    public void UpdateTargetDistance(double newTargetMiles)
+    {
+        TargetDistanceMiles = newTargetMiles;
     }
 }
 

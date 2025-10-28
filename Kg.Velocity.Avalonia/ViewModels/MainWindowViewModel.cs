@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Kg.Velocity.Avalonia.Models;
 using Kg.Velocity.Math;
 
 namespace Kg.Velocity.Avalonia.ViewModels;
@@ -11,7 +14,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly SimulationEngine _engine;
     private readonly Stopwatch _stopwatch;
     private double _lastElapsedSeconds;
-    private readonly DateTime _startDateTime;
+    private DateTime _startDateTime;
 
     // Keyboard state
     private bool _increaseHeld;
@@ -24,6 +27,33 @@ public partial class MainWindowViewModel : ViewModelBase
         _engine = new SimulationEngine(_state);
         _stopwatch = Stopwatch.StartNew();
         _startDateTime = DateTime.Now;
+
+        // Initialize destinations
+        InitializeDestinations();
+    }
+
+    private void InitializeDestinations()
+    {
+        Destinations = new ObservableCollection<Destination>
+        {
+            // Terrestrial
+            new Destination { Name = "California (Los Angeles)", DistanceMiles = 2_800, Category = "Earth" },
+            new Destination { Name = "Paris, France", DistanceMiles = 3_628, Category = "Earth" },
+            new Destination { Name = "North Pole", DistanceMiles = 3_360, Category = "Earth" },
+            new Destination { Name = "South Pole", DistanceMiles = 9_445, Category = "Earth" },
+            new Destination { Name = "Sydney, Australia", DistanceMiles = 9_950, Category = "Earth" },
+            
+            // Solar System
+            new Destination { Name = "The Moon", DistanceMiles = 238_855, Category = "Space" },
+            new Destination { Name = "Mercury", DistanceMiles = 56_000_000, Category = "Space" },
+            new Destination { Name = "The Sun", DistanceMiles = 93_000_000, Category = "Space" },
+            new Destination { Name = "Mars", DistanceMiles = 140_000_000, Category = "Space" },
+            new Destination { Name = "Saturn", DistanceMiles = 886_000_000, Category = "Space" },
+            new Destination { Name = "Voyager 1", DistanceMiles = 15_000_000_000, Category = "Space" }
+        };
+
+        // Set default to Saturn
+        SelectedDestination = Destinations.FirstOrDefault(d => d.Name == "Saturn");
     }
 
     // Simulation update properties
@@ -71,13 +101,53 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // Journey configuration
     [ObservableProperty]
-    private string _startingLocation = "Earth";
+    private string _startingLocation = "New York, USA";
+
+    public ObservableCollection<Destination> Destinations { get; private set; } = new();
 
     [ObservableProperty]
-    private string _destinationLocation = "Saturn";
+    private Destination? _selectedDestination;
 
     [ObservableProperty]
     private double _journeyProgressPercentage; // 0.0 to 100.0 for display
+
+    [ObservableProperty]
+    private string _estimatedTimeOfArrival = "N/A";
+
+    [ObservableProperty]
+    private string _timeDifference = "0s";
+
+    partial void OnSelectedDestinationChanged(Destination? value)
+    {
+        if (value != null)
+        {
+            // Reset simulation when destination changes
+            ResetSimulation(value.DistanceMiles);
+        }
+    }
+
+    private void ResetSimulation(double newTargetMiles)
+    {
+        // Reset state
+        _state.SpeedMph = 0;
+        _state.DistanceMiles = 0;
+        _state.EarthTimeSeconds = 0;
+        _state.ShipTimeSeconds = 0;
+        _state.XHeldSeconds = 0;
+        _state.WHeldSeconds = 0;
+
+        // Update target distance in state
+        _state.UpdateTargetDistance(newTargetMiles);
+        
+        // Update display value
+        double newTargetLightYears = newTargetMiles / PhysicsConstants.LightYearMiles;
+        TargetDistanceLightYears = newTargetLightYears;
+
+        // Reset stopwatch and start time
+        _stopwatch.Restart();
+        _lastElapsedSeconds = 0;
+        _startDateTime = DateTime.Now;
+    }
 
     // Keyboard input methods
     public void SetIncreaseHeld(bool held) => _increaseHeld = held;
@@ -94,8 +164,12 @@ public partial class MainWindowViewModel : ViewModelBase
         if (deltaSeconds <= 0)
             return;
 
-        // Update simulation
-        _engine.Update(deltaSeconds, _increaseHeld, _decreaseHeld, _slowHeld);
+        // Don't update if destination reached
+        if (!_state.DestinationReached)
+        {
+            // Update simulation
+            _engine.Update(deltaSeconds, _increaseHeld, _decreaseHeld, _slowHeld);
+        }
 
         // Calculate display values
         double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
@@ -121,6 +195,91 @@ public partial class MainWindowViewModel : ViewModelBase
             : 0.0;
         if (JourneyProgressPercentage > 100.0) 
             JourneyProgressPercentage = 100.0;
+
+        // Calculate ETA
+        EstimatedTimeOfArrival = CalculateETA();
+
+        // Calculate time difference
+        TimeDifference = CalculateTimeDifference();
+    }
+
+    private string CalculateTimeDifference()
+    {
+        double diffSeconds = _state.EarthTimeSeconds - _state.ShipTimeSeconds;
+        
+        if (diffSeconds < 0.000001)
+            return "0ms";
+
+        // Format based on magnitude
+        if (diffSeconds >= 365.25 * 24 * 3600) // Years
+        {
+            double years = diffSeconds / (365.25 * 24 * 3600);
+            return $"{years:F2}y";
+        }
+        else if (diffSeconds >= 24 * 3600) // Days
+        {
+            double days = diffSeconds / (24 * 3600);
+            return $"{days:F2}d";
+        }
+        else if (diffSeconds >= 3600) // Hours
+        {
+            double hours = diffSeconds / 3600;
+            return $"{hours:F2}h";
+        }
+        else if (diffSeconds >= 60) // Minutes
+        {
+            double minutes = diffSeconds / 60;
+            return $"{minutes:F2}m";
+        }
+        else if (diffSeconds >= 1) // Seconds
+        {
+            return $"{diffSeconds:F3}s";
+        }
+        else // Milliseconds
+        {
+            double milliseconds = diffSeconds * 1000;
+            return $"{milliseconds:F2}ms";
+        }
+    }
+
+    private string CalculateETA()
+    {
+        if (_state.SpeedMph <= 0 || _state.RemainingDistanceMiles <= 0)
+            return "N/A";
+
+        // Calculate remaining time in hours
+        double remainingHours = _state.RemainingDistanceMiles / _state.SpeedMph;
+        double remainingSeconds = remainingHours * 3600;
+
+        // Convert to time units
+        int years = (int)(remainingSeconds / (365.25 * 24 * 3600));
+        remainingSeconds -= years * (365.25 * 24 * 3600);
+
+        int days = (int)(remainingSeconds / (24 * 3600));
+        remainingSeconds -= days * (24 * 3600);
+
+        int hours = (int)(remainingSeconds / 3600);
+        remainingSeconds -= hours * 3600;
+
+        int minutes = (int)(remainingSeconds / 60);
+
+        // Format based on magnitude
+        if (years > 0)
+        {
+            return days > 0 ? $"{years}y {days}d" : $"{years}y";
+        }
+        else if (days > 0)
+        {
+            return hours > 0 ? $"{days}d {hours}h" : $"{days}d";
+        }
+        else if (hours > 0)
+        {
+            return minutes > 0 ? $"{hours}h {minutes}m" : $"{hours}h";
+        }
+        else
+        {
+            return $"{minutes}m";
+        }
     }
 
     private static string FormatDuration(double totalSeconds)
