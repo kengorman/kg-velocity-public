@@ -49,7 +49,11 @@ public partial class MainWindowViewModel : ViewModelBase
             new Destination { Name = "The Sun", DistanceMiles = 93_000_000, Category = "Space" },
             new Destination { Name = "Mars", DistanceMiles = 140_000_000, Category = "Space" },
             new Destination { Name = "Saturn", DistanceMiles = 886_000_000, Category = "Space" },
-            new Destination { Name = "Voyager 1", DistanceMiles = 15_000_000_000, Category = "Space" }
+            new Destination { Name = "Voyager 1", DistanceMiles = 15_000_000_000, Category = "Space" },
+            
+            // Deep Space
+            new Destination { Name = "Horseshoe Nebula", DistanceMiles = 5_500 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
+            new Destination { Name = "Andromeda Galaxy", DistanceMiles = 2_537_000 * PhysicsConstants.LightYearMiles, Category = "Deep Space" }
         };
 
         // Set default to Saturn
@@ -153,6 +157,36 @@ public partial class MainWindowViewModel : ViewModelBase
     public void SetIncreaseHeld(bool held) => _increaseHeld = held;
     public void SetDecreaseHeld(bool held) => _decreaseHeld = held;
     public void SetSlowHeld(bool held) => _slowHeld = held;
+
+    /// <summary>
+    /// Updates the simulation state based on a journey progress percentage (scrubbing).
+    /// Recalculates distance and times based on current speed.
+    /// </summary>
+    /// <param name="percentage">Journey progress percentage (0-100).</param>
+    public void UpdateFromDragPosition(double percentage)
+    {
+        // Clamp percentage to valid range
+        percentage = System.Math.Clamp(percentage, 0.0, 100.0);
+
+        // Calculate new distance based on percentage
+        double newDistance = (percentage / 100.0) * _state.TargetDistanceMiles;
+        _state.DistanceMiles = newDistance;
+
+        // If speed is greater than 0, recalculate times based on distance traveled at current speed
+        if (_state.SpeedMph > 0)
+        {
+            // Calculate Earth time: time = distance / speed
+            double hoursElapsed = newDistance / _state.SpeedMph;
+            double newEarthTimeSeconds = hoursElapsed * 3600.0;
+            _state.EarthTimeSeconds = newEarthTimeSeconds;
+
+            // Calculate Ship time with time dilation at current speed
+            double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
+            double newShipTimeSeconds = newEarthTimeSeconds / lorentzFactor;
+            _state.ShipTimeSeconds = newShipTimeSeconds;
+        }
+        // If speed is 0, don't change times (can't calculate time for zero velocity)
+    }
 
     // Main update loop
     public void Update()
@@ -287,10 +321,51 @@ public partial class MainWindowViewModel : ViewModelBase
         if (double.IsInfinity(totalSeconds) || double.IsNaN(totalSeconds))
             return "N/A";
 
-        var ts = TimeSpan.FromSeconds(totalSeconds);
-        int days = ts.Days;
-        return days > 0
-            ? $"{days}d {ts:hh\\:mm\\:ss}"
-            : ts.ToString("hh\\:mm\\:ss");
+        if (totalSeconds < 0)
+            return "00:00:00";
+
+        // Calculate time units
+        int years = (int)(totalSeconds / (365.25 * 24 * 3600));
+        double remainingSeconds = totalSeconds - (years * 365.25 * 24 * 3600);
+
+        int months = (int)(remainingSeconds / (30.44 * 24 * 3600)); // Average month length
+        remainingSeconds -= months * (30.44 * 24 * 3600);
+
+        int days = (int)(remainingSeconds / (24 * 3600));
+        remainingSeconds -= days * (24 * 3600);
+
+        int hours = (int)(remainingSeconds / 3600);
+        remainingSeconds -= hours * 3600;
+
+        int minutes = (int)(remainingSeconds / 60);
+        remainingSeconds -= minutes * 60;
+
+        int seconds = (int)remainingSeconds;
+
+        // Format based on magnitude - show the two most significant units
+        if (years > 0)
+        {
+            if (months > 0)
+                return $"{years}y {months}mo {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
+            else if (days > 0)
+                return $"{years}y {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
+            else
+                return $"{years}y {hours:D2}:{minutes:D2}:{seconds:D2}";
+        }
+        else if (months > 0)
+        {
+            if (days > 0)
+                return $"{months}mo {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
+            else
+                return $"{months}mo {hours:D2}:{minutes:D2}:{seconds:D2}";
+        }
+        else if (days > 0)
+        {
+            return $"{days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
+        }
+        else
+        {
+            return $"{hours:D2}:{minutes:D2}:{seconds:D2}";
+        }
     }
 }

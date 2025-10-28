@@ -33,12 +33,24 @@ public class SimulationEngine
         // Update speed
         _state.SpeedMph += netDeltaRate * deltaSeconds;
 
-        // Calculate relativistic effects
-        double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
+        // Recalculate times based on current distance and current speed
+        // (assuming we've been traveling at this speed the whole time)
+        if (_state.SpeedMph > 0 && _state.DistanceMiles > 0)
+        {
+            // Calculate Earth time: time = distance / speed
+            double hoursElapsed = _state.DistanceMiles / _state.SpeedMph;
+            _state.EarthTimeSeconds = hoursElapsed * 3600.0;
 
-        // Update time (Earth time and dilated ship time)
-        _state.EarthTimeSeconds += deltaSeconds;
-        _state.ShipTimeSeconds += deltaSeconds / lorentzFactor;
+            // Calculate Ship time with time dilation at current speed
+            double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
+            _state.ShipTimeSeconds = _state.EarthTimeSeconds / lorentzFactor;
+        }
+        else if (_state.SpeedMph <= 0)
+        {
+            // If speed is zero or negative, set times to zero
+            _state.EarthTimeSeconds = 0.0;
+            _state.ShipTimeSeconds = 0.0;
+        }
 
         // Update distance traveled
         _state.DistanceMiles += _state.SpeedMph * (deltaSeconds / 3600.0);
