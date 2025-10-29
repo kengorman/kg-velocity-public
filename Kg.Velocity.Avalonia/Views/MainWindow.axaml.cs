@@ -58,11 +58,11 @@ public partial class MainWindow : Window
 
         switch (e.Key)
         {
-            case Key.X:
+            case Key.W:
                 ViewModel.SetIncreaseHeld(true);
                 e.Handled = true;
                 break;
-            case Key.W:
+            case Key.X:
                 ViewModel.SetDecreaseHeld(true);
                 e.Handled = true;
                 break;
@@ -71,7 +71,14 @@ public partial class MainWindow : Window
                 e.Handled = true;
                 break;
             case Key.Q:
-                Close();
+                if (!ViewModel.IsLaunched)
+                {
+                    ViewModel.Launch();
+                }
+                e.Handled = true;
+                break;
+            case Key.A:
+                ViewModel.Reset();
                 e.Handled = true;
                 break;
         }
@@ -83,11 +90,11 @@ public partial class MainWindow : Window
 
         switch (e.Key)
         {
-            case Key.X:
+            case Key.W:
                 ViewModel.SetIncreaseHeld(false);
                 e.Handled = true;
                 break;
-            case Key.W:
+            case Key.X:
                 ViewModel.SetDecreaseHeld(false);
                 e.Handled = true;
                 break;
@@ -100,7 +107,7 @@ public partial class MainWindow : Window
 
     public void OnSpaceshipPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is Control control && ViewModel != null && _trackContainer != null)
+        if (sender is Control control && ViewModel != null && _trackContainer != null && ViewModel.IsLaunched)
         {
             _isDragging = true;
             control.Cursor = new Cursor(StandardCursorType.Hand);

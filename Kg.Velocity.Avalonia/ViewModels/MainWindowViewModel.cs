@@ -21,6 +21,15 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _decreaseHeld;
     private bool _slowHeld;
 
+    [ObservableProperty]
+    private bool _isAccelerating;
+
+    [ObservableProperty]
+    private bool _isDecelerating;
+
+    [ObservableProperty]
+    private bool _isLaunched;
+
     public MainWindowViewModel()
     {
         _state = new SimulationState();
@@ -130,8 +139,33 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    private double CalculateAccelerationRate(bool increaseHeld, bool decreaseHeld, bool slowHeld)
+    {
+        double netDeltaRate = 0.0;
+
+        if (increaseHeld)
+        {
+            netDeltaRate += 1.0 * System.Math.Exp(PhysicsConstants.ExponentialGrowthRatePerSecond * _state.XHeldSeconds);
+        }
+
+        if (decreaseHeld)
+        {
+            netDeltaRate -= 1.0 * System.Math.Exp(PhysicsConstants.ExponentialGrowthRatePerSecond * _state.WHeldSeconds);
+        }
+
+        if (slowHeld && netDeltaRate != 0.0)
+        {
+            netDeltaRate *= PhysicsConstants.SlowModeModifier;
+        }
+
+        return netDeltaRate;
+    }
+
     private void ResetSimulation(double newTargetMiles)
     {
+        // Reset launch state
+        IsLaunched = false;
+        
         // Reset state
         _state.SpeedMph = 0;
         _state.DistanceMiles = 0;
@@ -154,9 +188,48 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     // Keyboard input methods
-    public void SetIncreaseHeld(bool held) => _increaseHeld = held;
-    public void SetDecreaseHeld(bool held) => _decreaseHeld = held;
+    public void SetIncreaseHeld(bool held)
+    {
+        _increaseHeld = held;
+        IsAccelerating = held;
+    }
+
+    public void SetDecreaseHeld(bool held)
+    {
+        _decreaseHeld = held;
+        IsDecelerating = held;
+    }
+
     public void SetSlowHeld(bool held) => _slowHeld = held;
+
+    public void Launch()
+    {
+        // If speed is zero, set to 1 mph so the simulation can progress
+        if (_state.SpeedMph <= 0)
+        {
+            _state.SpeedMph = 1.0;
+        }
+        
+        IsLaunched = true;
+    }
+
+    public void Reset()
+    {
+        IsLaunched = false;
+        
+        // Reset state
+        _state.SpeedMph = 0;
+        _state.DistanceMiles = 0;
+        _state.EarthTimeSeconds = 0;
+        _state.ShipTimeSeconds = 0;
+        _state.XHeldSeconds = 0;
+        _state.WHeldSeconds = 0;
+
+        // Reset stopwatch and start time
+        _stopwatch.Restart();
+        _lastElapsedSeconds = 0;
+        _startDateTime = DateTime.Now;
+    }
 
     /// <summary>
     /// Updates the simulation state based on a journey progress percentage (scrubbing).
@@ -198,8 +271,28 @@ public partial class MainWindowViewModel : ViewModelBase
         if (deltaSeconds <= 0)
             return;
 
-        // Don't update if destination reached
-        if (!_state.DestinationReached)
+        // Before launch: only update speed, not distance or time
+        if (!IsLaunched)
+        {
+            // Update key hold durations for acceleration
+            _state.XHeldSeconds = _increaseHeld ? _state.XHeldSeconds + deltaSeconds : 0.0;
+            _state.WHeldSeconds = _decreaseHeld ? _state.WHeldSeconds + deltaSeconds : 0.0;
+
+            // Calculate and update speed
+            double netDeltaRate = CalculateAccelerationRate(_increaseHeld, _decreaseHeld, _slowHeld);
+            _state.SpeedMph += netDeltaRate * deltaSeconds;
+            
+            // Ensure speed doesn't go negative
+            if (_state.SpeedMph < 0)
+                _state.SpeedMph = 0;
+            
+            // Keep distance and times at zero
+            _state.DistanceMiles = 0;
+            _state.EarthTimeSeconds = 0;
+            _state.ShipTimeSeconds = 0;
+        }
+        // After launch: run full simulation
+        else if (!_state.DestinationReached)
         {
             // Update simulation
             _engine.Update(deltaSeconds, _increaseHeld, _decreaseHeld, _slowHeld);

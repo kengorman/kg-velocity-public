@@ -19,6 +19,7 @@
 
     <Window.Resources>
         <converters:ProgressToMarginConverter x:Key="ProgressToMarginConverter"/>
+        <converters:AccelerationStateToColorConverter x:Key="AccelerationStateToColorConverter"/>
     </Window.Resources>
 
     <Grid Margin="20">
@@ -86,6 +87,7 @@
                             <ComboBox Grid.Row="1" Grid.Column="1"
                                       ItemsSource="{Binding Destinations}"
                                       SelectedItem="{Binding SelectedDestination}"
+                                      IsEnabled="{Binding !IsLaunched}"
                                       FontSize="13"
                                       Background="#0a0e1a"
                                       Foreground="#e0e6ed"
@@ -111,13 +113,28 @@
                         BorderThickness="1">
                     <Grid RowDefinitions="Auto,Auto,Auto">
                         <!-- Header -->
-                        <TextBlock Grid.Row="0" 
-                                   Text="PROGRESS" 
-                                   FontSize="11" 
-                                   FontWeight="SemiBold"
-                                   Foreground="#4fc3f7"
-                                   LetterSpacing="1"
-                                   Margin="0,0,0,8"/>
+                        <StackPanel Grid.Row="0" 
+                                    Orientation="Horizontal" 
+                                    Spacing="8"
+                                    Margin="0,0,0,8">
+                            <TextBlock Text="PROGRESS" 
+                                       FontSize="11" 
+                                       FontWeight="SemiBold"
+                                       Foreground="#4fc3f7"
+                                       LetterSpacing="1"/>
+                            <TextBlock Text="Pre-Launch" 
+                                       FontSize="11" 
+                                       FontWeight="SemiBold"
+                                       Foreground="#ffa726"
+                                       LetterSpacing="1"
+                                       IsVisible="{Binding !IsLaunched}"/>
+                            <TextBlock Text="In-Flight" 
+                                       FontSize="11" 
+                                       FontWeight="SemiBold"
+                                       Foreground="#69f0ae"
+                                       LetterSpacing="1"
+                                       IsVisible="{Binding IsLaunched}"/>
+                        </StackPanel>
                         
                         <!-- Progress Track -->
                         <Grid Grid.Row="1" Height="40" Margin="0,0,0,6">
@@ -208,8 +225,9 @@
                                     <Run Text="{Binding JourneyProgressPercentage, StringFormat='{}{0:F1}%'}"/>
                                     <Run Text=")" Foreground="#78909c"/>
                                 </TextBlock>
-                                <TextBlock FontSize="10"
+                                <TextBlock FontSize="13"
                                            Foreground="#69f0ae"
+                                           FontWeight="SemiBold"
                                            HorizontalAlignment="Center">
                                     <Run Text="ETA: " Foreground="#78909c"/>
                                     <Run Text="{Binding EstimatedTimeOfArrival}"/>
@@ -232,23 +250,41 @@
                         BorderBrush="#1e2a47"
                         BorderThickness="1">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="VELOCITY" 
-                                   FontSize="11" 
-                                   FontWeight="SemiBold"
-                                   Foreground="#4fc3f7"
-                                   LetterSpacing="1"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="VELOCITY" 
+                                       FontSize="11" 
+                                       FontWeight="SemiBold"
+                                       Foreground="#4fc3f7"
+                                       LetterSpacing="1"/>
+                            <TextBlock Text="(Q to launch)" 
+                                       FontSize="11" 
+                                       FontWeight="SemiBold"
+                                       Foreground="#69f0ae"
+                                       LetterSpacing="1"
+                                       IsVisible="{Binding !IsLaunched}"/>
+                        </StackPanel>
                         <StackPanel Spacing="4">
                             <TextBlock FontSize="13">
-                                <Run Text="Speed: " Foreground="#9fa8b8"/>
+                                <TextBlock.Foreground>
+                                    <MultiBinding Converter="{StaticResource AccelerationStateToColorConverter}">
+                                        <Binding Path="IsAccelerating"/>
+                                        <Binding Path="IsDecelerating"/>
+                                    </MultiBinding>
+                                </TextBlock.Foreground>
+                                <Run Text="Speed: "/>
                                 <Run Text="{Binding SpeedMph, StringFormat='{}{0:N0} mph'}" 
-                                     FontWeight="Bold" 
-                                     Foreground="#e0e6ed"/>
+                                     FontWeight="Bold"/>
                             </TextBlock>
                             <TextBlock FontSize="13">
-                                <Run Text="Percentage of light speed: " Foreground="#9fa8b8"/>
+                                <TextBlock.Foreground>
+                                    <MultiBinding Converter="{StaticResource AccelerationStateToColorConverter}">
+                                        <Binding Path="IsAccelerating"/>
+                                        <Binding Path="IsDecelerating"/>
+                                    </MultiBinding>
+                                </TextBlock.Foreground>
+                                <Run Text="Percentage of light speed: "/>
                                 <Run Text="{Binding PercentageOfLightSpeed, StringFormat='{}{0:F6}%'}" 
-                                     FontWeight="Bold" 
-                                     Foreground="#4fc3f7"/>
+                                     FontWeight="Bold"/>
                             </TextBlock>
                         </StackPanel>
                     </StackPanel>
@@ -409,11 +445,12 @@
                             VerticalAlignment="Center"
                             Spacing="2">
                     <TextBlock Text="TIME DILATION" 
-                               FontSize="9" 
+                               FontSize="10" 
                                FontWeight="SemiBold"
                                Foreground="#4fc3f7"
                                LetterSpacing="1"/>
-                    <TextBlock FontSize="11"
+                    <TextBlock FontSize="14"
+                               FontWeight="SemiBold"
                                Foreground="#9fa8b8">
                         <Run Text="Difference: " Foreground="#78909c"/>
                         <Run Text="{Binding TimeDifference}" Foreground="#69f0ae"/>
@@ -432,11 +469,11 @@
                                 HorizontalAlignment="Center" 
                                 Spacing="20">
                         <TextBlock FontSize="12">
-                            <Run Text="X" FontWeight="Bold" Foreground="#4fc3f7"/>
+                            <Run Text="W" FontWeight="Bold" Foreground="#4fc3f7"/>
                             <Run Text=" Accelerate" Foreground="#9fa8b8"/>
                         </TextBlock>
                         <TextBlock FontSize="12">
-                            <Run Text="W" FontWeight="Bold" Foreground="#4fc3f7"/>
+                            <Run Text="X" FontWeight="Bold" Foreground="#4fc3f7"/>
                             <Run Text=" Decelerate" Foreground="#9fa8b8"/>
                         </TextBlock>
                         <TextBlock FontSize="12">
@@ -445,7 +482,11 @@
                         </TextBlock>
                         <TextBlock FontSize="12">
                             <Run Text="Q" FontWeight="Bold" Foreground="#4fc3f7"/>
-                            <Run Text=" Quit" Foreground="#9fa8b8"/>
+                            <Run Text=" Launch" Foreground="#9fa8b8"/>
+                        </TextBlock>
+                        <TextBlock FontSize="12">
+                            <Run Text="A" FontWeight="Bold" Foreground="#4fc3f7"/>
+                            <Run Text=" Reset" Foreground="#9fa8b8"/>
                         </TextBlock>
                     </StackPanel>
                 </StackPanel>

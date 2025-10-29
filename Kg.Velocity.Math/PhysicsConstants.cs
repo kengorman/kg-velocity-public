@@ -25,9 +25,9 @@ public static class PhysicsConstants
 
     /// <summary>
     /// Exponential growth rate for acceleration per second.
-    /// ~= ln(2)/2, which doubles speed approximately every 2 seconds when key is held.
+    /// ~= ln(2)/0.75, which doubles speed approximately every 0.75 seconds when key is held.
     /// </summary>
-    public const double ExponentialGrowthRatePerSecond = 0.346573590379;
+    public const double ExponentialGrowthRatePerSecond = 0.924196240747;
 
     /// <summary>
     /// Modifier for slow mode - reduces acceleration rate by this factor.
