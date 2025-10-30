@@ -65,8 +65,8 @@ public partial class MainWindowViewModel : ViewModelBase
             new Destination { Name = "Andromeda Galaxy", DistanceMiles = 2_537_000 * PhysicsConstants.LightYearMiles, Category = "Deep Space" }
         };
 
-        // Set default to Saturn
-        SelectedDestination = Destinations.FirstOrDefault(d => d.Name == "Saturn");
+        // Start with no destination selected
+        SelectedDestination = null;
     }
 
     // Simulation update properties
@@ -130,6 +130,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _timeDifference = "0s";
 
+    [ObservableProperty]
+    private string _journeySummary = "";
+
     partial void OnSelectedDestinationChanged(Destination? value)
     {
         if (value != null)
@@ -163,7 +166,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void ResetSimulation(double newTargetMiles)
     {
-        // Reset launch state
+        // Reset launch state (but NOT destination - that stays selected)
         IsLaunched = false;
         
         // Reset state
@@ -224,6 +227,9 @@ public partial class MainWindowViewModel : ViewModelBase
         _state.ShipTimeSeconds = 0;
         _state.XHeldSeconds = 0;
         _state.WHeldSeconds = 0;
+
+        // Clear destination selection
+        SelectedDestination = null;
 
         // Reset stopwatch and start time
         _stopwatch.Restart();
@@ -328,6 +334,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // Calculate time difference
         TimeDifference = CalculateTimeDifference();
+
+        // Update journey summary
+        JourneySummary = GenerateJourneySummary();
     }
 
     private string CalculateTimeDifference()
@@ -406,6 +415,42 @@ public partial class MainWindowViewModel : ViewModelBase
         else
         {
             return $"{minutes}m";
+        }
+    }
+
+    private string GenerateJourneySummary()
+    {
+        // Handle no destination selected
+        if (SelectedDestination == null)
+        {
+            return "Select a destination and adjust your speed using W (accelerate) and X (decelerate). Press Q when ready to launch.";
+        }
+
+        string destinationName = SelectedDestination.Name;
+        string speedText = $"{SpeedMph:N0} mph";
+        string percentLight = $"{PercentageOfLightSpeed:F6}%";
+
+        if (!IsLaunched)
+        {
+            // Pre-launch summary
+            return $"Prepare to travel to {destinationName}. Current speed: {speedText} ({percentLight} the speed of light).";
+        }
+        else
+        {
+            // In-flight summary
+            string etaText = EstimatedTimeOfArrival != "N/A" ? $"You will arrive in {EstimatedTimeOfArrival}." : "Arrival time unknown.";
+            string timeDiffText = TimeDifference != "0s" && TimeDifference != "0ms" 
+                ? $"Your ship's clock is {TimeDifference} slower than Earth time." 
+                : "No time dilation yet.";
+
+            if (DestinationReached)
+            {
+                return $"You have arrived at {destinationName}! Final speed: {speedText} ({percentLight} the speed of light). {timeDiffText}";
+            }
+            else
+            {
+                return $"You are travelling to {destinationName} at {speedText} ({percentLight} the speed of light). {etaText} {timeDiffText}";
+            }
         }
     }
 
