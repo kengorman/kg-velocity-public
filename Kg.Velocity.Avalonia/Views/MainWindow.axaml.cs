@@ -107,7 +107,8 @@ public partial class MainWindow : Window
 
     public void OnSpaceshipPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is Control control && ViewModel != null && _trackContainer != null && ViewModel.IsLaunched)
+        if (sender is Control control && ViewModel != null && _trackContainer != null && 
+            ViewModel.IsLaunched && !ViewModel.DestinationReached)
         {
             _isDragging = true;
             control.Cursor = new Cursor(StandardCursorType.Hand);

@@ -148,12 +148,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (increaseHeld)
         {
-            netDeltaRate += 1.0 * System.Math.Exp(PhysicsConstants.ExponentialGrowthRatePerSecond * _state.XHeldSeconds);
+            netDeltaRate += 1.0 * System.Math.Exp(PhysicsConstants.ExponentialGrowthRatePerSecond * _state.WHeldSeconds);
         }
 
         if (decreaseHeld)
         {
-            netDeltaRate -= 1.0 * System.Math.Exp(PhysicsConstants.ExponentialGrowthRatePerSecond * _state.WHeldSeconds);
+            netDeltaRate -= 1.0 * System.Math.Exp(PhysicsConstants.ExponentialGrowthRatePerSecond * _state.XHeldSeconds);
         }
 
         if (slowHeld && netDeltaRate != 0.0)
@@ -174,8 +174,8 @@ public partial class MainWindowViewModel : ViewModelBase
         _state.DistanceMiles = 0;
         _state.EarthTimeSeconds = 0;
         _state.ShipTimeSeconds = 0;
-        _state.XHeldSeconds = 0;
         _state.WHeldSeconds = 0;
+        _state.XHeldSeconds = 0;
 
         // Update target distance in state
         _state.UpdateTargetDistance(newTargetMiles);
@@ -193,17 +193,32 @@ public partial class MainWindowViewModel : ViewModelBase
     // Keyboard input methods
     public void SetIncreaseHeld(bool held)
     {
+        // Ignore input if destination reached
+        if (_state.DestinationReached)
+            return;
+            
         _increaseHeld = held;
         IsAccelerating = held;
     }
 
     public void SetDecreaseHeld(bool held)
     {
+        // Ignore input if destination reached
+        if (_state.DestinationReached)
+            return;
+            
         _decreaseHeld = held;
         IsDecelerating = held;
     }
 
-    public void SetSlowHeld(bool held) => _slowHeld = held;
+    public void SetSlowHeld(bool held)
+    {
+        // Ignore input if destination reached
+        if (_state.DestinationReached)
+            return;
+            
+        _slowHeld = held;
+    }
 
     public void Launch()
     {
@@ -225,8 +240,8 @@ public partial class MainWindowViewModel : ViewModelBase
         _state.DistanceMiles = 0;
         _state.EarthTimeSeconds = 0;
         _state.ShipTimeSeconds = 0;
-        _state.XHeldSeconds = 0;
         _state.WHeldSeconds = 0;
+        _state.XHeldSeconds = 0;
 
         // Clear destination selection
         SelectedDestination = null;
@@ -277,12 +292,17 @@ public partial class MainWindowViewModel : ViewModelBase
         if (deltaSeconds <= 0)
             return;
 
+        // If destination reached, freeze all calculations
+        if (_state.DestinationReached)
+        {
+            // Do nothing - keep all values frozen until reset
+        }
         // Before launch: only update speed, not distance or time
-        if (!IsLaunched)
+        else if (!IsLaunched)
         {
             // Update key hold durations for acceleration
-            _state.XHeldSeconds = _increaseHeld ? _state.XHeldSeconds + deltaSeconds : 0.0;
-            _state.WHeldSeconds = _decreaseHeld ? _state.WHeldSeconds + deltaSeconds : 0.0;
+            _state.WHeldSeconds = _increaseHeld ? _state.WHeldSeconds + deltaSeconds : 0.0;
+            _state.XHeldSeconds = _decreaseHeld ? _state.XHeldSeconds + deltaSeconds : 0.0;
 
             // Calculate and update speed
             double netDeltaRate = CalculateAccelerationRate(_increaseHeld, _decreaseHeld, _slowHeld);
@@ -298,7 +318,7 @@ public partial class MainWindowViewModel : ViewModelBase
             _state.ShipTimeSeconds = 0;
         }
         // After launch: run full simulation
-        else if (!_state.DestinationReached)
+        else
         {
             // Update simulation
             _engine.Update(deltaSeconds, _increaseHeld, _decreaseHeld, _slowHeld);

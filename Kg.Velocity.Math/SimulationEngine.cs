@@ -24,8 +24,8 @@ public class SimulationEngine
         if (deltaSeconds <= 0) return;
 
         // Update key hold durations
-        _state.XHeldSeconds = increaseHeld ? _state.XHeldSeconds + deltaSeconds : 0.0;
-        _state.WHeldSeconds = decreaseHeld ? _state.WHeldSeconds + deltaSeconds : 0.0;
+        _state.WHeldSeconds = increaseHeld ? _state.WHeldSeconds + deltaSeconds : 0.0;
+        _state.XHeldSeconds = decreaseHeld ? _state.XHeldSeconds + deltaSeconds : 0.0;
 
         // Calculate acceleration/deceleration rate
         double netDeltaRate = CalculateAccelerationRate(increaseHeld, decreaseHeld, slowHeld);
@@ -69,12 +69,12 @@ public class SimulationEngine
 
         if (increaseHeld)
         {
-            netDeltaRate += 1.0 * System.Math.Exp(PhysicsConstants.ExponentialGrowthRatePerSecond * _state.XHeldSeconds);
+            netDeltaRate += 1.0 * System.Math.Exp(PhysicsConstants.ExponentialGrowthRatePerSecond * _state.WHeldSeconds);
         }
 
         if (decreaseHeld)
         {
-            netDeltaRate -= 1.0 * System.Math.Exp(PhysicsConstants.ExponentialGrowthRatePerSecond * _state.WHeldSeconds);
+            netDeltaRate -= 1.0 * System.Math.Exp(PhysicsConstants.ExponentialGrowthRatePerSecond * _state.XHeldSeconds);
         }
 
         if (slowHeld && netDeltaRate != 0.0)

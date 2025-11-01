@@ -77,7 +77,18 @@
                                          BorderBrush="#1e2a47"
                                          BorderThickness="1"
                                          Padding="8,5"
-                                         CornerRadius="4"/>
+                                         CornerRadius="4">
+                                    <TextBox.Styles>
+                                        <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+                                            <Setter Property="Background" Value="#0a0e1a"/>
+                                            <Setter Property="BorderBrush" Value="#1e2a47"/>
+                                        </Style>
+                                        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+                                            <Setter Property="Background" Value="#0a0e1a"/>
+                                            <Setter Property="BorderBrush" Value="#4fc3f7"/>
+                                        </Style>
+                                    </TextBox.Styles>
+                                </TextBox>
                                 
                                 <!-- Going To -->
                                 <TextBlock Grid.Row="1" Grid.Column="0" 
@@ -90,6 +101,7 @@
                                           ItemsSource="{Binding Destinations}"
                                           SelectedItem="{Binding SelectedDestination}"
                                           PlaceholderText="Select Destination"
+                                          PlaceholderForeground="#9fa8b8"
                                           IsEnabled="{Binding !IsLaunched}"
                                           FontSize="13"
                                           Background="#0a0e1a"
@@ -98,6 +110,36 @@
                                           BorderThickness="1"
                                           Padding="8,5"
                                           CornerRadius="4">
+                                    <ComboBox.Styles>
+                                        <!-- ComboBox hover state -->
+                                        <Style Selector="ComboBox:pointerover /template/ Border#Background">
+                                            <Setter Property="Background" Value="#0a0e1a"/>
+                                            <Setter Property="BorderBrush" Value="#1e2a47"/>
+                                        </Style>
+                                        <Style Selector="ComboBox:pointerover /template/ Border#HighlightBackground">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                        </Style>
+                                        <!-- Dropdown items -->
+                                        <Style Selector="ComboBoxItem">
+                                            <Setter Property="Background" Value="#0a0e1a"/>
+                                            <Setter Property="Foreground" Value="#e0e6ed"/>
+                                            <Setter Property="Padding" Value="8,5"/>
+                                        </Style>
+                                        <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
+                                            <Setter Property="Background" Value="#1e2a47"/>
+                                            <Setter Property="Foreground" Value="#e0e6ed"/>
+                                        </Style>
+                                        <Style Selector="ComboBoxItem:selected /template/ ContentPresenter">
+                                            <Setter Property="Background" Value="#1e2a47"/>
+                                            <Setter Property="Foreground" Value="#4fc3f7"/>
+                                        </Style>
+                                        <Style Selector="ComboBox /template/ TextBlock#PlaceholderTextBlock">
+                                            <Setter Property="Foreground" Value="#9fa8b8"/>
+                                        </Style>
+                                        <Style Selector="ComboBox /template/ ContentControl#ContentPresenter">
+                                            <Setter Property="Foreground" Value="#e0e6ed"/>
+                                        </Style>
+                                    </ComboBox.Styles>
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding DisplayName}"/>
@@ -434,15 +476,16 @@
                 <!-- Destination Reached Message -->
                 <Border Background="#1b5e20" 
                         CornerRadius="8" 
-                        Padding="12"
+                        Padding="10,8"
                         BorderBrush="#2e7d32"
                         BorderThickness="2"
                         IsVisible="{Binding DestinationReached}">
                     <TextBlock Text="🎯 DESTINATION REACHED!" 
-                               FontSize="16" 
+                               FontSize="14" 
                                FontWeight="Bold"
                                Foreground="#69f0ae"
-                               HorizontalAlignment="Center"/>
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
                 </Border>
 
             </StackPanel>

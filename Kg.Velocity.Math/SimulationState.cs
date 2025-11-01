@@ -26,14 +26,14 @@ public class SimulationState
     public double ShipTimeSeconds { get; set; }
 
     /// <summary>
-    /// Duration X key has been held in seconds.
-    /// </summary>
-    public double XHeldSeconds { get; set; }
-
-    /// <summary>
-    /// Duration W key has been held in seconds.
+    /// Duration W key has been held in seconds (acceleration).
     /// </summary>
     public double WHeldSeconds { get; set; }
+
+    /// <summary>
+    /// Duration X key has been held in seconds (deceleration).
+    /// </summary>
+    public double XHeldSeconds { get; set; }
 
     /// <summary>
     /// Target distance in miles.
