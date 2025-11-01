@@ -20,6 +20,7 @@
     <Window.Resources>
         <converters:ProgressToMarginConverter x:Key="ProgressToMarginConverter"/>
         <converters:AccelerationStateToColorConverter x:Key="AccelerationStateToColorConverter"/>
+        <converters:LaunchedToForegroundConverter x:Key="LaunchedToForegroundConverter"/>
     </Window.Resources>
 
     <Grid Margin="20">
@@ -69,26 +70,17 @@
                                            Foreground="#9fa8b8"
                                            VerticalAlignment="Center"
                                            Margin="0,0,12,0"/>
-                                <TextBox Grid.Row="0" Grid.Column="1"
-                                         Text="{Binding StartingLocation}"
-                                         FontSize="13"
-                                         Background="#0a0e1a"
-                                         Foreground="#e0e6ed"
-                                         BorderBrush="#1e2a47"
-                                         BorderThickness="1"
-                                         Padding="8,5"
-                                         CornerRadius="4">
-                                    <TextBox.Styles>
-                                        <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-                                            <Setter Property="Background" Value="#0a0e1a"/>
-                                            <Setter Property="BorderBrush" Value="#1e2a47"/>
-                                        </Style>
-                                        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-                                            <Setter Property="Background" Value="#0a0e1a"/>
-                                            <Setter Property="BorderBrush" Value="#4fc3f7"/>
-                                        </Style>
-                                    </TextBox.Styles>
-                                </TextBox>
+                                <Border Grid.Row="0" Grid.Column="1"
+                                        Background="#0a0e1a"
+                                        BorderBrush="#1e2a47"
+                                        BorderThickness="1"
+                                        Padding="8,5"
+                                        CornerRadius="4">
+                                    <TextBlock Text="{Binding StartingLocation}"
+                                               FontSize="13"
+                                               VerticalAlignment="Center"
+                                               Foreground="{Binding IsLaunched, Converter={StaticResource LaunchedToForegroundConverter}}"/>
+                                </Border>
                                 
                                 <!-- Going To -->
                                 <TextBlock Grid.Row="1" Grid.Column="0" 
@@ -118,6 +110,14 @@
                                         </Style>
                                         <Style Selector="ComboBox:pointerover /template/ Border#HighlightBackground">
                                             <Setter Property="Background" Value="Transparent"/>
+                                        </Style>
+                                        <!-- ComboBox disabled state -->
+                                        <Style Selector="ComboBox:disabled /template/ Border#Background">
+                                            <Setter Property="Background" Value="#0a0e1a"/>
+                                            <Setter Property="BorderBrush" Value="#1e2a47"/>
+                                        </Style>
+                                        <Style Selector="ComboBox:disabled /template/ ContentControl#ContentPresenter">
+                                            <Setter Property="Foreground" Value="#9fa8b8"/>
                                         </Style>
                                         <!-- Dropdown items -->
                                         <Style Selector="ComboBoxItem">
@@ -471,6 +471,21 @@
                             </StackPanel>
                         </Grid>
                     </StackPanel>
+                </Border>
+
+                <!-- No Destination Warning -->
+                <Border Background="#bf360c" 
+                        CornerRadius="8" 
+                        Padding="10,8"
+                        BorderBrush="#d84315"
+                        BorderThickness="2"
+                        IsVisible="{Binding ShowNoDestinationWarning}">
+                    <TextBlock Text="⚠ Please select a destination before launching!" 
+                               FontSize="14" 
+                               FontWeight="Bold"
+                               Foreground="#ff9e80"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
                 </Border>
 
                 <!-- Destination Reached Message -->

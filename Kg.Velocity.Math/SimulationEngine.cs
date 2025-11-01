@@ -32,6 +32,10 @@ public class SimulationEngine
 
         // Update speed
         _state.SpeedMph += netDeltaRate * deltaSeconds;
+        
+        // Ensure speed doesn't go negative
+        if (_state.SpeedMph < 0)
+            _state.SpeedMph = 0;
 
         // Recalculate times based on current distance and current speed
         // (assuming we've been traveling at this speed the whole time)

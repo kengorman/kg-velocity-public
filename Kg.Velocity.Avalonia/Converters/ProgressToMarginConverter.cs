@@ -18,8 +18,13 @@ public class ProgressToMarginConverter : IMultiValueConverter
             values[1] is double trackWidth && 
             trackWidth > 0)
         {
-            // Calculate position: percentage of track width
-            double position = (percentage / 100.0) * trackWidth;
+            // Reserve space at the end for the rocket icon (about 15px)
+            // This prevents the rocket from overlapping the destination text
+            const double rocketReservedSpace = 15.0;
+            double usableWidth = System.Math.Max(0, trackWidth - rocketReservedSpace);
+            
+            // Calculate position: percentage of usable track width
+            double position = (percentage / 100.0) * usableWidth;
             return position;
         }
         return 0.0;

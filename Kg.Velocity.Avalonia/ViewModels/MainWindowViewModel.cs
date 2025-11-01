@@ -30,6 +30,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isLaunched;
 
+    [ObservableProperty]
+    private bool _showNoDestinationWarning;
+
     public MainWindowViewModel()
     {
         _state = new SimulationState();
@@ -137,6 +140,9 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (value != null)
         {
+            // Clear warning when destination is selected
+            ShowNoDestinationWarning = false;
+            
             // Reset simulation when destination changes
             ResetSimulation(value.DistanceMiles);
         }
@@ -222,6 +228,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void Launch()
     {
+        // Check if destination is selected
+        if (SelectedDestination == null)
+        {
+            ShowNoDestinationWarning = true;
+            return;
+        }
+        
+        // Clear warning if it was showing
+        ShowNoDestinationWarning = false;
+        
         // If speed is zero, set to 1 mph so the simulation can progress
         if (_state.SpeedMph <= 0)
         {
@@ -453,7 +469,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (!IsLaunched)
         {
             // Pre-launch summary
-            return $"Prepare to travel to {destinationName}. Current speed: {speedText} ({percentLight} the speed of light).";
+            return $"Prepare to travel to {destinationName}. Current speed: {speedText} ({percentLight} the speed of light). Press Q when ready to launch.";
         }
         else
         {
@@ -465,7 +481,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             if (DestinationReached)
             {
-                return $"You have arrived at {destinationName}! Final speed: {speedText} ({percentLight} the speed of light). {timeDiffText}";
+                return $"You have arrived at {destinationName}! Final speed: {speedText} ({percentLight} the speed of light). {timeDiffText} Press A to reset.";
             }
             else
             {
