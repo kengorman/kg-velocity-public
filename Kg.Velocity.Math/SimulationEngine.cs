@@ -37,26 +37,17 @@ public class SimulationEngine
         if (_state.SpeedMph < 0)
             _state.SpeedMph = 0;
 
-        // Recalculate times based on current distance and current speed
-        // (assuming we've been traveling at this speed the whole time)
-        if (_state.SpeedMph > 0 && _state.DistanceMiles > 0)
-        {
-            // Calculate Earth time: time = distance / speed
-            double hoursElapsed = _state.DistanceMiles / _state.SpeedMph;
-            _state.EarthTimeSeconds = hoursElapsed * 3600.0;
+        // Accumulate Earth time (proper incremental tracking)
+        _state.EarthTimeSeconds += deltaSeconds;
 
-            // Calculate Ship time with time dilation at current speed
-            double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
-            _state.ShipTimeSeconds = _state.EarthTimeSeconds / lorentzFactor;
-        }
-        else if (_state.SpeedMph <= 0)
-        {
-            // If speed is zero or negative, set times to zero
-            _state.EarthTimeSeconds = 0.0;
-            _state.ShipTimeSeconds = 0.0;
-        }
+        // Calculate time dilation for this frame at current speed
+        double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
+        double shipDeltaTime = deltaSeconds / lorentzFactor;
+        
+        // Accumulate Ship time with time dilation
+        _state.ShipTimeSeconds += shipDeltaTime;
 
-        // Update distance traveled
+        // Update distance traveled at current speed
         _state.DistanceMiles += _state.SpeedMph * (deltaSeconds / 3600.0);
         
         // Ensure distance doesn't go negative

@@ -1,15 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
-using CommunityToolkit.Mvvm.ComponentModel;
 using Kg.Velocity.Math;
 using Kg.Velocity.Shared.Models;
 
-namespace Kg.Velocity.Avalonia.ViewModels;
+namespace Kg.Velocity.Blazor.ViewModels;
 
-public partial class MainWindowViewModel : ViewModelBase
+public class MainViewModel
 {
     private readonly SimulationState _state;
     private readonly SimulationEngine _engine;
@@ -24,27 +22,20 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _decreaseHeld;
     private bool _slowHeld;
 
-    [ObservableProperty]
-    private bool _isAccelerating;
+    // Event to notify UI of state changes
+    public event Action? StateChanged;
 
-    [ObservableProperty]
-    private bool _isDecelerating;
-
-    [ObservableProperty]
-    private bool _isLaunched;
-
-    [ObservableProperty]
-    private bool _showNoDestinationWarning;
-
-    public MainWindowViewModel()
+    public MainViewModel()
     {
         _state = new SimulationState();
         _engine = new SimulationEngine(_state);
         _stopwatch = Stopwatch.StartNew();
         _startDateTime = DateTime.Now;
 
-        // Initialize destinations
         InitializeDestinations();
+        
+        // Initialize all display properties before first render
+        Update();
     }
 
     private void InitializeDestinations()
@@ -71,91 +62,55 @@ public partial class MainWindowViewModel : ViewModelBase
             new Destination { Name = "Andromeda Galaxy", DistanceMiles = 2_537_000 * PhysicsConstants.LightYearMiles, Category = "Deep Space" }
         };
 
-        // Start with no destination selected
         SelectedDestination = null;
     }
 
-    // Simulation update properties
-    [ObservableProperty]
-    private double _speedMph;
-
-    [ObservableProperty]
-    private double _percentageOfLightSpeed;
-
-    [ObservableProperty]
-    private double _lorentzFactor;
-
-    [ObservableProperty]
-    private double _shipClockRate;
-
-    [ObservableProperty]
-    private double _distanceMiles;
-
-    [ObservableProperty]
-    private double _distanceLightYears;
-
-    [ObservableProperty]
-    private double _remainingMiles;
-
-    [ObservableProperty]
-    private double _remainingLightYears;
-
-    [ObservableProperty]
-    private string _earthTimeElapsed = "00:00:00";
-
-    [ObservableProperty]
-    private string _shipTimeElapsed = "00:00:00";
-
-    [ObservableProperty]
-    private string _earthDateTime = "";
-
-    [ObservableProperty]
-    private string _shipDateTime = "";
-
-    [ObservableProperty]
-    private bool _destinationReached;
-
-    [ObservableProperty]
-    private double _targetDistanceLightYears = PhysicsConstants.TargetDistanceLightYears;
-
-    // Journey configuration
-    [ObservableProperty]
-    private string _startingLocation = "New York, USA";
-
-    public ObservableCollection<Destination> Destinations { get; private set; } = new();
-
-    [ObservableProperty]
+    // Properties
+    public bool IsAccelerating { get; set; }
+    public bool IsDecelerating { get; set; }
+    public bool IsLaunched { get; set; }
+    public bool ShowNoDestinationWarning { get; set; }
+    public double SpeedMph { get; set; }
+    public double PercentageOfLightSpeed { get; set; }
+    public double LorentzFactor { get; set; }
+    public double ShipClockRate { get; set; }
+    public double DistanceMiles { get; set; }
+    public double DistanceLightYears { get; set; }
+    public double RemainingMiles { get; set; }
+    public double RemainingLightYears { get; set; }
+    public string EarthTimeElapsed { get; set; } = "00:00:00";
+    public string ShipTimeElapsed { get; set; } = "00:00:00";
+    public string EarthDateTime { get; set; } = "";
+    public string ShipDateTime { get; set; } = "";
+    public bool DestinationReached { get; set; }
+    public double TargetDistanceLightYears { get; set; } = PhysicsConstants.TargetDistanceLightYears;
+    public string StartingLocation { get; set; } = "New York, USA";
+    public ObservableCollection<Destination> Destinations { get; set; } = new();
+    
     private Destination? _selectedDestination;
-
-    [ObservableProperty]
-    private double _journeyProgressPercentage; // 0.0 to 100.0 for display
-
-    [ObservableProperty]
-    private string _estimatedTimeOfArrival = "N/A";
-
-    [ObservableProperty]
-    private string _timeDifference = "0s";
-
-    [ObservableProperty]
-    private string _journeySummary = "";
-
-    [ObservableProperty]
-    private double _averageSpeedMph;
-
-    [ObservableProperty]
-    private double _averageSpeedPercentLight;
-
-    partial void OnSelectedDestinationChanged(Destination? value)
+    public Destination? SelectedDestination
     {
-        if (value != null)
+        get => _selectedDestination;
+        set
         {
-            // Clear warning when destination is selected
-            ShowNoDestinationWarning = false;
-            
-            // Reset simulation when destination changes
-            ResetSimulation(value.DistanceMiles);
+            _selectedDestination = value;
+            if (value != null)
+            {
+                ShowNoDestinationWarning = false;
+                ResetSimulation(value.DistanceMiles);
+                NotifyStateChanged();
+            }
         }
     }
+    
+    public double JourneyProgressPercentage { get; set; }
+    public string EstimatedTimeOfArrival { get; set; } = "N/A";
+    public string TimeDifference { get; set; } = "0s";
+    public string JourneySummary { get; set; } = "";
+    public double AverageSpeedMph { get; set; }
+    public double AverageSpeedPercentLight { get; set; }
+
+    private void NotifyStateChanged() => StateChanged?.Invoke();
 
     private double CalculateAccelerationRate(bool increaseHeld, bool decreaseHeld, bool slowHeld)
     {
@@ -181,10 +136,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void ResetSimulation(double newTargetMiles)
     {
-        // Reset launch state (but NOT destination - that stays selected)
         IsLaunched = false;
         
-        // Reset state
         _state.SpeedMph = 0;
         _state.DistanceMiles = 0;
         _state.EarthTimeSeconds = 0;
@@ -192,14 +145,11 @@ public partial class MainWindowViewModel : ViewModelBase
         _state.WHeldSeconds = 0;
         _state.XHeldSeconds = 0;
 
-        // Update target distance in state
         _state.UpdateTargetDistance(newTargetMiles);
         
-        // Update display value
         double newTargetLightYears = newTargetMiles / PhysicsConstants.LightYearMiles;
         TargetDistanceLightYears = newTargetLightYears;
 
-        // Reset stopwatch and start time
         _stopwatch.Restart();
         _lastElapsedSeconds = 0;
         _startDateTime = DateTime.Now;
@@ -207,10 +157,8 @@ public partial class MainWindowViewModel : ViewModelBase
         _timeSinceLastTimeDiffUpdate = 0.0;
     }
 
-    // Keyboard input methods
     public void SetIncreaseHeld(bool held)
     {
-        // Ignore input if no destination selected or destination reached
         if (SelectedDestination == null || _state.DestinationReached)
             return;
             
@@ -220,7 +168,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void SetDecreaseHeld(bool held)
     {
-        // Ignore input if no destination selected or destination reached
         if (SelectedDestination == null || _state.DestinationReached)
             return;
             
@@ -230,7 +177,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void SetSlowHeld(bool held)
     {
-        // Ignore input if no destination selected or destination reached
         if (SelectedDestination == null || _state.DestinationReached)
             return;
             
@@ -239,17 +185,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void Launch()
     {
-        // Check if destination is selected
         if (SelectedDestination == null)
         {
             ShowNoDestinationWarning = true;
+            NotifyStateChanged();
             return;
         }
         
-        // Clear warning if it was showing
         ShowNoDestinationWarning = false;
         
-        // If speed is zero, set to 1 mph so the simulation can progress
         if (_state.SpeedMph <= 0)
         {
             _state.SpeedMph = 1.0;
@@ -257,16 +201,16 @@ public partial class MainWindowViewModel : ViewModelBase
         
         IsLaunched = true;
         
-        // Force immediate calculation on launch
-        _timeSinceLastAverageUpdate = 1.0; // Force immediate average speed calculation
-        _timeSinceLastTimeDiffUpdate = 1.0; // Force immediate time difference calculation
+        _timeSinceLastAverageUpdate = 1.0;
+        _timeSinceLastTimeDiffUpdate = 1.0;
+        
+        NotifyStateChanged();
     }
 
     public void Reset()
     {
         IsLaunched = false;
         
-        // Reset state
         _state.SpeedMph = 0;
         _state.DistanceMiles = 0;
         _state.EarthTimeSeconds = 0;
@@ -274,42 +218,17 @@ public partial class MainWindowViewModel : ViewModelBase
         _state.WHeldSeconds = 0;
         _state.XHeldSeconds = 0;
 
-        // Clear destination selection
         SelectedDestination = null;
 
-        // Reset stopwatch and start time
         _stopwatch.Restart();
         _lastElapsedSeconds = 0;
         _startDateTime = DateTime.Now;
         _timeSinceLastAverageUpdate = 0.0;
         _timeSinceLastTimeDiffUpdate = 0.0;
+        
+        NotifyStateChanged();
     }
 
-    /// <summary>
-    /// Updates the simulation state based on a journey progress percentage (scrubbing).
-    /// Note: This is only available before launch. During flight, dragging is disabled
-    /// because we can't accurately reconstruct variable speed history.
-    /// </summary>
-    /// <param name="percentage">Journey progress percentage (0-100).</param>
-    public void UpdateFromDragPosition(double percentage)
-    {
-        // Dragging should only work pre-launch, but add safety check
-        if (IsLaunched)
-            return;
-
-        // Clamp percentage to valid range
-        percentage = System.Math.Clamp(percentage, 0.0, 100.0);
-
-        // Calculate new distance based on percentage
-        double newDistance = (percentage / 100.0) * _state.TargetDistanceMiles;
-        _state.DistanceMiles = newDistance;
-
-        // Pre-launch: distance, Earth time, and Ship time should all remain at 0
-        _state.EarthTimeSeconds = 0.0;
-        _state.ShipTimeSeconds = 0.0;
-    }
-
-    // Main update loop
     public void Update()
     {
         double elapsedSeconds = _stopwatch.Elapsed.TotalSeconds;
@@ -319,42 +238,32 @@ public partial class MainWindowViewModel : ViewModelBase
         if (deltaSeconds <= 0)
             return;
 
-        // If destination reached, freeze all calculations
         if (_state.DestinationReached)
         {
             // Do nothing - keep all values frozen until reset
         }
-        // Before launch: only update speed, not distance or time
         else if (!IsLaunched)
         {
-            // Update key hold durations for acceleration
             _state.WHeldSeconds = _increaseHeld ? _state.WHeldSeconds + deltaSeconds : 0.0;
             _state.XHeldSeconds = _decreaseHeld ? _state.XHeldSeconds + deltaSeconds : 0.0;
 
-            // Calculate and update speed
             double netDeltaRate = CalculateAccelerationRate(_increaseHeld, _decreaseHeld, _slowHeld);
             _state.SpeedMph += netDeltaRate * deltaSeconds;
             
-            // Ensure speed doesn't go negative
             if (_state.SpeedMph < 0)
                 _state.SpeedMph = 0;
             
-            // Keep distance and times at zero
             _state.DistanceMiles = 0;
             _state.EarthTimeSeconds = 0;
             _state.ShipTimeSeconds = 0;
         }
-        // After launch: run full simulation
         else
         {
-            // Update simulation
             _engine.Update(deltaSeconds, _increaseHeld, _decreaseHeld, _slowHeld);
         }
 
-        // Calculate display values
         double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
 
-        // Update properties
         SpeedMph = _state.SpeedMph;
         PercentageOfLightSpeed = RelativisticPhysics.CalculatePercentageOfLightSpeed(_state.SpeedMph);
         LorentzFactor = lorentzFactor;
@@ -369,14 +278,12 @@ public partial class MainWindowViewModel : ViewModelBase
         ShipDateTime = _startDateTime.AddSeconds(_state.ShipTimeSeconds).ToString("MM/dd/yyyy HH:mm:ss.fff");
         DestinationReached = _state.DestinationReached;
         
-        // Calculate journey progress (0-100%)
         JourneyProgressPercentage = _state.TargetDistanceMiles > 0 
             ? (_state.DistanceMiles / _state.TargetDistanceMiles) * 100.0 
             : 0.0;
         if (JourneyProgressPercentage > 100.0) 
             JourneyProgressPercentage = 100.0;
 
-        // Calculate average speed every 1 second
         _timeSinceLastAverageUpdate += deltaSeconds;
         if (_timeSinceLastAverageUpdate >= 1.0)
         {
@@ -393,10 +300,8 @@ public partial class MainWindowViewModel : ViewModelBase
             _timeSinceLastAverageUpdate = 0.0;
         }
 
-        // Calculate ETA
         EstimatedTimeOfArrival = CalculateETA();
 
-        // Calculate time difference every 1 second
         _timeSinceLastTimeDiffUpdate += deltaSeconds;
         if (_timeSinceLastTimeDiffUpdate >= 1.0)
         {
@@ -404,8 +309,9 @@ public partial class MainWindowViewModel : ViewModelBase
             _timeSinceLastTimeDiffUpdate = 0.0;
         }
 
-        // Update journey summary
         JourneySummary = GenerateJourneySummary();
+        
+        NotifyStateChanged();
     }
 
     private string CalculateTimeDifference()
@@ -415,32 +321,31 @@ public partial class MainWindowViewModel : ViewModelBase
         if (diffSeconds < 0.000001)
             return "0ms";
 
-        // Format based on magnitude
-        if (diffSeconds >= 365.25 * 24 * 3600) // Years
+        if (diffSeconds >= 365.25 * 24 * 3600)
         {
             double years = diffSeconds / (365.25 * 24 * 3600);
             return $"{years:F2}y";
         }
-        else if (diffSeconds >= 24 * 3600) // Days
+        else if (diffSeconds >= 24 * 3600)
         {
             double days = diffSeconds / (24 * 3600);
             return $"{days:F2}d";
         }
-        else if (diffSeconds >= 3600) // Hours
+        else if (diffSeconds >= 3600)
         {
             double hours = diffSeconds / 3600;
             return $"{hours:F2}h";
         }
-        else if (diffSeconds >= 60) // Minutes
+        else if (diffSeconds >= 60)
         {
             double minutes = diffSeconds / 60;
             return $"{minutes:F2}m";
         }
-        else if (diffSeconds >= 1) // Seconds
+        else if (diffSeconds >= 1)
         {
             return $"{diffSeconds:F3}s";
         }
-        else // Milliseconds
+        else
         {
             double milliseconds = diffSeconds * 1000;
             return $"{milliseconds:F2}ms";
@@ -452,11 +357,9 @@ public partial class MainWindowViewModel : ViewModelBase
         if (_state.SpeedMph <= 0 || _state.RemainingDistanceMiles <= 0)
             return "N/A";
 
-        // Calculate remaining time in hours
         double remainingHours = _state.RemainingDistanceMiles / _state.SpeedMph;
         double remainingSeconds = remainingHours * 3600;
 
-        // Convert to time units
         int years = (int)(remainingSeconds / (365.25 * 24 * 3600));
         remainingSeconds -= years * (365.25 * 24 * 3600);
 
@@ -468,7 +371,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
         int minutes = (int)(remainingSeconds / 60);
 
-        // Format based on magnitude
         if (years > 0)
         {
             return days > 0 ? $"{years}y {days}d" : $"{years}y";
@@ -489,12 +391,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private string GenerateJourneySummary()
     {
-        // Handle no destination selected
         if (SelectedDestination == null)
         {
-            return "Select a destination\n" +
-                "Adjust the ship's speed using W (accelerate) and X (decelerate).\n" +
-                   "Press Q to launch.";
+            return "Select a destination\nAdjust the ship's speed using W (accelerate) and X (decelerate).\nPress Q to launch.";
         }
 
         string destinationName = SelectedDestination.Name;
@@ -503,20 +402,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (!IsLaunched)
         {
-            // Pre-launch summary
-            return $"Preparing to travel to {destinationName}.\n" +
-                   $"Initial speed: {speedText} ({percentLight} the speed of light).\n" +
-                   $"Press Q to launch.";
+            return $"Preparing to travel to {destinationName}.\nInitial speed: {speedText} ({percentLight} the speed of light).\nPress Q to launch.";
         }
         else
         {
-            // In-flight summary
             string etaText = EstimatedTimeOfArrival != "N/A" ? $"Arrival in {EstimatedTimeOfArrival}." : "Arrival time unknown.";
             string timeDiffText = TimeDifference != "0s" && TimeDifference != "0ms" 
                 ? $"Your ship's clock is {TimeDifference} slower than Earth time." 
                 : "No time dilation.";
             
-            // Format average speed text
             string avgSpeedText = AverageSpeedMph > 0 
                 ? $"Average speed: {AverageSpeedMph:N0} mph ({AverageSpeedPercentLight:F6}% c)." 
                 : "";
@@ -563,11 +457,10 @@ public partial class MainWindowViewModel : ViewModelBase
         if (totalSeconds < 0)
             return "00:00:00";
 
-        // Calculate time units
         int years = (int)(totalSeconds / (365.25 * 24 * 3600));
         double remainingSeconds = totalSeconds - (years * 365.25 * 24 * 3600);
 
-        int months = (int)(remainingSeconds / (30.44 * 24 * 3600)); // Average month length
+        int months = (int)(remainingSeconds / (30.44 * 24 * 3600));
         remainingSeconds -= months * (30.44 * 24 * 3600);
 
         int days = (int)(remainingSeconds / (24 * 3600));
@@ -581,7 +474,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
         int seconds = (int)remainingSeconds;
 
-        // Format based on magnitude - show the two most significant units
         if (years > 0)
         {
             if (months > 0)
@@ -608,3 +500,4 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 }
+

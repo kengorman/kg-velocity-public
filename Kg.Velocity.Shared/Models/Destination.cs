@@ -1,4 +1,4 @@
-namespace Kg.Velocity.Avalonia.Models;
+namespace Kg.Velocity.Shared.Models;
 
 /// <summary>
 /// Represents a travel destination with its distance from New York, USA.
