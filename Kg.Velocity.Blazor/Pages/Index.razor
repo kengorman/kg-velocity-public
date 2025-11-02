@@ -23,11 +23,11 @@
                 <div class="journey-config-left">
                     <div class="section-title">JOURNEY</div>
                     <div class="form-group">
-                        <label>Starting From:</label>
+                        <label>From:</label>
                         <div class="textbox-display">@_viewModel.StartingLocation</div>
                     </div>
                     <div class="form-group">
-                        <label>Going To:</label>
+                        <label>To:</label>
                         <select class="destination-select" 
                                 value="@(_viewModel.SelectedDestination?.Name ?? "")" 
                                 @onchange="OnDestinationChanged" 

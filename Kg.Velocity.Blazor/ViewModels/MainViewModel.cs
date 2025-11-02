@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using Kg.Velocity.Math;
 using Kg.Velocity.Shared.Models;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace Kg.Velocity.Blazor.ViewModels;
 
@@ -40,8 +38,8 @@ public class MainViewModel
 
     private void InitializeDestinations()
     {
-        Destinations = new ObservableCollection<Destination>
-        {
+        Destinations =
+        [
             // Terrestrial
             new Destination { Name = "California (Los Angeles)", DistanceMiles = 2_800, Category = "Earth" },
             new Destination { Name = "Paris, France", DistanceMiles = 3_628, Category = "Earth" },
@@ -60,7 +58,7 @@ public class MainViewModel
             // Deep Space
             new Destination { Name = "Horseshoe Nebula", DistanceMiles = 5_500 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
             new Destination { Name = "Andromeda Galaxy", DistanceMiles = 2_537_000 * PhysicsConstants.LightYearMiles, Category = "Deep Space" }
-        };
+        ];
 
         SelectedDestination = null;
     }
@@ -402,7 +400,7 @@ public class MainViewModel
 
         if (!IsLaunched)
         {
-            return $"Preparing to travel to {destinationName}.\nInitial speed: {speedText} ({percentLight} the speed of light).\nPress Q to launch.";
+            return $"Preparing to travel to {destinationName}.\nInitial speed: {speedText} ({percentLight} c).\nPress Q to launch.";
         }
         else
         {
@@ -420,7 +418,7 @@ public class MainViewModel
                 var lines = new List<string>
                 {
                     $"Arrived at {destinationName}!",
-                    $"Final speed: {speedText} ({percentLight} the speed of light)."
+                    $"Final speed: {speedText} ({percentLight} c)."
                 };
                 
                 if (!string.IsNullOrEmpty(avgSpeedText))
@@ -435,7 +433,7 @@ public class MainViewModel
             {
                 var lines = new List<string>
                 {
-                    $"Travelling to {destinationName} at {speedText} ({percentLight} the speed of light)."
+                    $"Travelling to {destinationName} at {speedText} ({percentLight} c)."
                 };
                 
                 if (!string.IsNullOrEmpty(avgSpeedText))
