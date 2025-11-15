@@ -32,8 +32,32 @@ public class MainViewModel
 
         InitializeDestinations();
         
-        // Initialize all display properties before first render
-        Update();
+        // Initialize display properties without triggering state change
+        UpdatePropertiesWithoutNotification();
+    }
+    
+    private void UpdatePropertiesWithoutNotification()
+    {
+        // Initialize properties to safe defaults for first render
+        SpeedMph = 0;
+        PercentageOfLightSpeed = 0;
+        LorentzFactor = 1;
+        ShipClockRate = 1;
+        DistanceMiles = 0;
+        DistanceLightYears = 0;
+        RemainingMiles = 0;
+        RemainingLightYears = 0;
+        EarthTimeElapsed = "00:00:00";
+        ShipTimeElapsed = "00:00:00";
+        EarthDateTime = _startDateTime.ToString("MM/dd/yyyy HH:mm:ss.fff");
+        ShipDateTime = _startDateTime.ToString("MM/dd/yyyy HH:mm:ss.fff");
+        DestinationReached = false;
+        JourneyProgressPercentage = 0;
+        EstimatedTimeOfArrival = "N/A";
+        TimeDifference = "0s";
+        JourneySummary = "Select a destination\nAdjust the ship's speed using W (accelerate) and X (decelerate).\nPress Q to launch.";
+        AverageSpeedMph = 0;
+        AverageSpeedPercentLight = 0;
     }
 
     private void InitializeDestinations()

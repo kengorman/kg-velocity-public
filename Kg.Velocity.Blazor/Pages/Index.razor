@@ -187,15 +187,17 @@
     private MainViewModel _viewModel = new();
     private Timer? _timer;
     private bool _isTimerStarted = false;
+    private bool _isInitialized = false;
 
     protected override void OnInitialized()
     {
         _viewModel.StateChanged += OnViewModelStateChanged;
+        _isInitialized = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !_isTimerStarted)
+        if (firstRender && !_isTimerStarted && _isInitialized)
         {
             _isTimerStarted = true;
             _timer = new Timer(20); // 50 FPS
@@ -207,12 +209,18 @@
 
     private void OnViewModelStateChanged()
     {
-        InvokeAsync(StateHasChanged);
+        if (_isInitialized)
+        {
+            InvokeAsync(StateHasChanged);
+        }
     }
 
     private void OnTimerTick(object? sender, ElapsedEventArgs e)
     {
-        _viewModel.Update();
+        if (_isInitialized)
+        {
+            _viewModel.Update();
+        }
     }
 
     private void OnDestinationChanged(ChangeEventArgs e)
