@@ -144,7 +144,7 @@ This is an educational project exploring special relativity concepts through int
 
 ## Future Ideas
 
-- [ ] Add rocket icon dragging in Blazor version
+- [x] Add rocket icon dragging in Blazor version
 - [ ] More destinations (black holes, edge of observable universe)
 - [ ] Visualization of length contraction
 - [ ] Multiple reference frames

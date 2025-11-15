@@ -78,9 +78,9 @@ The C# code runs at near-native speeds via WebAssembly, providing excellent perf
 - Time dilation effects
 - Average speed tracking
 - Journey progress
+- Rocket icon dragging (pre-launch positioning)
 
 **What's Different:**
-- No rocket icon dragging (yet)
 - Browser-based rendering instead of native
 
 ## Performance

@@ -3,6 +3,8 @@
 @using Kg.Velocity.Shared.Models
 @using System.Timers
 @using System.Linq
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
 @implements IDisposable
 
 <PageTitle>Velocity — Relativistic Travel Simulation</PageTitle>
@@ -39,6 +41,18 @@
                             }
                         </select>
                     </div>
+                    
+                    <div class="journey-controls">
+                        <button class="btn btn-primary" 
+                                @onclick="OnLaunchClicked" 
+                                disabled="@_viewModel.IsLaunched">
+                            🚀 Launch
+                        </button>
+                        <button class="btn btn-secondary" 
+                                @onclick="OnResetClicked">
+                            🔄 Reset
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="vertical-divider"></div>
@@ -70,9 +84,21 @@
                 <div class="progress-track-container">
                     <div class="progress-label-start">@_viewModel.StartingLocation</div>
                     
-                    <div class="progress-track">
+                    <div class="progress-track" 
+                         @ref="_progressTrackRef"
+                         style="cursor: @(_canDrag ? "pointer" : "default")"
+                         @onpointerdown="OnTrackPointerDown"
+                         @onpointermove="OnTrackPointerMove"
+                         @onpointerup="OnTrackPointerUp"
+                         @onpointerleave="OnTrackPointerLeave"
+                         @ontouchstart="OnTrackTouchStart"
+                         @ontouchmove="OnTrackTouchMove"
+                         @ontouchend="OnTrackTouchEnd">
                         <div class="progress-bar" style="width: @(_viewModel.JourneyProgressPercentage)%"></div>
-                        <div class="rocket-icon" style="left: @(_viewModel.JourneyProgressPercentage)%">🚀</div>
+                        <div class="rocket-icon" 
+                             style="left: @(_viewModel.JourneyProgressPercentage)%; cursor: @(_canDrag ? "grab" : "default")">
+                            🚀
+                        </div>
                     </div>
                     
                     <div class="progress-label-end">@(_viewModel.SelectedDestination?.Name ?? "")</div>
@@ -95,10 +121,6 @@
             <div class="velocity-section">
                 <div class="section-header">
                     <span class="section-title">VELOCITY</span>
-                    @if (!_viewModel.IsLaunched)
-                    {
-                        <span class="launch-hint">(Q to launch)</span>
-                    }
                 </div>
                 <p class="velocity-display @GetAccelerationClass()">
                     Speed: <strong>@_viewModel.SpeedMph.ToString("N0") mph</strong>
@@ -106,6 +128,27 @@
                 <p class="velocity-display @GetAccelerationClass()">
                     Percentage of light speed: <strong>@_viewModel.PercentageOfLightSpeed.ToString("F6")%</strong>
                 </p>
+                
+                <div class="velocity-controls">
+                    <button class="btn btn-success" 
+                            @onpointerdown="OnAccelerateDown"
+                            @onpointerup="OnAccelerateUp"
+                            @onpointerleave="OnAccelerateUp"
+                            @ontouchstart="OnAccelerateDown"
+                            @ontouchend="OnAccelerateUp"
+                            disabled="@(!_viewModel.IsLaunched && _viewModel.SelectedDestination == null)">
+                        ▲ Faster
+                    </button>
+                    <button class="btn btn-danger" 
+                            @onpointerdown="OnDecelerateDown"
+                            @onpointerup="OnDecelerateUp"
+                            @onpointerleave="OnDecelerateUp"
+                            @ontouchstart="OnDecelerateDown"
+                            @ontouchend="OnDecelerateUp"
+                            disabled="@(!_viewModel.IsLaunched && _viewModel.SelectedDestination == null)">
+                        ▼ Slower
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -161,25 +204,12 @@
         }
     </div>
 
-    <!-- Controls Footer -->
+    <!-- Time Dilation Footer -->
     <div class="footer">
         <div class="footer-section">
             <div class="footer-title">TIME DILATION</div>
             <p>Difference: <strong class="time-diff">@_viewModel.TimeDifference</strong></p>
         </div>
-        
-        <div class="footer-section">
-            <div class="footer-title">CONTROLS</div>
-            <div class="controls">
-                <span><strong>W</strong> Accelerate</span>
-                <span><strong>X</strong> Decelerate</span>
-                <span><strong>S</strong> Slow modifier</span>
-                <span><strong>Q</strong> Launch</span>
-                <span><strong>A</strong> Reset</span>
-            </div>
-        </div>
-        
-        <div class="footer-section"></div>
     </div>
 </div>
 
@@ -188,6 +218,10 @@
     private Timer? _timer;
     private bool _isTimerStarted = false;
     private bool _isInitialized = false;
+    private bool _isDragging = false;
+    private ElementReference _progressTrackRef;
+    
+    private bool _canDrag => _viewModel.SelectedDestination != null && !_viewModel.DestinationReached;
 
     protected override void OnInitialized()
     {
@@ -217,10 +251,130 @@
 
     private void OnTimerTick(object? sender, ElapsedEventArgs e)
     {
-        if (_isInitialized)
+        // Skip updates while dragging
+        if (_isInitialized && !_isDragging)
         {
             _viewModel.Update();
         }
+    }
+
+    // Button event handlers
+    private void OnLaunchClicked()
+    {
+        _viewModel.Launch();
+    }
+
+    private void OnResetClicked()
+    {
+        _viewModel.Reset();
+    }
+
+    private void OnAccelerateDown(EventArgs e)
+    {
+        _viewModel.SetIncreaseHeld(true);
+    }
+
+    private void OnAccelerateUp(EventArgs e)
+    {
+        _viewModel.SetIncreaseHeld(false);
+    }
+
+    private void OnDecelerateDown(EventArgs e)
+    {
+        _viewModel.SetDecreaseHeld(true);
+    }
+
+    private void OnDecelerateUp(EventArgs e)
+    {
+        _viewModel.SetDecreaseHeld(false);
+    }
+
+    // Track drag handlers (allows clicking/dragging anywhere on the track)
+    private async void OnTrackPointerDown(PointerEventArgs e)
+    {
+        if (_canDrag)
+        {
+            _isDragging = true;
+            await HandleDrag(e.ClientX);
+        }
+    }
+
+    private async void OnTrackPointerMove(PointerEventArgs e)
+    {
+        if (_isDragging)
+        {
+            await HandleDrag(e.ClientX);
+        }
+    }
+
+    private void OnTrackPointerUp(PointerEventArgs e)
+    {
+        if (_isDragging)
+        {
+            _isDragging = false;
+        }
+    }
+
+    private void OnTrackPointerLeave(PointerEventArgs e)
+    {
+        _isDragging = false;
+    }
+
+    private async void OnTrackTouchStart(TouchEventArgs e)
+    {
+        if (_canDrag && e.Touches.Length > 0)
+        {
+            _isDragging = true;
+            await HandleDrag(e.Touches[0].ClientX);
+        }
+    }
+
+    private async void OnTrackTouchMove(TouchEventArgs e)
+    {
+        if (_isDragging && e.Touches.Length > 0)
+        {
+            await HandleDrag(e.Touches[0].ClientX);
+        }
+    }
+
+    private void OnTrackTouchEnd(TouchEventArgs e)
+    {
+        if (_isDragging)
+        {
+            _isDragging = false;
+        }
+    }
+
+    private async Task HandleDrag(double clientX)
+    {
+        try
+        {
+            // Get the bounding rect of the progress track
+            var trackRect = await JSRuntime.InvokeAsync<BoundingClientRect>("getBoundingClientRect", _progressTrackRef);
+            
+            if (trackRect != null && trackRect.Width > 0)
+            {
+                // Calculate position relative to track
+                double relativeX = clientX - trackRect.Left;
+                double percentage = (relativeX / trackRect.Width) * 100.0;
+                percentage = Math.Clamp(percentage, 0.0, 100.0);
+
+                // Update ViewModel
+                _viewModel.UpdateFromDragPosition(percentage);
+            }
+        }
+        catch
+        {
+            // Silently fail if JS interop fails
+        }
+    }
+
+    private class BoundingClientRect
+    {
+        public double Left { get; set; }
+        public double Top { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
     }
 
     private void OnDestinationChanged(ChangeEventArgs e)

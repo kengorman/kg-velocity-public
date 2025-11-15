@@ -179,6 +179,10 @@ html, body {
     color: var(--accent-green);
 }
 
+.status-traveling {
+    color: var(--accent-blue);
+}
+
 .launch-hint {
     font-size: 11px;
     font-weight: 600;
@@ -212,6 +216,8 @@ html, body {
     height: 2px;
     background-color: var(--border-color);
     border-radius: 1px;
+    padding: 10px 0; /* Increase click area */
+    margin: -10px 0; /* Compensate for padding */
 }
 
 .progress-bar {
@@ -230,7 +236,13 @@ html, body {
     transform: translate(-50%, -50%);
     font-size: 20px;
     transition: left 0.1s linear;
-    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+
+.rocket-icon:active {
+    cursor: grabbing !important;
 }
 
 .progress-info {
@@ -422,6 +434,94 @@ p strong {
     background: var(--text-muted);
 }
 
+/* Button Styles */
+.btn {
+    padding: 12px 20px;
+    min-height: 44px;
+    min-width: 100px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.btn-primary {
+    background-color: var(--accent-blue);
+    color: var(--bg-primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: #29b6f6;
+}
+
+.btn-secondary {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: var(--border-color);
+}
+
+.btn-success {
+    background-color: var(--accent-green);
+    color: var(--bg-primary);
+}
+
+.btn-success:hover:not(:disabled) {
+    background-color: #4caf50;
+}
+
+.btn-danger {
+    background-color: var(--accent-red);
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background-color: #e53935;
+}
+
+/* Journey Controls */
+.journey-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.journey-controls .btn {
+    flex: 1;
+    min-width: 120px;
+}
+
+/* Velocity Controls */
+.velocity-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.velocity-controls .btn {
+    flex: 1;
+    min-width: 100px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .journey-config {
@@ -434,11 +534,23 @@ p strong {
     
     .footer {
         grid-template-columns: 1fr;
+        text-align: center;
     }
     
-    .controls {
+    .journey-controls {
         flex-direction: column;
-        gap: 5px;
+    }
+    
+    .journey-controls .btn {
+        width: 100%;
+    }
+    
+    .velocity-controls {
+        flex-direction: column;
+    }
+    
+    .velocity-controls .btn {
+        width: 100%;
     }
 }
 

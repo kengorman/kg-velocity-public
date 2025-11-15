@@ -5,6 +5,12 @@ using System.Diagnostics;
 
 namespace Kg.Velocity.Blazor.ViewModels;
 
+public enum DurationFormat
+{
+    Verbose,
+    Compact
+}
+
 public class MainViewModel
 {
     private readonly SimulationState _state;
@@ -127,6 +133,7 @@ public class MainViewModel
     
     public double JourneyProgressPercentage { get; set; }
     public string EstimatedTimeOfArrival { get; set; } = "N/A";
+    public string TravelingFor { get; set; } = "0m";
     public string TimeDifference { get; set; } = "0s";
     public string JourneySummary { get; set; } = "";
     public double AverageSpeedMph { get; set; }
@@ -251,6 +258,49 @@ public class MainViewModel
         NotifyStateChanged();
     }
 
+    public void UpdateFromDragPosition(double percentage)
+    {
+        // Can't drag after reaching destination
+        if (_state.DestinationReached)
+            return;
+
+        // Clamp percentage to valid range
+        percentage = System.Math.Clamp(percentage, 0.0, 100.0);
+
+        // Calculate new distance based on percentage
+        double newDistance = (percentage / 100.0) * _state.TargetDistanceMiles;
+        
+        // Clamp to target (don't exceed destination)
+        newDistance = System.Math.Min(newDistance, _state.TargetDistanceMiles);
+        _state.DistanceMiles = newDistance;
+
+        if (!IsLaunched)
+        {
+            // Pre-launch: keep time at 0
+            _state.EarthTimeSeconds = 0.0;
+            _state.ShipTimeSeconds = 0.0;
+        }
+        else
+        {
+            // During flight: calculate time based on distance traveled at current speed
+            // This gives a rough approximation for scrubbing
+            if (_state.SpeedMph > 0)
+            {
+                // Calculate Earth time: distance / speed
+                double hoursElapsed = newDistance / _state.SpeedMph;
+                _state.EarthTimeSeconds = hoursElapsed * 3600.0;
+                
+                // Calculate ship time using Lorentz factor
+                double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
+                _state.ShipTimeSeconds = _state.EarthTimeSeconds / lorentzFactor;
+            }
+        }
+        
+        // RemainingDistanceMiles and DestinationReached are computed properties - no need to set them
+        
+        NotifyStateChanged();
+    }
+
     public void Update()
     {
         double elapsedSeconds = _stopwatch.Elapsed.TotalSeconds;
@@ -323,6 +373,7 @@ public class MainViewModel
         }
 
         EstimatedTimeOfArrival = CalculateETA();
+        TravelingFor = CalculateTravelingFor();
 
         _timeSinceLastTimeDiffUpdate += deltaSeconds;
         if (_timeSinceLastTimeDiffUpdate >= 1.0)
@@ -411,6 +462,11 @@ public class MainViewModel
         }
     }
 
+    private string CalculateTravelingFor()
+    {
+        return FormatDuration(_state.EarthTimeSeconds, DurationFormat.Compact);
+    }
+
     private string GenerateJourneySummary()
     {
         if (SelectedDestination == null)
@@ -463,6 +519,7 @@ public class MainViewModel
                 if (!string.IsNullOrEmpty(avgSpeedText))
                     lines.Add(avgSpeedText);
                     
+                lines.Add($"Traveling for {TravelingFor}.");
                 lines.Add(etaText);
                 lines.Add(timeDiffText);
                 
@@ -471,13 +528,13 @@ public class MainViewModel
         }
     }
 
-    private static string FormatDuration(double totalSeconds)
+    private static string FormatDuration(double totalSeconds, DurationFormat format = DurationFormat.Verbose)
     {
         if (double.IsInfinity(totalSeconds) || double.IsNaN(totalSeconds))
             return "N/A";
 
         if (totalSeconds < 0)
-            return "00:00:00";
+            return format == DurationFormat.Compact ? "0m" : "00:00:00";
 
         int years = (int)(totalSeconds / (365.25 * 24 * 3600));
         double remainingSeconds = totalSeconds - (years * 365.25 * 24 * 3600);
@@ -496,29 +553,48 @@ public class MainViewModel
 
         int seconds = (int)remainingSeconds;
 
-        if (years > 0)
+        if (format == DurationFormat.Compact)
         {
-            if (months > 0)
-                return $"{years}y {months}mo {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
+            // Compact format: "2y 5d", "3d 4h", "5h 30m", "15m"
+            if (totalSeconds < 1)
+                return "0m";
+            
+            if (years > 0)
+                return days > 0 ? $"{years}y {days}d" : $"{years}y";
             else if (days > 0)
-                return $"{years}y {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
+                return hours > 0 ? $"{days}d {hours}h" : $"{days}d";
+            else if (hours > 0)
+                return minutes > 0 ? $"{hours}h {minutes}m" : $"{hours}h";
             else
-                return $"{years}y {hours:D2}:{minutes:D2}:{seconds:D2}";
-        }
-        else if (months > 0)
-        {
-            if (days > 0)
-                return $"{months}mo {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
-            else
-                return $"{months}mo {hours:D2}:{minutes:D2}:{seconds:D2}";
-        }
-        else if (days > 0)
-        {
-            return $"{days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
+                return $"{minutes}m";
         }
         else
         {
-            return $"{hours:D2}:{minutes:D2}:{seconds:D2}";
+            // Verbose format: "2y 3mo 5d 04:15:30"
+            if (years > 0)
+            {
+                if (months > 0)
+                    return $"{years}y {months}mo {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
+                else if (days > 0)
+                    return $"{years}y {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
+                else
+                    return $"{years}y {hours:D2}:{minutes:D2}:{seconds:D2}";
+            }
+            else if (months > 0)
+            {
+                if (days > 0)
+                    return $"{months}mo {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
+                else
+                    return $"{months}mo {hours:D2}:{minutes:D2}:{seconds:D2}";
+            }
+            else if (days > 0)
+            {
+                return $"{days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
+            }
+            else
+            {
+                return $"{hours:D2}:{minutes:D2}:{seconds:D2}";
+            }
         }
     }
 }
