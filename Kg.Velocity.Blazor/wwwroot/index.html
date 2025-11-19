@@ -38,6 +38,22 @@
             }
             return null;
         };
+
+        window.gameLoop = {
+            start: (dotNetHelper) => {
+                window.gameLoop.dotNetHelper = dotNetHelper;
+                window.gameLoop.loop();
+            },
+            stop: () => {
+                window.gameLoop.dotNetHelper = null;
+            },
+            loop: () => {
+                if (window.gameLoop.dotNetHelper) {
+                    window.gameLoop.dotNetHelper.invokeMethodAsync('OnFrame');
+                    requestAnimationFrame(window.gameLoop.loop);
+                }
+            }
+        };
     </script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>

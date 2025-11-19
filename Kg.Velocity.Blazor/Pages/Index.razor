@@ -1,11 +1,12 @@
 @page "/"
 @using Kg.Velocity.Blazor.ViewModels
+@using Kg.Velocity.Blazor.Services
 @using Kg.Velocity.Engine.Models
-@using System.Timers
 @using System.Linq
 @using Microsoft.JSInterop
 @inject IJSRuntime JSRuntime
 @inject MainViewModel ViewModel
+@inject GameLoop GameLoop
 @implements IDisposable
 
 <PageTitle>Velocity — Relativistic Travel Simulation</PageTitle>
@@ -215,8 +216,6 @@
 </div>
 
 @code {
-    private Timer? _timer;
-    private bool _isTimerStarted = false;
     private bool _isInitialized = false;
     private bool _isDragging = false;
     private ElementReference _progressTrackRef;
@@ -231,12 +230,10 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !_isTimerStarted && _isInitialized)
+        if (firstRender)
         {
-            _isTimerStarted = true;
-            _timer = new Timer(20); // 50 FPS
-            _timer.Elapsed += OnTimerTick;
-            _timer.Start();
+            GameLoop.OnUpdate += OnGameLoopUpdate;
+            await GameLoop.Start();
         }
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -249,7 +246,7 @@
         }
     }
 
-    private void OnTimerTick(object? sender, ElapsedEventArgs e)
+    private void OnGameLoopUpdate()
     {
         // Skip updates while dragging
         if (_isInitialized && !_isDragging)
@@ -451,8 +448,9 @@
 
     public void Dispose()
     {
-        _timer?.Stop();
-        _timer?.Dispose();
+        GameLoop.OnUpdate -= OnGameLoopUpdate;
+        _ = GameLoop.Stop();
+        
         if (ViewModel != null)
         {
             ViewModel.StateChanged -= OnViewModelStateChanged;
