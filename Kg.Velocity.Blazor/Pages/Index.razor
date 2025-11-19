@@ -5,6 +5,7 @@
 @using System.Linq
 @using Microsoft.JSInterop
 @inject IJSRuntime JSRuntime
+@inject MainViewModel ViewModel
 @implements IDisposable
 
 <PageTitle>Velocity — Relativistic Travel Simulation</PageTitle>
@@ -26,16 +27,16 @@
                     <div class="section-title">JOURNEY</div>
                     <div class="form-group">
                         <label>From:</label>
-                        <div class="textbox-display">@_viewModel.StartingLocation</div>
+                        <div class="textbox-display">@ViewModel.StartingLocation</div>
                     </div>
                     <div class="form-group">
                         <label>To:</label>
                         <select class="destination-select" 
-                                value="@(_viewModel.SelectedDestination?.Name ?? "")" 
+                                value="@(ViewModel.SelectedDestination?.Name ?? "")" 
                                 @onchange="OnDestinationChanged" 
-                                disabled="@_viewModel.IsLaunched">
+                                disabled="@ViewModel.IsLaunched">
                             <option value="">Select Destination</option>
-                            @foreach (var dest in _viewModel.Destinations)
+                            @foreach (var dest in ViewModel.Destinations)
                             {
                                 <option value="@dest.Name">@dest.DisplayName</option>
                             }
@@ -45,7 +46,7 @@
                     <div class="journey-controls">
                         <button class="btn btn-primary" 
                                 @onclick="OnLaunchClicked" 
-                                disabled="@_viewModel.IsLaunched">
+                                disabled="@ViewModel.IsLaunched">
                             🚀 Launch
                         </button>
                         <button class="btn btn-secondary" 
@@ -58,7 +59,7 @@
                 <div class="vertical-divider"></div>
                 
                 <div class="journey-summary">
-                    @foreach (var line in _viewModel.JourneySummary.Split('\n'))
+                    @foreach (var line in ViewModel.JourneySummary.Split('\n'))
                     {
                         <p>@line</p>
                     }
@@ -71,7 +72,7 @@
             <div class="progress-section">
                 <div class="section-header">
                     <span class="section-title">PROGRESS</span>
-                    @if (!_viewModel.IsLaunched)
+                    @if (!ViewModel.IsLaunched)
                     {
                         <span class="status-badge status-prelaunch">Pre-Launch</span>
                     }
@@ -82,7 +83,7 @@
                 </div>
                 
                 <div class="progress-track-container">
-                    <div class="progress-label-start">@_viewModel.StartingLocation</div>
+                    <div class="progress-label-start">@ViewModel.StartingLocation</div>
                     
                     <div class="progress-track" 
                          @ref="_progressTrackRef"
@@ -94,24 +95,24 @@
                          @ontouchstart="OnTrackTouchStart"
                          @ontouchmove="OnTrackTouchMove"
                          @ontouchend="OnTrackTouchEnd">
-                        <div class="progress-bar" style="width: @(_viewModel.JourneyProgressPercentage)%"></div>
+                        <div class="progress-bar" style="width: @(ViewModel.JourneyProgressPercentage)%"></div>
                         <div class="rocket-icon" 
-                             style="left: @(_viewModel.JourneyProgressPercentage)%; cursor: @(_canDrag ? "grab" : "default")">
+                             style="left: @(ViewModel.JourneyProgressPercentage)%; cursor: @(_canDrag ? "grab" : "default")">
                             🚀
                         </div>
                     </div>
                     
-                    <div class="progress-label-end">@(_viewModel.SelectedDestination?.Name ?? "")</div>
+                    <div class="progress-label-end">@(ViewModel.SelectedDestination?.Name ?? "")</div>
                 </div>
                 
                 <div class="progress-info">
                     <span class="progress-info-left">0 ly</span>
                     <span class="progress-info-center">
-                        @_viewModel.DistanceLightYears.ToString("N2") ly (@_viewModel.JourneyProgressPercentage.ToString("F1")%)
+                        @ViewModel.DistanceLightYears.ToString("N2") ly (@ViewModel.JourneyProgressPercentage.ToString("F1")%)
                         <br />
-                        <span class="eta-text">ETA: @_viewModel.EstimatedTimeOfArrival</span>
+                        <span class="eta-text">ETA: @ViewModel.EstimatedTimeOfArrival</span>
                     </span>
-                    <span class="progress-info-right">@_viewModel.TargetDistanceLightYears.ToString("N0") ly</span>
+                    <span class="progress-info-right">@ViewModel.TargetDistanceLightYears.ToString("N0") ly</span>
                 </div>
             </div>
         </div>
@@ -123,10 +124,10 @@
                     <span class="section-title">VELOCITY</span>
                 </div>
                 <p class="velocity-display @GetAccelerationClass()">
-                    Speed: <strong>@_viewModel.SpeedMph.ToString("N0") mph</strong>
+                    Speed: <strong>@ViewModel.SpeedMph.ToString("N0") mph</strong>
                 </p>
                 <p class="velocity-display @GetAccelerationClass()">
-                    Percentage of light speed: <strong>@_viewModel.PercentageOfLightSpeed.ToString("F6")%</strong>
+                    Percentage of light speed: <strong>@ViewModel.PercentageOfLightSpeed.ToString("F6")%</strong>
                 </p>
                 
                 <div class="velocity-controls">
@@ -136,7 +137,7 @@
                             @onpointerleave="OnAccelerateUp"
                             @ontouchstart="OnAccelerateDown"
                             @ontouchend="OnAccelerateUp"
-                            disabled="@(!_viewModel.IsLaunched && _viewModel.SelectedDestination == null)">
+                            disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
                         ▲ Faster
                     </button>
                     <button class="btn btn-danger" 
@@ -145,7 +146,7 @@
                             @onpointerleave="OnDecelerateUp"
                             @ontouchstart="OnDecelerateDown"
                             @ontouchend="OnDecelerateUp"
-                            disabled="@(!_viewModel.IsLaunched && _viewModel.SelectedDestination == null)">
+                            disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
                         ▼ Slower
                     </button>
                 </div>
@@ -155,17 +156,17 @@
         <!-- Relativistic Effects Section -->
         <div class="section">
             <div class="section-title">RELATIVISTIC EFFECTS</div>
-            <p>Lorentz factor (γ): <strong>@_viewModel.LorentzFactor.ToString("F9")</strong></p>
-            <p>Ship clock rate: <strong>@_viewModel.ShipClockRate.ToString("F9")×</strong> Earth</p>
+            <p>Lorentz factor (γ): <strong>@ViewModel.LorentzFactor.ToString("F9")</strong></p>
+            <p>Ship clock rate: <strong>@ViewModel.ShipClockRate.ToString("F9")×</strong> Earth</p>
         </div>
 
         <!-- Distance Section -->
         <div class="section">
             <div class="section-title">DISTANCE</div>
-            <p>Distance traveled: <strong>@_viewModel.DistanceMiles.ToString("N0") miles</strong></p>
-            <p class="indent">(@_viewModel.DistanceLightYears.ToString("N6") ly)</p>
-            <p>Remaining distance: <strong>@_viewModel.RemainingMiles.ToString("N0") miles</strong></p>
-            <p class="indent">(@_viewModel.RemainingLightYears.ToString("N6") ly of @_viewModel.TargetDistanceLightYears.ToString("N0") ly target)</p>
+            <p>Distance traveled: <strong>@ViewModel.DistanceMiles.ToString("N0") miles</strong></p>
+            <p class="indent">(@ViewModel.DistanceLightYears.ToString("N6") ly)</p>
+            <p>Remaining distance: <strong>@ViewModel.RemainingMiles.ToString("N0") miles</strong></p>
+            <p class="indent">(@ViewModel.RemainingLightYears.ToString("N6") ly of @ViewModel.TargetDistanceLightYears.ToString("N0") ly target)</p>
         </div>
 
         <!-- Time Section -->
@@ -174,29 +175,29 @@
             <div class="time-display-grid">
                 <div class="time-column">
                     <p class="time-label">Earth:</p>
-                    <p class="time-value">@_viewModel.EarthTimeElapsed</p>
-                    <p class="time-datetime">@_viewModel.EarthDateTime</p>
+                    <p class="time-value">@ViewModel.EarthTimeElapsed</p>
+                    <p class="time-datetime">@ViewModel.EarthDateTime</p>
                 </div>
                 
                 <div class="vertical-divider"></div>
                 
                 <div class="time-column">
                     <p class="time-label">Ship:</p>
-                    <p class="time-value ship-time">@_viewModel.ShipTimeElapsed</p>
-                    <p class="time-datetime">@_viewModel.ShipDateTime</p>
+                    <p class="time-value ship-time">@ViewModel.ShipTimeElapsed</p>
+                    <p class="time-datetime">@ViewModel.ShipDateTime</p>
                 </div>
             </div>
         </div>
 
         <!-- Warning Messages -->
-        @if (_viewModel.ShowNoDestinationWarning)
+        @if (ViewModel.ShowNoDestinationWarning)
         {
             <div class="warning-banner">
                 ⚠ Please select a destination before launching!
             </div>
         }
 
-        @if (_viewModel.DestinationReached)
+        @if (ViewModel.DestinationReached)
         {
             <div class="success-banner">
                 🎯 DESTINATION REACHED!
@@ -208,24 +209,23 @@
     <div class="footer">
         <div class="footer-section">
             <div class="footer-title">TIME DILATION</div>
-            <p>Difference: <strong class="time-diff">@_viewModel.TimeDifference</strong></p>
+            <p>Difference: <strong class="time-diff">@ViewModel.TimeDifference</strong></p>
         </div>
     </div>
 </div>
 
 @code {
-    private MainViewModel _viewModel = new();
     private Timer? _timer;
     private bool _isTimerStarted = false;
     private bool _isInitialized = false;
     private bool _isDragging = false;
     private ElementReference _progressTrackRef;
     
-    private bool _canDrag => _viewModel.SelectedDestination != null && !_viewModel.DestinationReached;
+    private bool _canDrag => ViewModel.SelectedDestination != null && !ViewModel.DestinationReached;
 
     protected override void OnInitialized()
     {
-        _viewModel.StateChanged += OnViewModelStateChanged;
+        ViewModel.StateChanged += OnViewModelStateChanged;
         _isInitialized = true;
     }
 
@@ -254,39 +254,39 @@
         // Skip updates while dragging
         if (_isInitialized && !_isDragging)
         {
-            _viewModel.Update();
+            ViewModel.Update();
         }
     }
 
     // Button event handlers
     private void OnLaunchClicked()
     {
-        _viewModel.Launch();
+        ViewModel.Launch();
     }
 
     private void OnResetClicked()
     {
-        _viewModel.Reset();
+        ViewModel.Reset();
     }
 
     private void OnAccelerateDown(EventArgs e)
     {
-        _viewModel.SetIncreaseHeld(true);
+        ViewModel.SetIncreaseHeld(true);
     }
 
     private void OnAccelerateUp(EventArgs e)
     {
-        _viewModel.SetIncreaseHeld(false);
+        ViewModel.SetIncreaseHeld(false);
     }
 
     private void OnDecelerateDown(EventArgs e)
     {
-        _viewModel.SetDecreaseHeld(true);
+        ViewModel.SetDecreaseHeld(true);
     }
 
     private void OnDecelerateUp(EventArgs e)
     {
-        _viewModel.SetDecreaseHeld(false);
+        ViewModel.SetDecreaseHeld(false);
     }
 
     // Track drag handlers (allows clicking/dragging anywhere on the track)
@@ -360,7 +360,7 @@
                 percentage = Math.Clamp(percentage, 0.0, 100.0);
 
                 // Update ViewModel
-                _viewModel.UpdateFromDragPosition(percentage);
+                ViewModel.UpdateFromDragPosition(percentage);
             }
         }
         catch
@@ -382,11 +382,11 @@
         var selectedName = e.Value?.ToString();
         if (string.IsNullOrEmpty(selectedName))
         {
-            _viewModel.SelectedDestination = null;
+            ViewModel.SelectedDestination = null;
         }
         else
         {
-            _viewModel.SelectedDestination = _viewModel.Destinations
+            ViewModel.SelectedDestination = ViewModel.Destinations
                 .FirstOrDefault(d => d.Name == selectedName);
         }
     }
@@ -397,26 +397,26 @@
         {
             case "w":
             case "W":
-                _viewModel.SetIncreaseHeld(true);
+                ViewModel.SetIncreaseHeld(true);
                 break;
             case "x":
             case "X":
-                _viewModel.SetDecreaseHeld(true);
+                ViewModel.SetDecreaseHeld(true);
                 break;
             case "s":
             case "S":
-                _viewModel.SetSlowHeld(true);
+                ViewModel.SetSlowHeld(true);
                 break;
             case "q":
             case "Q":
-                if (!_viewModel.IsLaunched)
+                if (!ViewModel.IsLaunched)
                 {
-                    _viewModel.Launch();
+                    ViewModel.Launch();
                 }
                 break;
             case "a":
             case "A":
-                _viewModel.Reset();
+                ViewModel.Reset();
                 break;
         }
     }
@@ -427,24 +427,24 @@
         {
             case "w":
             case "W":
-                _viewModel.SetIncreaseHeld(false);
+                ViewModel.SetIncreaseHeld(false);
                 break;
             case "x":
             case "X":
-                _viewModel.SetDecreaseHeld(false);
+                ViewModel.SetDecreaseHeld(false);
                 break;
             case "s":
             case "S":
-                _viewModel.SetSlowHeld(false);
+                ViewModel.SetSlowHeld(false);
                 break;
         }
     }
 
     private string GetAccelerationClass()
     {
-        if (_viewModel.IsAccelerating)
+        if (ViewModel.IsAccelerating)
             return "accelerating";
-        if (_viewModel.IsDecelerating)
+        if (ViewModel.IsDecelerating)
             return "decelerating";
         return "";
     }
@@ -453,10 +453,9 @@
     {
         _timer?.Stop();
         _timer?.Dispose();
-        if (_viewModel != null)
+        if (ViewModel != null)
         {
-            _viewModel.StateChanged -= OnViewModelStateChanged;
+            ViewModel.StateChanged -= OnViewModelStateChanged;
         }
     }
 }
-
