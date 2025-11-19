@@ -1,4 +1,6 @@
-namespace Kg.Velocity.Math;
+using Kg.Velocity.Math;
+
+namespace Kg.Velocity.Engine;
 
 /// <summary>
 /// Represents the current state of the spaceship simulation.

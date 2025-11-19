@@ -12,8 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Kg.Velocity.Math\Kg.Velocity.Math.csproj" />
-    <ProjectReference Include="..\Kg.Velocity.Shared\Kg.Velocity.Shared.csproj" />
+    <ProjectReference Include="..\Kg.Velocity.Engine\Kg.Velocity.Engine.csproj" />
   </ItemGroup>
 
 </Project>

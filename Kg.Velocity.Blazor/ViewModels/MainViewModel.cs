@@ -1,15 +1,10 @@
 using Kg.Velocity.Math;
-using Kg.Velocity.Shared.Models;
+using Kg.Velocity.Engine;
+using Kg.Velocity.Engine.Models;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 namespace Kg.Velocity.Blazor.ViewModels;
-
-public enum DurationFormat
-{
-    Verbose,
-    Compact
-}
 
 public class MainViewModel
 {
@@ -140,28 +135,6 @@ public class MainViewModel
     public double AverageSpeedPercentLight { get; set; }
 
     private void NotifyStateChanged() => StateChanged?.Invoke();
-
-    private double CalculateAccelerationRate(bool increaseHeld, bool decreaseHeld, bool slowHeld)
-    {
-        double netDeltaRate = 0.0;
-
-        if (increaseHeld)
-        {
-            netDeltaRate += 1.0 * System.Math.Exp(PhysicsConstants.ExponentialGrowthRatePerSecond * _state.WHeldSeconds);
-        }
-
-        if (decreaseHeld)
-        {
-            netDeltaRate -= 1.0 * System.Math.Exp(PhysicsConstants.ExponentialGrowthRatePerSecond * _state.XHeldSeconds);
-        }
-
-        if (slowHeld && netDeltaRate != 0.0)
-        {
-            netDeltaRate *= PhysicsConstants.SlowModeModifier;
-        }
-
-        return netDeltaRate;
-    }
 
     private void ResetSimulation(double newTargetMiles)
     {
@@ -314,24 +287,12 @@ public class MainViewModel
         {
             // Do nothing - keep all values frozen until reset
         }
-        else if (!IsLaunched)
+        else
         {
             _state.WHeldSeconds = _increaseHeld ? _state.WHeldSeconds + deltaSeconds : 0.0;
             _state.XHeldSeconds = _decreaseHeld ? _state.XHeldSeconds + deltaSeconds : 0.0;
 
-            double netDeltaRate = CalculateAccelerationRate(_increaseHeld, _decreaseHeld, _slowHeld);
-            _state.SpeedMph += netDeltaRate * deltaSeconds;
-            
-            if (_state.SpeedMph < 0)
-                _state.SpeedMph = 0;
-            
-            _state.DistanceMiles = 0;
-            _state.EarthTimeSeconds = 0;
-            _state.ShipTimeSeconds = 0;
-        }
-        else
-        {
-            _engine.Update(deltaSeconds, _increaseHeld, _decreaseHeld, _slowHeld);
+            _engine.Update(deltaSeconds, _increaseHeld, _decreaseHeld, _slowHeld, IsLaunched);
         }
 
         double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
@@ -344,41 +305,30 @@ public class MainViewModel
         DistanceLightYears = RelativisticPhysics.MilesToLightYears(_state.DistanceMiles);
         RemainingMiles = _state.RemainingDistanceMiles;
         RemainingLightYears = RelativisticPhysics.MilesToLightYears(_state.RemainingDistanceMiles);
-        EarthTimeElapsed = FormatDuration(_state.EarthTimeSeconds);
-        ShipTimeElapsed = FormatDuration(_state.ShipTimeSeconds);
+        EarthTimeElapsed = FlightComputer.FormatDuration(_state.EarthTimeSeconds);
+        ShipTimeElapsed = FlightComputer.FormatDuration(_state.ShipTimeSeconds);
         EarthDateTime = _startDateTime.AddSeconds(_state.EarthTimeSeconds).ToString("MM/dd/yyyy HH:mm:ss.fff");
         ShipDateTime = _startDateTime.AddSeconds(_state.ShipTimeSeconds).ToString("MM/dd/yyyy HH:mm:ss.fff");
         DestinationReached = _state.DestinationReached;
         
-        JourneyProgressPercentage = _state.TargetDistanceMiles > 0 
-            ? (_state.DistanceMiles / _state.TargetDistanceMiles) * 100.0 
-            : 0.0;
-        if (JourneyProgressPercentage > 100.0) 
-            JourneyProgressPercentage = 100.0;
+        JourneyProgressPercentage = FlightComputer.CalculateJourneyProgress(_state.DistanceMiles, _state.TargetDistanceMiles);
 
         _timeSinceLastAverageUpdate += deltaSeconds;
         if (_timeSinceLastAverageUpdate >= 1.0)
         {
-            if (_state.EarthTimeSeconds > 0)
-            {
-                AverageSpeedMph = _state.DistanceMiles / (_state.EarthTimeSeconds / 3600.0);
-                AverageSpeedPercentLight = (AverageSpeedMph / PhysicsConstants.SpeedOfLightMph) * 100.0;
-            }
-            else
-            {
-                AverageSpeedMph = 0;
-                AverageSpeedPercentLight = 0;
-            }
+            var (avgMph, avgPercent) = FlightComputer.CalculateAverageSpeed(_state.DistanceMiles, _state.EarthTimeSeconds);
+            AverageSpeedMph = avgMph;
+            AverageSpeedPercentLight = avgPercent;
             _timeSinceLastAverageUpdate = 0.0;
         }
 
-        EstimatedTimeOfArrival = CalculateETA();
+        EstimatedTimeOfArrival = FlightComputer.CalculateETA(_state.SpeedMph, _state.RemainingDistanceMiles);
         TravelingFor = CalculateTravelingFor();
 
         _timeSinceLastTimeDiffUpdate += deltaSeconds;
         if (_timeSinceLastTimeDiffUpdate >= 1.0)
         {
-            TimeDifference = CalculateTimeDifference();
+            TimeDifference = FlightComputer.CalculateTimeDifference(_state.EarthTimeSeconds, _state.ShipTimeSeconds);
             _timeSinceLastTimeDiffUpdate = 0.0;
         }
 
@@ -387,84 +337,9 @@ public class MainViewModel
         NotifyStateChanged();
     }
 
-    private string CalculateTimeDifference()
-    {
-        double diffSeconds = _state.EarthTimeSeconds - _state.ShipTimeSeconds;
-        
-        if (diffSeconds < 0.000001)
-            return "0ms";
-
-        if (diffSeconds >= 365.25 * 24 * 3600)
-        {
-            double years = diffSeconds / (365.25 * 24 * 3600);
-            return $"{years:F2}y";
-        }
-        else if (diffSeconds >= 24 * 3600)
-        {
-            double days = diffSeconds / (24 * 3600);
-            return $"{days:F2}d";
-        }
-        else if (diffSeconds >= 3600)
-        {
-            double hours = diffSeconds / 3600;
-            return $"{hours:F2}h";
-        }
-        else if (diffSeconds >= 60)
-        {
-            double minutes = diffSeconds / 60;
-            return $"{minutes:F2}m";
-        }
-        else if (diffSeconds >= 1)
-        {
-            return $"{diffSeconds:F3}s";
-        }
-        else
-        {
-            double milliseconds = diffSeconds * 1000;
-            return $"{milliseconds:F2}ms";
-        }
-    }
-
-    private string CalculateETA()
-    {
-        if (_state.SpeedMph <= 0 || _state.RemainingDistanceMiles <= 0)
-            return "N/A";
-
-        double remainingHours = _state.RemainingDistanceMiles / _state.SpeedMph;
-        double remainingSeconds = remainingHours * 3600;
-
-        int years = (int)(remainingSeconds / (365.25 * 24 * 3600));
-        remainingSeconds -= years * (365.25 * 24 * 3600);
-
-        int days = (int)(remainingSeconds / (24 * 3600));
-        remainingSeconds -= days * (24 * 3600);
-
-        int hours = (int)(remainingSeconds / 3600);
-        remainingSeconds -= hours * 3600;
-
-        int minutes = (int)(remainingSeconds / 60);
-
-        if (years > 0)
-        {
-            return days > 0 ? $"{years}y {days}d" : $"{years}y";
-        }
-        else if (days > 0)
-        {
-            return hours > 0 ? $"{days}d {hours}h" : $"{days}d";
-        }
-        else if (hours > 0)
-        {
-            return minutes > 0 ? $"{hours}h {minutes}m" : $"{hours}h";
-        }
-        else
-        {
-            return $"{minutes}m";
-        }
-    }
-
     private string CalculateTravelingFor()
     {
-        return FormatDuration(_state.EarthTimeSeconds, DurationFormat.Compact);
+        return FlightComputer.FormatDuration(_state.EarthTimeSeconds, DurationFormat.Compact);
     }
 
     private string GenerateJourneySummary()
@@ -524,76 +399,6 @@ public class MainViewModel
                 lines.Add(timeDiffText);
                 
                 return string.Join("\n", lines);
-            }
-        }
-    }
-
-    private static string FormatDuration(double totalSeconds, DurationFormat format = DurationFormat.Verbose)
-    {
-        if (double.IsInfinity(totalSeconds) || double.IsNaN(totalSeconds))
-            return "N/A";
-
-        if (totalSeconds < 0)
-            return format == DurationFormat.Compact ? "0m" : "00:00:00";
-
-        int years = (int)(totalSeconds / (365.25 * 24 * 3600));
-        double remainingSeconds = totalSeconds - (years * 365.25 * 24 * 3600);
-
-        int months = (int)(remainingSeconds / (30.44 * 24 * 3600));
-        remainingSeconds -= months * (30.44 * 24 * 3600);
-
-        int days = (int)(remainingSeconds / (24 * 3600));
-        remainingSeconds -= days * (24 * 3600);
-
-        int hours = (int)(remainingSeconds / 3600);
-        remainingSeconds -= hours * 3600;
-
-        int minutes = (int)(remainingSeconds / 60);
-        remainingSeconds -= minutes * 60;
-
-        int seconds = (int)remainingSeconds;
-
-        if (format == DurationFormat.Compact)
-        {
-            // Compact format: "2y 5d", "3d 4h", "5h 30m", "15m"
-            if (totalSeconds < 1)
-                return "0m";
-            
-            if (years > 0)
-                return days > 0 ? $"{years}y {days}d" : $"{years}y";
-            else if (days > 0)
-                return hours > 0 ? $"{days}d {hours}h" : $"{days}d";
-            else if (hours > 0)
-                return minutes > 0 ? $"{hours}h {minutes}m" : $"{hours}h";
-            else
-                return $"{minutes}m";
-        }
-        else
-        {
-            // Verbose format: "2y 3mo 5d 04:15:30"
-            if (years > 0)
-            {
-                if (months > 0)
-                    return $"{years}y {months}mo {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
-                else if (days > 0)
-                    return $"{years}y {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
-                else
-                    return $"{years}y {hours:D2}:{minutes:D2}:{seconds:D2}";
-            }
-            else if (months > 0)
-            {
-                if (days > 0)
-                    return $"{months}mo {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
-                else
-                    return $"{months}mo {hours:D2}:{minutes:D2}:{seconds:D2}";
-            }
-            else if (days > 0)
-            {
-                return $"{days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
-            }
-            else
-            {
-                return $"{hours:D2}:{minutes:D2}:{seconds:D2}";
             }
         }
     }

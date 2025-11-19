@@ -1,4 +1,6 @@
-namespace Kg.Velocity.Math;
+using Kg.Velocity.Math;
+
+namespace Kg.Velocity.Engine;
 
 /// <summary>
 /// Core simulation engine that updates the spaceship state based on inputs and elapsed time.
@@ -19,7 +21,8 @@ public class SimulationEngine
     /// <param name="increaseHeld">Whether acceleration key is held.</param>
     /// <param name="decreaseHeld">Whether deceleration key is held.</param>
     /// <param name="slowHeld">Whether slow modifier key is held.</param>
-    public void Update(double deltaSeconds, bool increaseHeld, bool decreaseHeld, bool slowHeld)
+    /// <param name="isLaunched">Whether the ship has launched.</param>
+    public void Update(double deltaSeconds, bool increaseHeld, bool decreaseHeld, bool slowHeld, bool isLaunched)
     {
         if (deltaSeconds <= 0) return;
 
@@ -36,6 +39,15 @@ public class SimulationEngine
         // Ensure speed doesn't go negative
         if (_state.SpeedMph < 0)
             _state.SpeedMph = 0;
+
+        if (!isLaunched)
+        {
+            // Pre-launch: Reset distance and time
+            _state.DistanceMiles = 0;
+            _state.EarthTimeSeconds = 0;
+            _state.ShipTimeSeconds = 0;
+            return;
+        }
 
         // Accumulate Earth time (proper incremental tracking)
         _state.EarthTimeSeconds += deltaSeconds;
