@@ -109,6 +109,7 @@ public class MainViewModel
     public double TargetDistanceLightYears { get; set; } = PhysicsConstants.TargetDistanceLightYears;
     public string StartingLocation { get; set; } = "New York, USA";
     public ObservableCollection<Destination> Destinations { get; set; } = new();
+    public List<SpeedPreset> SpeedPresets => Kg.Velocity.Engine.SpeedPresets.All;
     
     private Destination? _selectedDestination;
     public Destination? SelectedDestination
@@ -133,6 +134,16 @@ public class MainViewModel
     public string JourneySummary { get; set; } = "";
     public double AverageSpeedMph { get; set; }
     public double AverageSpeedPercentLight { get; set; }
+
+    public void SetSpeed(double mph)
+    {
+        _state.SpeedMph = mph;
+        // Reset acceleration accumulation so it doesn't drift immediately
+        _state.WHeldSeconds = 0;
+        _state.XHeldSeconds = 0;
+        
+        NotifyStateChanged();
+    }
 
     private void NotifyStateChanged() => StateChanged?.Invoke();
 

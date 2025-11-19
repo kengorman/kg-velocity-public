@@ -139,6 +139,19 @@
                 </p>
                 
                 <div class="velocity-controls">
+                    <select class="speed-preset-select" @onchange="OnSpeedPresetChanged">
+                        <option value="">Select Speed Preset</option>
+                        @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
+                        {
+                            <optgroup label="@group.Key">
+                                @foreach (var preset in group)
+                                {
+                                    <option value="@preset.SpeedMph">@preset.Name</option>
+                                }
+                            </optgroup>
+                        }
+                    </select>
+
                     <button class="btn btn-success" 
                             @onpointerdown="OnAccelerateDown"
                             @onpointerup="OnAccelerateUp"
@@ -386,6 +399,14 @@
         {
             ViewModel.SelectedDestination = ViewModel.Destinations
                 .FirstOrDefault(d => d.Name == selectedName);
+        }
+    }
+
+    private void OnSpeedPresetChanged(ChangeEventArgs e)
+    {
+        if (double.TryParse(e.Value?.ToString(), out double speed))
+        {
+            ViewModel.SetSpeed(speed);
         }
     }
 

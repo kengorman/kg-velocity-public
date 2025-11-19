@@ -522,6 +522,23 @@ p strong {
     min-width: 100px;
 }
 
+.speed-preset-select {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 13px;
+    color: var(--text-primary);
+    cursor: pointer;
+    flex: 2;
+    min-width: 150px;
+}
+
+.speed-preset-select option, .speed-preset-select optgroup {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .journey-config {
