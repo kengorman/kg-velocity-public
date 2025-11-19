@@ -115,6 +115,13 @@
                     </span>
                     <span class="progress-info-right">@ViewModel.TargetDistanceLightYears.ToString("N0") ly</span>
                 </div>
+
+                @if (ViewModel.DestinationReached)
+                {
+                    <div class="success-banner">
+                        🎯 DESTINATION REACHED!
+                    </div>
+                }
             </div>
         </div>
 
@@ -154,12 +161,6 @@
             </div>
         </div>
 
-        <!-- Relativistic Effects Section -->
-        <div class="section">
-            <div class="section-title">RELATIVISTIC EFFECTS</div>
-            <p>Lorentz factor (γ): <strong>@ViewModel.LorentzFactor.ToString("F9")</strong></p>
-            <p>Ship clock rate: <strong>@ViewModel.ShipClockRate.ToString("F9")×</strong> Earth</p>
-        </div>
 
         <!-- Distance Section -->
         <div class="section">
@@ -190,18 +191,18 @@
             </div>
         </div>
 
+        <!-- Relativistic Effects Section -->
+        <div class="section">
+            <div class="section-title">RELATIVISTIC EFFECTS</div>
+            <p>Lorentz factor (γ): <strong>@ViewModel.LorentzFactor.ToString("F9")</strong></p>
+            <p>Ship clock rate: <strong>@ViewModel.ShipClockRate.ToString("F9")×</strong> Earth</p>
+        </div>
+
         <!-- Warning Messages -->
         @if (ViewModel.ShowNoDestinationWarning)
         {
             <div class="warning-banner">
                 ⚠ Please select a destination before launching!
-            </div>
-        }
-
-        @if (ViewModel.DestinationReached)
-        {
-            <div class="success-banner">
-                🎯 DESTINATION REACHED!
             </div>
         }
     </div>
