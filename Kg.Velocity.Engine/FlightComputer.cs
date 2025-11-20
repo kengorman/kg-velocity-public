@@ -21,9 +21,6 @@ public static class FlightComputer
         int years = (int)(totalSeconds / (365.25 * 24 * 3600));
         double remainingSeconds = totalSeconds - (years * 365.25 * 24 * 3600);
 
-        int months = (int)(remainingSeconds / (30.44 * 24 * 3600));
-        remainingSeconds -= months * (30.44 * 24 * 3600);
-
         int days = (int)(remainingSeconds / (24 * 3600));
         remainingSeconds -= days * (24 * 3600);
 
@@ -37,7 +34,7 @@ public static class FlightComputer
 
         if (format == DurationFormat.Compact)
         {
-            // Compact format: "2y 5d", "3d 4h", "5h 30m", "15m"
+            // Compact format: "2y 5d", "3d 4h", "5h 30m", "15m", "15m 30s", "30s"
             if (totalSeconds < 1)
                 return "0m";
             
@@ -47,27 +44,17 @@ public static class FlightComputer
                 return hours > 0 ? $"{days}d {hours}h" : $"{days}d";
             else if (hours > 0)
                 return minutes > 0 ? $"{hours}h {minutes}m" : $"{hours}h";
+            else if (minutes > 0)
+                return seconds > 0 ? $"{minutes}m {seconds}s" : $"{minutes}m";
             else
-                return $"{minutes}m";
+                return $"{seconds}s";
         }
         else
         {
-            // Verbose format: "2y 3mo 5d 04:15:30"
+            // Verbose format: "2y 153d 04:15:30"
             if (years > 0)
             {
-                if (months > 0)
-                    return $"{years}y {months}mo {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
-                else if (days > 0)
-                    return $"{years}y {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
-                else
-                    return $"{years}y {hours:D2}:{minutes:D2}:{seconds:D2}";
-            }
-            else if (months > 0)
-            {
-                if (days > 0)
-                    return $"{months}mo {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
-                else
-                    return $"{months}mo {hours:D2}:{minutes:D2}:{seconds:D2}";
+                return $"{years}y {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
             }
             else if (days > 0)
             {

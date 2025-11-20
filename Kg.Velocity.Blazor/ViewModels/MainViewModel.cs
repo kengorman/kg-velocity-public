@@ -135,14 +135,23 @@ public class MainViewModel
     public double AverageSpeedMph { get; set; }
     public double AverageSpeedPercentLight { get; set; }
 
-    public void SetSpeed(double mph)
+    public double? SelectedPresetSpeed
     {
-        _state.SpeedMph = mph;
-        // Reset acceleration accumulation so it doesn't drift immediately
-        _state.WHeldSeconds = 0;
-        _state.XHeldSeconds = 0;
-        
-        NotifyStateChanged();
+        get
+        {
+            var match = SpeedPresets.FirstOrDefault(p => System.Math.Abs(p.SpeedMph - _state.SpeedMph) < 0.001);
+            return match?.SpeedMph;
+        }
+        set
+        {
+            if (value.HasValue)
+            {
+                _state.SpeedMph = value.Value;
+                _state.WHeldSeconds = 0;
+                _state.XHeldSeconds = 0;
+                NotifyStateChanged();
+            }
+        }
     }
 
     private void NotifyStateChanged() => StateChanged?.Invoke();
@@ -357,7 +366,7 @@ public class MainViewModel
     {
         if (SelectedDestination == null)
         {
-            return "Select a destination\nAdjust the ship's speed using W (accelerate) and X (decelerate).\nPress Q to launch.";
+            return "Select a destination\nSelect a preset speed or increment with 'Faster'.\nPress 'Launch' to launch.";
         }
 
         string destinationName = SelectedDestination.Name;
