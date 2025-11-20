@@ -21,53 +21,6 @@
     <!-- Main Content -->
     <div class="main-content">
         
-        <!-- Journey Configuration Section -->
-        <div class="section">
-            <div class="journey-config">
-                <div class="journey-config-left">
-                    <div class="section-title">JOURNEY</div>
-                    <div class="form-group">
-                        <label>From:</label>
-                        <div class="textbox-display">@ViewModel.StartingLocation</div>
-                    </div>
-                    <div class="form-group">
-                        <label>To:</label>
-                        <select class="destination-select" 
-                                value="@(ViewModel.SelectedDestination?.Name ?? "")" 
-                                @onchange="OnDestinationChanged" 
-                                disabled="@ViewModel.IsLaunched">
-                            <option value="">Select Destination</option>
-                            @foreach (var dest in ViewModel.Destinations)
-                            {
-                                <option value="@dest.Name">@dest.DisplayName</option>
-                            }
-                        </select>
-                    </div>
-                    
-                    <div class="journey-controls">
-                        <button class="btn btn-primary" 
-                                @onclick="OnLaunchClicked" 
-                                disabled="@ViewModel.IsLaunched">
-                            🚀 Launch
-                        </button>
-                        <button class="btn btn-secondary" 
-                                @onclick="OnResetClicked">
-                            🔄 Reset
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="vertical-divider"></div>
-                
-                <div class="journey-summary">
-                    @foreach (var line in ViewModel.JourneySummary.Split('\n'))
-                    {
-                        <p>@line</p>
-                    }
-                </div>
-            </div>
-        </div>
-
         <!-- Journey Progress Visualization -->
         <div class="section">
             <div class="progress-section">
@@ -122,6 +75,53 @@
                         🎯 DESTINATION REACHED!
                     </div>
                 }
+            </div>
+        </div>
+
+        <!-- Journey Configuration Section -->
+        <div class="section">
+            <div class="journey-config">
+                <div class="journey-config-left">
+                    <div class="section-title">JOURNEY</div>
+                    <div class="form-group">
+                        <label>From:</label>
+                        <div class="textbox-display">@ViewModel.StartingLocation</div>
+                    </div>
+                    <div class="form-group">
+                        <label>To:</label>
+                        <select class="destination-select" 
+                                value="@(ViewModel.SelectedDestination?.Name ?? "")" 
+                                @onchange="OnDestinationChanged" 
+                                disabled="@ViewModel.IsLaunched">
+                            <option value="">Select Destination</option>
+                            @foreach (var dest in ViewModel.Destinations)
+                            {
+                                <option value="@dest.Name">@dest.DisplayName</option>
+                            }
+                        </select>
+                    </div>
+                    
+                    <div class="journey-controls">
+                        <button class="btn btn-primary" 
+                                @onclick="OnLaunchClicked" 
+                                disabled="@ViewModel.IsLaunched">
+                            🚀 Launch
+                        </button>
+                        <button class="btn btn-secondary" 
+                                @onclick="OnResetClicked">
+                            🔄 Reset
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="vertical-divider"></div>
+                
+                <div class="journey-summary">
+                    @foreach (var line in ViewModel.JourneySummary.Split('\n'))
+                    {
+                        <p>@line</p>
+                    }
+                </div>
             </div>
         </div>
 
