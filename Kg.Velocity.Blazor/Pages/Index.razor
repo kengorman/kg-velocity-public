@@ -132,10 +132,7 @@
                     <span class="section-title">VELOCITY</span>
                 </div>
                 <p class="velocity-display @GetAccelerationClass()">
-                    Speed: <strong>@ViewModel.SpeedMph.ToString("N0") mph</strong>
-                </p>
-                <p class="velocity-display @GetAccelerationClass()">
-                    Percentage of light speed: <strong>@ViewModel.PercentageOfLightSpeed.ToString("F6")%</strong>
+                    <strong>@ViewModel.SpeedMph.ToString("N0") mph</strong> (@ViewModel.PercentageOfLightSpeed.ToString("F6")% c)
                 </p>
                 
                 <div class="velocity-controls">
@@ -180,10 +177,10 @@
         <!-- Distance Section -->
         <div class="section">
             <div class="section-title">DISTANCE</div>
-            <p>Distance traveled: <strong>@ViewModel.DistanceMiles.ToString("N0") miles</strong></p>
+            <p>Traveled: <strong>@ViewModel.DistanceMiles.ToString("N0") mi</strong></p>
             <p class="indent">(@ViewModel.DistanceLightYears.ToString("N6") ly)</p>
-            <p>Remaining distance: <strong>@ViewModel.RemainingMiles.ToString("N0") miles</strong></p>
-            <p class="indent">(@ViewModel.RemainingLightYears.ToString("N6") ly of @ViewModel.TargetDistanceLightYears.ToString("N0") ly target)</p>
+            <p>Remaining: <strong>@ViewModel.RemainingMiles.ToString("N0") mi</strong></p>
+            <p class="indent">(@ViewModel.RemainingLightYears.ToString("N6") ly of @ViewModel.TargetDistanceLightYears.ToString("N0") ly)</p>
         </div>
 
         <!-- Time Section -->
@@ -209,26 +206,26 @@
         <!-- Relativistic Effects Section -->
         <div class="section">
             <div class="section-title">RELATIVISTIC EFFECTS</div>
-            <p>Lorentz factor (γ): <strong>@ViewModel.LorentzFactor.ToString("F9")</strong></p>
-            <p>Ship clock rate: <strong>@ViewModel.ShipClockRate.ToString("F9")×</strong> Earth</p>
+            <p>γ: <strong>@ViewModel.LorentzFactor.ToString("F9")</strong></p>
+            <p>Clock Rate: <strong>@ViewModel.ShipClockRate.ToString("F9")×</strong> Earth</p>
         </div>
 
         <!-- Warning Messages -->
         @if (ViewModel.ShowNoDestinationWarning)
         {
             <div class="warning-banner">
-                ⚠ Please select a destination before launching!
+                ⚠ Select destination first
             </div>
         }
     </div>
 
-    <!-- Time Dilation Footer -->
-    <div class="footer">
-        <div class="footer-section">
-            <div class="footer-title">TIME DILATION</div>
-            <p>Difference: <strong class="time-diff">@ViewModel.TimeDifference</strong></p>
+        <!-- Time Dilation Footer -->
+        <div class="footer">
+            <div class="footer-section">
+                <div class="footer-title">TIME DILATION</div>
+                <p>ΔTime: <strong class="time-diff">@ViewModel.TimeDifference</strong></p>
+            </div>
         </div>
-    </div>
 </div>
 
 @code {

@@ -82,6 +82,7 @@ public class MainViewModel
             
             // Deep Space
             new Destination { Name = "Horseshoe Nebula", DistanceMiles = 5_500 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
+            new Destination { Name = "Milky Way (center)", DistanceMiles = 26_000 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
             new Destination { Name = "Andromeda Galaxy", DistanceMiles = 2_537_000 * PhysicsConstants.LightYearMiles, Category = "Deep Space" }
         ];
 
@@ -366,7 +367,7 @@ public class MainViewModel
     {
         if (SelectedDestination == null)
         {
-            return "Select a destination\nSelect a preset speed or increment with 'Faster'.\nPress 'Launch' to launch.";
+            return "Select destination\nSet speed with preset or 'Faster'\nQ to launch";
         }
 
         string destinationName = SelectedDestination.Name;
@@ -375,17 +376,17 @@ public class MainViewModel
 
         if (!IsLaunched)
         {
-            return $"Preparing to travel to {destinationName}.\nInitial speed: {speedText} ({percentLight} c).\nPress Q to launch.";
+            return $"→ {destinationName}\nSpeed: {speedText} ({percentLight} c)\nQ to launch";
         }
         else
         {
-            string etaText = EstimatedTimeOfArrival != "N/A" ? $"Arrival in {EstimatedTimeOfArrival}." : "Arrival time unknown.";
+            string etaText = EstimatedTimeOfArrival != "N/A" ? $"ETA: {EstimatedTimeOfArrival}" : "";
             string timeDiffText = TimeDifference != "0s" && TimeDifference != "0ms" 
-                ? $"Your ship's clock is {TimeDifference} slower than Earth time." 
-                : "No time dilation.";
+                ? $"ΔTime: -{TimeDifference}" 
+                : "ΔTime: 0s";
             
             string avgSpeedText = AverageSpeedMph > 0 
-                ? $"Average speed: {AverageSpeedMph:N0} mph ({AverageSpeedPercentLight:F6}% c)." 
+                ? $"Avg: {AverageSpeedMph:N0} mph ({AverageSpeedPercentLight:F6}% c)" 
                 : "";
 
             if (DestinationReached)
@@ -393,14 +394,14 @@ public class MainViewModel
                 var lines = new List<string>
                 {
                     $"Arrived at {destinationName}!",
-                    $"Final speed: {speedText} ({percentLight} c)."
+                    $"Final: {speedText} ({percentLight} c)"
                 };
                 
                 if (!string.IsNullOrEmpty(avgSpeedText))
                     lines.Add(avgSpeedText);
                     
                 lines.Add(timeDiffText);
-                lines.Add("Press A to reset.");
+                lines.Add("A to reset");
                 
                 return string.Join("\n", lines);
             }
@@ -408,14 +409,17 @@ public class MainViewModel
             {
                 var lines = new List<string>
                 {
-                    $"Travelling to {destinationName} at {speedText} ({percentLight} c)."
+                    $"→ {destinationName} @ {speedText} ({percentLight} c)"
                 };
                 
                 if (!string.IsNullOrEmpty(avgSpeedText))
                     lines.Add(avgSpeedText);
                     
-                lines.Add($"Traveling for {TravelingFor}.");
-                lines.Add(etaText);
+                lines.Add($"Duration: {TravelingFor}");
+                
+                if (!string.IsNullOrEmpty(etaText))
+                    lines.Add(etaText);
+                    
                 lines.Add(timeDiffText);
                 
                 return string.Join("\n", lines);
