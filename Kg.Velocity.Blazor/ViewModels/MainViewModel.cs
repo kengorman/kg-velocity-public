@@ -65,13 +65,6 @@ public class MainViewModel
     {
         Destinations =
         [
-            // Terrestrial
-            new Destination { Name = "California (Los Angeles)", DistanceMiles = 2_800, Category = "Earth" },
-            new Destination { Name = "Paris, France", DistanceMiles = 3_628, Category = "Earth" },
-            new Destination { Name = "North Pole", DistanceMiles = 3_360, Category = "Earth" },
-            new Destination { Name = "South Pole", DistanceMiles = 9_445, Category = "Earth" },
-            new Destination { Name = "Sydney, Australia", DistanceMiles = 9_950, Category = "Earth" },
-            
             // Solar System
             new Destination { Name = "The Moon", DistanceMiles = 238_855, Category = "Space" },
             new Destination { Name = "Mercury", DistanceMiles = 56_000_000, Category = "Space" },
@@ -108,7 +101,6 @@ public class MainViewModel
     public string ShipDateTime { get; set; } = "";
     public bool DestinationReached { get; set; }
     public double TargetDistanceLightYears { get; set; } = PhysicsConstants.TargetDistanceLightYears;
-    public string StartingLocation { get; set; } = "New York, USA";
     public ObservableCollection<Destination> Destinations { get; set; } = new();
     public List<SpeedPreset> SpeedPresets => Kg.Velocity.Engine.SpeedPresets.All;
     
