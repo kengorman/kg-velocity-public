@@ -61,5 +61,5 @@ jobs:
         with:
           app-name: 'kg-velocity'
           slot-name: 'Production'
-          package: .
+          package: wwwroot
           
