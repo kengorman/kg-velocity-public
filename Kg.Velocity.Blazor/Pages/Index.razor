@@ -11,62 +11,64 @@
 
 <PageTitle>Velocity — Relativistic Travel Simulation</PageTitle>
 
-<div class="app-container" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp">
-    <!-- Header -->
-    <div class="header">
-        <h1 class="title">Velocity</h1>
-        <p class="subtitle">Relativistic Travel Simulation</p>
-    </div>
+@if (_isInitialized)
+{
+    <div class="app-container" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="title">Velocity</h1>
+            <p class="subtitle">Relativistic Travel Simulation</p>
+        </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        
-        <!-- Journey Progress Visualization -->
-        <div class="section">
-            <div class="progress-section">
-                <div class="section-header">
-                    <span class="section-title">PROGRESS</span>
-                    @if (!ViewModel.IsLaunched)
-                    {
-                        <span class="status-badge status-prelaunch">Pre-Launch</span>
-                    }
-                    else
-                    {
-                        <span class="status-badge status-inflight">In-Flight</span>
-                    }
-                </div>
-                
-                <div class="progress-track-container">
-                    <div class="progress-label-start">Earth</div>
-                    
-                    <div class="progress-track" 
-                         @ref="_progressTrackRef"
-                         style="cursor: @(_canDrag ? "pointer" : "default")"
-                         @onpointerdown="OnTrackPointerDown"
-                         @onpointermove="OnTrackPointerMove"
-                         @onpointerup="OnTrackPointerUp"
-                         @onpointerleave="OnTrackPointerLeave"
-                         @ontouchstart="OnTrackTouchStart"
-                         @ontouchmove="OnTrackTouchMove"
-                         @ontouchend="OnTrackTouchEnd">
-                        <div class="progress-bar" style="width: @(ViewModel.JourneyProgressPercentage)%"></div>
-                        <div class="rocket-icon" 
-                             style="left: @(ViewModel.JourneyProgressPercentage)%; cursor: @(_canDrag ? "grab" : "default")">
-                            🚀
-                        </div>
+        <!-- Main Content -->
+        <div class="main-content">
+            
+            <!-- Journey Progress Visualization -->
+            <div class="section">
+                <div class="progress-section">
+                    <div class="section-header">
+                        <span class="section-title">PROGRESS</span>
+                        @if (!ViewModel.IsLaunched)
+                        {
+                            <span class="status-badge status-prelaunch">Pre-Launch</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-inflight">In-Flight</span>
+                        }
                     </div>
                     
-                    <div class="progress-label-end">@(ViewModel.SelectedDestination?.Name ?? "")</div>
-                </div>
-                
-                <div class="progress-info">
-                    <div class="flight-dashboard-grid">
-                        <!-- Row 1: Destination -->
-                        <div class="dashboard-row">
-                            <span class="dash-label">Your Destination:</span>
-                            <span class="dash-value highlight">@(ViewModel.SelectedDestination?.Name ?? "Not Selected")</span>
+                    <div class="progress-track-container">
+                        <div class="progress-label-start">Earth</div>
+                        
+                        <div class="progress-track" 
+                             @ref="_progressTrackRef"
+                             style="@GetTrackCursorStyle()"
+                             @onpointerdown="OnTrackPointerDown"
+                             @onpointermove="OnTrackPointerMove"
+                             @onpointerup="OnTrackPointerUp"
+                             @onpointerleave="OnTrackPointerLeave"
+                             @ontouchstart="OnTrackTouchStart"
+                             @ontouchmove="OnTrackTouchMove"
+                             @ontouchend="OnTrackTouchEnd">
+                            <div class="progress-bar" style="width: @(ViewModel.JourneyProgressPercentage)%"></div>
+                            <div class="rocket-icon" 
+                                 style="@GetRocketStyle()">
+                                🚀
+                            </div>
                         </div>
                         
+                        <div class="progress-label-end">@(ViewModel.SelectedDestination?.Name ?? "")</div>
+                    </div>
+                    
+                    <div class="progress-info">
+                        <div class="flight-dashboard-grid">
+                            <!-- Row 1: Destination -->
+                            <div class="dashboard-row">
+                                <span class="dash-label">Your Destination:</span>
+                                <span class="dash-value highlight">@(ViewModel.SelectedDestination?.Name ?? "Not Selected")</span>
+                            </div>
+                            
                         <!-- Row 2: Speed -->
                         <div class="dashboard-row">
                             <span class="dash-label">Speed:</span>
@@ -76,60 +78,127 @@
                         <!-- Row 3: Traveled -->
                         <div class="dashboard-row">
                             <span class="dash-label">Traveled:</span>
-                            <span class="dash-value">@ViewModel.DistanceMiles.ToString("N0") mi (@ViewModel.DistanceLightYears.ToString("N6") ly)</span>
-                        </div>
+                                <span class="dash-value">@ViewModel.DistanceMiles.ToString("N0") mi (@ViewModel.DistanceLightYears.ToString("N6") ly)</span>
+                            </div>
 
-                        <!-- Row 4: Remaining -->
-                        <div class="dashboard-row">
-                            <span class="dash-label">Remaining:</span>
-                            <span class="dash-value">@ViewModel.RemainingMiles.ToString("N0") mi (@ViewModel.RemainingLightYears.ToString("N6") ly)</span>
-                        </div>
+                            <!-- Row 4: Remaining -->
+                            <div class="dashboard-row">
+                                <span class="dash-label">Remaining:</span>
+                                <span class="dash-value">@ViewModel.RemainingMiles.ToString("N0") mi (@ViewModel.RemainingLightYears.ToString("N6") ly)</span>
+                            </div>
 
-                        <!-- Row 5: Time -->
-                        <div class="dashboard-row">
-                            <span class="dash-label">Earth Time:</span>
+                            <!-- Row 5: Time -->
+                            <div class="dashboard-row">
+                                <span class="dash-label">Earth Time:</span>
                             <span class="dash-value">@ViewModel.EarthTimeElapsed</span>
                         </div>
                         <div class="dashboard-row">
                             <span class="dash-label">Ship Time:</span>
-                            <span class="dash-value ship-time">@ViewModel.ShipTimeElapsed</span>
-                        </div>
-                        <div class="dashboard-row">
-                            <span class="dash-label">Arrival:</span>
-                            <span class="dash-value">@ViewModel.ArrivalDateString</span>
+                                <span class="dash-value ship-time">@ViewModel.ShipTimeElapsed</span>
+                            </div>
+                            <div class="dashboard-row">
+                                <span class="dash-label">Arrival:</span>
+                                <span class="dash-value">@ViewModel.ArrivalDateString</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                @if (ViewModel.DestinationReached)
-                {
-                    <div class="success-banner">
-                        🎯 DESTINATION REACHED!
-                    </div>
-                }
+                    @if (ViewModel.DestinationReached)
+                    {
+                        <div class="success-banner">
+                            🎯 DESTINATION REACHED!
+                        </div>
+                    }
+                </div>
             </div>
-        </div>
 
-        <!-- Journey Configuration & Controls -->
-        <div class="section">
-            <div class="journey-config">
-                <!-- Destination -->
-                <div class="form-group">
-                    <select class="destination-select" 
-                            value="@(ViewModel.SelectedDestination?.Name ?? "")" 
-                            @onchange="OnDestinationChanged" 
-                            disabled="@ViewModel.IsLaunched">
-                        <option value="">Select Destination</option>
-                        @foreach (var dest in ViewModel.Destinations)
-                        {
-                            <option value="@dest.Name">@dest.DisplayName</option>
-                        }
-                    </select>
-                </div>
-                
-                <!-- Speed Controls -->
-                <div class="velocity-panel-inner">
+            <!-- Journey Configuration & Controls -->
+            <div class="section">
+                <div class="journey-config">
+                    <!-- Destination -->
                     <div class="form-group">
+                        <select class="destination-select" 
+                                value="@(ViewModel.SelectedDestination?.Name ?? "")" 
+                                @onchange="OnDestinationChanged" 
+                                disabled="@ViewModel.IsLaunched">
+                            <option value="">Select Destination</option>
+                            @foreach (var dest in ViewModel.Destinations)
+                            {
+                                <option value="@dest.Name">@dest.DisplayName</option>
+                            }
+                        </select>
+                    </div>
+                    
+                    <!-- Speed Controls -->
+                    <div class="velocity-panel-inner">
+                        <div class="form-group">
+                            <select class="speed-preset-select" 
+                                    @bind="ViewModel.SelectedPresetSpeed"
+                                    disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
+                                <option value="">Select Speed Preset</option>
+                                @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
+                                {
+                                    <optgroup label="@group.Key">
+                                        @foreach (var preset in group)
+                                        {
+                                            <option value="@preset.SpeedMph">@preset.Name</option>
+                                        }
+                                    </optgroup>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="velocity-controls">
+                            <button class="btn btn-success" 
+                                    @onpointerdown="OnAccelerateDown"
+                                    @onpointerup="OnAccelerateUp"
+                                    @onpointerleave="OnAccelerateUp"
+                                    @ontouchstart="OnAccelerateDown"
+                                    @ontouchend="OnAccelerateUp"
+                                    disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
+                                ▲ Faster
+                            </button>
+                            <button class="btn btn-danger" 
+                                    @onpointerdown="OnDecelerateDown"
+                                    @onpointerup="OnDecelerateUp"
+                                    @onpointerleave="OnDecelerateUp"
+                                    @ontouchstart="OnDecelerateDown"
+                                    @ontouchend="OnDecelerateUp"
+                                    disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
+                                ▼ Slower
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr class="panel-divider" />
+
+                    <!-- Launch / Reset -->
+                    <div class="journey-controls">
+                        <button class="btn btn-primary" 
+                                @onclick="OnLaunchClicked" 
+                                disabled="@ViewModel.IsLaunched">
+                            🚀 Launch
+                        </button>
+                        <button class="btn btn-secondary" 
+                                @onclick="OnResetClicked">
+                            🔄 Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Speed Section (Commented Out - Moved Above) -->
+            <!--
+            <div class="section">
+                <div class="velocity-section">
+                    <div class="section-header">
+                        <span class="section-title">VELOCITY</span>
+                    </div>
+                    <p class="velocity-display @GetAccelerationClass()">
+                        <strong>@ViewModel.SpeedMph.ToString("N0") mph</strong> (@ViewModel.PercentageOfLightSpeed.ToString("F6")% c)
+                    </p>
+                    
+                    <div class="velocity-controls">
                         <select class="speed-preset-select" 
                                 @bind="ViewModel.SelectedPresetSpeed"
                                 disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
@@ -144,9 +213,7 @@
                                 </optgroup>
                             }
                         </select>
-                    </div>
 
-                    <div class="velocity-controls">
                         <button class="btn btn-success" 
                                 @onpointerdown="OnAccelerateDown"
                                 @onpointerup="OnAccelerateUp"
@@ -167,134 +234,81 @@
                         </button>
                     </div>
                 </div>
+            </div>
+            -->
 
-                <hr class="panel-divider" />
 
-                <!-- Launch / Reset -->
-                <div class="journey-controls">
-                    <button class="btn btn-primary" 
-                            @onclick="OnLaunchClicked" 
-                            disabled="@ViewModel.IsLaunched">
-                        🚀 Launch
-                    </button>
-                    <button class="btn btn-secondary" 
-                            @onclick="OnResetClicked">
-                        🔄 Reset
-                    </button>
+            <!-- Distance Section -->
+            <!--
+            <div class="section">
+                <div class="section-title">DISTANCE</div>
+                <p>Traveled: <strong>@ViewModel.DistanceMiles.ToString("N0") mi</strong></p>
+                <p class="indent">(@ViewModel.DistanceLightYears.ToString("N6") ly)</p>
+                <p>Remaining: <strong>@ViewModel.RemainingMiles.ToString("N0") mi</strong></p>
+                <p class="indent">(@ViewModel.RemainingLightYears.ToString("N6") ly of @ViewModel.TargetDistanceLightYears.ToString("N0") ly)</p>
+            </div>
+            -->
+
+            <!-- Time Section -->
+            <!--
+            <div class="section">
+                <div class="section-title">TIME</div>
+                <div class="time-display-grid">
+                    <div class="time-column">
+                        <p class="time-label">Earth:</p>
+                        <p class="time-value">@ViewModel.EarthTimeElapsed</p>
+                        <p class="time-datetime">@ViewModel.EarthDateTime</p>
+                    </div>
+                    
+                    <div class="vertical-divider"></div>
+                    
+                    <div class="time-column">
+                        <p class="time-label">Ship:</p>
+                        <p class="time-value ship-time">@ViewModel.ShipTimeElapsed</p>
+                        <p class="time-datetime">@ViewModel.ShipDateTime</p>
+                    </div>
                 </div>
             </div>
+            -->
+
+            <!-- Relativistic Effects Section -->
+            <!--
+            <div class="section">
+                <div class="section-title">RELATIVISTIC EFFECTS</div>
+                <p>γ: <strong>@ViewModel.LorentzFactor.ToString("F9")</strong></p>
+                <p>Clock Rate: <strong>@ViewModel.ShipClockRate.ToString("F9")×</strong> Earth</p>
+            </div>
+            -->
+
+            <!-- Warning Messages -->
+            @if (ViewModel.ShowNoDestinationWarning)
+            {
+                <div class="warning-banner">
+                    ⚠ Select destination first
+                </div>
+            }
         </div>
 
-        <!-- Speed Section (Commented Out - Moved Above) -->
-        <!--
-        <div class="section">
-            <div class="velocity-section">
-                <div class="section-header">
-                    <span class="section-title">VELOCITY</span>
-                </div>
-                <p class="velocity-display @GetAccelerationClass()">
-                    <strong>@ViewModel.SpeedMph.ToString("N0") mph</strong> (@ViewModel.PercentageOfLightSpeed.ToString("F6")% c)
-                </p>
-                
-                <div class="velocity-controls">
-                    <select class="speed-preset-select" 
-                            @bind="ViewModel.SelectedPresetSpeed"
-                            disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
-                        <option value="">Select Speed Preset</option>
-                        @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
-                        {
-                            <optgroup label="@group.Key">
-                                @foreach (var preset in group)
-                                {
-                                    <option value="@preset.SpeedMph">@preset.Name</option>
-                                }
-                            </optgroup>
-                        }
-                    </select>
-
-                    <button class="btn btn-success" 
-                            @onpointerdown="OnAccelerateDown"
-                            @onpointerup="OnAccelerateUp"
-                            @onpointerleave="OnAccelerateUp"
-                            @ontouchstart="OnAccelerateDown"
-                            @ontouchend="OnAccelerateUp"
-                            disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
-                        ▲ Faster
-                    </button>
-                    <button class="btn btn-danger" 
-                            @onpointerdown="OnDecelerateDown"
-                            @onpointerup="OnDecelerateUp"
-                            @onpointerleave="OnDecelerateUp"
-                            @ontouchstart="OnDecelerateDown"
-                            @ontouchend="OnDecelerateUp"
-                            disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
-                        ▼ Slower
-                    </button>
+            <!-- Time Dilation Footer -->
+            <div class="footer">
+                <div class="footer-section">
+                    <div class="footer-title">TIME DILATION</div>
+                    <p>ΔTime: <strong class="time-diff">@ViewModel.TimeDifference</strong></p>
                 </div>
             </div>
-        </div>
-        -->
-
-
-        <!-- Distance Section -->
-        <!--
-        <div class="section">
-            <div class="section-title">DISTANCE</div>
-            <p>Traveled: <strong>@ViewModel.DistanceMiles.ToString("N0") mi</strong></p>
-            <p class="indent">(@ViewModel.DistanceLightYears.ToString("N6") ly)</p>
-            <p>Remaining: <strong>@ViewModel.RemainingMiles.ToString("N0") mi</strong></p>
-            <p class="indent">(@ViewModel.RemainingLightYears.ToString("N6") ly of @ViewModel.TargetDistanceLightYears.ToString("N0") ly)</p>
-        </div>
-        -->
-
-        <!-- Time Section -->
-        <!--
-        <div class="section">
-            <div class="section-title">TIME</div>
-            <div class="time-display-grid">
-                <div class="time-column">
-                    <p class="time-label">Earth:</p>
-                    <p class="time-value">@ViewModel.EarthTimeElapsed</p>
-                    <p class="time-datetime">@ViewModel.EarthDateTime</p>
-                </div>
-                
-                <div class="vertical-divider"></div>
-                
-                <div class="time-column">
-                    <p class="time-label">Ship:</p>
-                    <p class="time-value ship-time">@ViewModel.ShipTimeElapsed</p>
-                    <p class="time-datetime">@ViewModel.ShipDateTime</p>
-                </div>
-            </div>
-        </div>
-        -->
-
-        <!-- Relativistic Effects Section -->
-        <!--
-        <div class="section">
-            <div class="section-title">RELATIVISTIC EFFECTS</div>
-            <p>γ: <strong>@ViewModel.LorentzFactor.ToString("F9")</strong></p>
-            <p>Clock Rate: <strong>@ViewModel.ShipClockRate.ToString("F9")×</strong> Earth</p>
-        </div>
-        -->
-
-        <!-- Warning Messages -->
-        @if (ViewModel.ShowNoDestinationWarning)
-        {
-            <div class="warning-banner">
-                ⚠ Select destination first
-            </div>
-        }
     </div>
-
-        <!-- Time Dilation Footer -->
-        <div class="footer">
-            <div class="footer-section">
-                <div class="footer-title">TIME DILATION</div>
-                <p>ΔTime: <strong class="time-diff">@ViewModel.TimeDifference</strong></p>
-            </div>
-        </div>
-</div>
+}
+else
+{
+    <div class="loading-container">
+        <svg class="loading-progress" viewBox="0 0 120 120" width="80" height="80">
+            <circle r="50" cx="60" cy="60" fill="none" stroke="#e0e0e0" stroke-width="10" />
+            <circle r="50" cx="60" cy="60" fill="none" stroke="#3b82f6" stroke-width="10" 
+                    stroke-dasharray="314" stroke-dashoffset="100" style="animation: spin 2s linear infinite" />
+        </svg>
+        <p class="loading-text">Initializing Flight Systems...</p>
+    </div>
+}
 
 @code {
     private bool _isInitialized = false;
@@ -313,8 +327,15 @@
     {
         if (firstRender)
         {
-            GameLoop.OnUpdate += OnGameLoopUpdate;
-            await GameLoop.Start();
+            try
+            {
+                GameLoop.OnUpdate += OnGameLoopUpdate;
+                await GameLoop.Start();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error starting game loop: {ex.Message}");
+            }
         }
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -517,6 +538,11 @@
                 break;
         }
     }
+
+    private string GetTrackCursorStyle() => $"cursor: {(_canDrag ? "pointer" : "default")}";
+
+    private string GetRocketStyle() => 
+        $"left: {ViewModel.JourneyProgressPercentage}%; cursor: {(_canDrag ? "grab" : "default")}";
 
     private string GetAccelerationClass()
     {

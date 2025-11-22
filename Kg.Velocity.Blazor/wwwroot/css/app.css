@@ -445,3 +445,70 @@ p strong {
         flex-direction: column;
     }
 }
+
+/* Loading Spinner */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: var(--bg-primary);
+}
+
+.loading-progress {
+    position: relative;
+    display: block;
+    width: 80px;
+    height: 80px;
+    margin: 20vh auto 1rem auto;
+    animation: spin 2s linear infinite;
+}
+
+.loading-progress circle {
+    fill: none;
+    stroke: #e0e0e0;
+    stroke-width: 7;
+    stroke-linecap: round;
+    transform-origin: 50% 50%;
+}
+
+.loading-progress circle:last-child {
+    stroke: #3b82f6;
+    stroke-dasharray: 200; /* Approximation for 40% radius */
+    stroke-dashoffset: 50;
+}
+
+.loading-text {
+    margin-top: 20px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 14px;
+    text-align: center;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Blazor Loading & Error UI */
+#blazor-error-ui {
+    background: #ef5350;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+    color: white;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
