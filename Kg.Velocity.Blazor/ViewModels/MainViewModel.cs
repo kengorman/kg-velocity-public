@@ -99,6 +99,7 @@ public class MainViewModel
     public string ShipTimeElapsed { get; set; } = "00:00:00";
     public string EarthDateTime { get; set; } = "";
     public string ShipDateTime { get; set; } = "";
+    public string ArrivalDateString { get; set; } = "N/A";
     public bool DestinationReached { get; set; }
     public double TargetDistanceLightYears { get; set; } = PhysicsConstants.TargetDistanceLightYears;
     public ObservableCollection<Destination> Destinations { get; set; } = new();
@@ -343,6 +344,58 @@ public class MainViewModel
         {
             TimeDifference = FlightComputer.CalculateTimeDifference(_state.EarthTimeSeconds, _state.ShipTimeSeconds);
             _timeSinceLastTimeDiffUpdate = 0.0;
+        }
+
+        // Calculate Arrival Date
+        if (IsLaunched && !DestinationReached && SpeedMph > 0 && RemainingMiles > 0)
+        {
+            // ETA is in seconds based on current speed
+            double secondsToArrive = RemainingMiles / (SpeedMph / 3600.0);
+            DateTime currentEarthTime = _startDateTime.AddSeconds(_state.EarthTimeSeconds);
+            
+            try 
+            {
+                // Handle massive timeframes that overflow DateTime (Year 9999)
+                // DateTime.MaxValue is roughly 315,537,897,599 seconds from year 1.
+                // But we just need to know if currentYear + yearsToAdd > 9999.
+                
+                double yearsToArrive = secondsToArrive / (365.2425 * 24 * 3600);
+                int currentYear = currentEarthTime.Year;
+                
+                if (currentYear + yearsToArrive > 9999)
+                {
+                    // Deep Time formatting
+                    double targetYear = currentYear + yearsToArrive;
+                    
+                    if (targetYear >= 1_000_000)
+                    {
+                        ArrivalDateString = $"Year {(targetYear / 1_000_000):N2} Million";
+                    }
+                    else
+                    {
+                        ArrivalDateString = $"Year {targetYear:N0}";
+                    }
+                }
+                else
+                {
+                    // Standard formatting
+                    DateTime arrivalDate = currentEarthTime.AddSeconds(secondsToArrive);
+                    ArrivalDateString = arrivalDate.ToString("MM/dd/yyyy HH:mm:ss 'UTC'");
+                }
+            }
+            catch
+            {
+                // Fallback for extreme overflows
+                ArrivalDateString = "Far Future";
+            }
+        }
+        else if (DestinationReached)
+        {
+            ArrivalDateString = "Arrived";
+        }
+        else
+        {
+            ArrivalDateString = "N/A";
         }
 
         JourneySummary = GenerateJourneySummary();
