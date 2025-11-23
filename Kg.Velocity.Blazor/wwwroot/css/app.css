@@ -532,27 +532,10 @@ p strong {
     background-color: var(--bg-primary);
 }
 
-.loading-progress {
-    position: relative;
-    display: block;
+.loading-spinner {
     width: 80px;
     height: 80px;
-    margin: 20vh auto 1rem auto;
-    animation: spin 2s linear infinite;
-}
-
-.loading-progress circle {
-    fill: none;
-    stroke: #e0e0e0;
-    stroke-width: 7;
-    stroke-linecap: round;
-    transform-origin: 50% 50%;
-}
-
-.loading-progress circle:last-child {
-    stroke: #3b82f6;
-    stroke-dasharray: 200; /* Approximation for 40% radius */
-    stroke-dashoffset: 50;
+    margin-bottom: 20px;
 }
 
 .loading-text {
@@ -561,11 +544,6 @@ p strong {
     font-weight: 600;
     font-size: 14px;
     text-align: center;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
 }
 
 /* Blazor Loading & Error UI */
