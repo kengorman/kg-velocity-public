@@ -87,7 +87,6 @@ public class MainViewModel
     public bool IsAccelerating { get; set; }
     public bool IsDecelerating { get; set; }
     public bool IsLaunched { get; set; }
-    public bool ShowNoDestinationWarning { get; set; }
     public double SpeedMph { get; set; }
     public double PercentageOfLightSpeed { get; set; }
     public double LorentzFactor { get; set; }
@@ -116,7 +115,6 @@ public class MainViewModel
             _selectedDestination = value;
             if (value != null)
             {
-                ShowNoDestinationWarning = false;
                 ResetSimulation(value.DistanceMiles);
                 NotifyStateChanged();
             }
@@ -206,12 +204,8 @@ public class MainViewModel
     {
         if (SelectedDestination == null)
         {
-            ShowNoDestinationWarning = true;
-            NotifyStateChanged();
             return;
         }
-        
-        ShowNoDestinationWarning = false;
         
         if (_state.SpeedMph <= 0)
         {
