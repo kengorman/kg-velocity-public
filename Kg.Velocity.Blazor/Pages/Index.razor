@@ -74,7 +74,40 @@
                                 </select>
                             </div>
                             
-                        <!-- Row 2: Speed -->
+                            <!-- Row 2: Speed Preset -->
+                            <div class="dashboard-row">
+                                <label class="dash-label" for="speed-preset-select">Speed Preset:</label>
+                                <select id="speed-preset-select"
+                                        class="dash-select" 
+                                        @bind="ViewModel.SelectedPresetSpeed"
+                                        disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
+                                    <option value="">Select Speed Preset</option>
+                                    @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
+                                    {
+                                        <optgroup label="@group.Key">
+                                            @foreach (var preset in group)
+                                            {
+                                                <option value="@preset.SpeedMph">@preset.Name</option>
+                                            }
+                                        </optgroup>
+                                    }
+                                </select>
+                            </div>
+                            
+                            <!-- Launch and Reset Controls -->
+                            <div class="dashboard-button-row">
+                                <button class="btn btn-primary" 
+                                        @onclick="OnLaunchClicked" 
+                                        disabled="@ViewModel.IsLaunched">
+                                    🚀 Launch
+                                </button>
+                                <button class="btn btn-secondary" 
+                                        @onclick="OnResetClicked">
+                                    🔄 Reset
+                                </button>
+                            </div>
+                            
+                        <!-- Row 3: Speed -->
                         <div class="dashboard-row">
                             <span class="dash-label">Speed:</span>
                             <span class="dash-value">@ViewModel.SpeedMph.ToString("N0") mph (@ViewModel.PercentageOfLightSpeed.ToString("F6")% c)</span>
@@ -138,23 +171,6 @@
                 <div class="journey-config">
                     <!-- Speed Controls -->
                     <div class="velocity-panel-inner">
-                        <div class="form-group">
-                            <select class="speed-preset-select" 
-                                    @bind="ViewModel.SelectedPresetSpeed"
-                                    disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
-                                <option value="">Select Speed Preset</option>
-                                @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
-                                {
-                                    <optgroup label="@group.Key">
-                                        @foreach (var preset in group)
-                                        {
-                                            <option value="@preset.SpeedMph">@preset.Name</option>
-                                        }
-                                    </optgroup>
-                                }
-                            </select>
-                        </div>
-
                         <div class="velocity-controls">
                             <button class="btn btn-success" 
                                     @onpointerdown="OnAccelerateDown"
@@ -175,21 +191,6 @@
                                 ▼ Slower
                             </button>
                         </div>
-                    </div>
-
-                    <hr class="panel-divider" />
-
-                    <!-- Launch / Reset -->
-                    <div class="journey-controls">
-                        <button class="btn btn-primary" 
-                                @onclick="OnLaunchClicked" 
-                                disabled="@ViewModel.IsLaunched">
-                            🚀 Launch
-                        </button>
-                        <button class="btn btn-secondary" 
-                                @onclick="OnResetClicked">
-                            🔄 Reset
-                        </button>
                     </div>
                 </div>
             </div>

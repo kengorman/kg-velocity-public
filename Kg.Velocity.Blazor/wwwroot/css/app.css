@@ -250,6 +250,17 @@ html, body {
     cursor: not-allowed;
 }
 
+.dashboard-button-row {
+    display: flex;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+}
+
+.dashboard-button-row .btn {
+    flex: 1;
+}
+
 /* Journey Config */
 .journey-config {
     display: flex;
