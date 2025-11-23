@@ -49,14 +49,6 @@ dotnet run
 ```
 Then open browser to `https://localhost:5001`
 
-## Controls
-
-- **W** - Accelerate
-- **X** - Decelerate  
-- **S** - Slow modifier (fine control)
-- **Q** - Launch (start journey)
-- **A** - Reset
-
 ## Architecture
 
 ```

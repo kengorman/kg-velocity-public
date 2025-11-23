@@ -57,7 +57,7 @@ public class MainViewModel
         EstimatedTimeOfArrivalEarth = "N/A";
         EstimatedTimeOfArrivalShip = "N/A";
         TimeDifference = "0s";
-        JourneySummary = "Select a destination\nAdjust the ship's speed using W (accelerate) and X (decelerate).\nPress Q to launch.";
+        JourneySummary = "Select a destination\nAdjust the ship's speed using the Faster/Slower buttons.\nTap Launch to begin.";
         AverageSpeedMph = 0;
         AverageSpeedPercentLight = 0;
     }
@@ -436,7 +436,7 @@ public class MainViewModel
     {
         if (SelectedDestination == null)
         {
-            return "Select destination\nSet speed with preset or 'Faster'\nQ to launch";
+            return "Select destination\nSet speed with preset or 'Faster'\nTap Launch to begin";
         }
 
         string destinationName = SelectedDestination.Name;
@@ -445,7 +445,7 @@ public class MainViewModel
 
         if (!IsLaunched)
         {
-            return $"→ {destinationName}\nSpeed: {speedText} ({percentLight} c)\nQ to launch";
+            return $"→ {destinationName}\nSpeed: {speedText} ({percentLight} c)\nTap Launch to begin";
         }
         else
         {
@@ -470,7 +470,7 @@ public class MainViewModel
                     lines.Add(avgSpeedText);
                     
                 lines.Add(timeDiffText);
-                lines.Add("A to reset");
+                lines.Add("Tap Reset to restart");
                 
                 return string.Join("\n", lines);
             }

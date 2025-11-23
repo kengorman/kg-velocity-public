@@ -13,7 +13,7 @@
 
 @if (_isInitialized)
 {
-    <div class="app-container" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="HandleKeyUp">
+    <div class="app-container">
         <!-- Header -->
         <div class="header">
             <h1 class="title">Absurd Travel Simulator</h1>
@@ -359,55 +359,6 @@ else
         {
             ViewModel.SelectedDestination = ViewModel.Destinations
                 .FirstOrDefault(d => d.Name == selectedName);
-        }
-    }
-
-    private void HandleKeyDown(KeyboardEventArgs e)
-    {
-        switch (e.Key)
-        {
-            case "w":
-            case "W":
-                ViewModel.SetIncreaseHeld(true);
-                break;
-            case "x":
-            case "X":
-                ViewModel.SetDecreaseHeld(true);
-                break;
-            case "s":
-            case "S":
-                ViewModel.SetSlowHeld(true);
-                break;
-            case "q":
-            case "Q":
-                if (!ViewModel.IsLaunched)
-                {
-                    ViewModel.Launch();
-                }
-                break;
-            case "a":
-            case "A":
-                ViewModel.Reset();
-                break;
-        }
-    }
-
-    private void HandleKeyUp(KeyboardEventArgs e)
-    {
-        switch (e.Key)
-        {
-            case "w":
-            case "W":
-                ViewModel.SetIncreaseHeld(false);
-                break;
-            case "x":
-            case "X":
-                ViewModel.SetDecreaseHeld(false);
-                break;
-            case "s":
-            case "S":
-                ViewModel.SetSlowHeld(false);
-                break;
         }
     }
 
