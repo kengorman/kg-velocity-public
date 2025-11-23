@@ -23,6 +23,66 @@
         <!-- Main Content -->
         <div class="main-content">
             
+            <!-- Configure Journey -->
+            <div class="section">
+                <div class="config-section">
+                    <div class="section-header">
+                        <span class="section-title">CONFIGURE JOURNEY</span>
+                    </div>
+                    
+                    <div class="config-grid">
+                        <!-- Destination -->
+                        <div class="config-row">
+                            <label class="config-label" for="destination-select">Destination:</label>
+                            <select id="destination-select"
+                                    class="config-select" 
+                                    value="@(ViewModel.SelectedDestination?.Name ?? "")" 
+                                    @onchange="OnDestinationChanged" 
+                                    disabled="@ViewModel.IsLaunched">
+                                <option value="">Select Destination</option>
+                                @foreach (var dest in ViewModel.Destinations)
+                                {
+                                    <option value="@dest.Name">@dest.DisplayName</option>
+                                }
+                            </select>
+                        </div>
+                        
+                        <!-- Speed Preset -->
+                        <div class="config-row">
+                            <label class="config-label" for="speed-preset-select">Speed Preset:</label>
+                            <select id="speed-preset-select"
+                                    class="config-select" 
+                                    @bind="ViewModel.SelectedPresetSpeed"
+                                    disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
+                                <option value="">Select Speed Preset</option>
+                                @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
+                                {
+                                    <optgroup label="@group.Key">
+                                        @foreach (var preset in group)
+                                        {
+                                            <option value="@preset.SpeedMph">@preset.Name</option>
+                                        }
+                                    </optgroup>
+                                }
+                            </select>
+                        </div>
+                        
+                        <!-- Launch and Reset Controls -->
+                        <div class="config-button-row">
+                            <button class="btn btn-primary" 
+                                    @onclick="OnLaunchClicked" 
+                                    disabled="@ViewModel.IsLaunched">
+                                🚀 Launch
+                            </button>
+                            <button class="btn btn-secondary" 
+                                    @onclick="OnResetClicked">
+                                🔄 Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Journey Progress Visualization -->
             <div class="section">
                 <div class="progress-section">
@@ -58,56 +118,7 @@
                     
                     <div class="progress-info">
                         <div class="flight-dashboard-grid">
-                            <!-- Row 1: Destination -->
-                            <div class="dashboard-row">
-                                <label class="dash-label" for="destination-select">Destination:</label>
-                                <select id="destination-select"
-                                        class="dash-select" 
-                                        value="@(ViewModel.SelectedDestination?.Name ?? "")" 
-                                        @onchange="OnDestinationChanged" 
-                                        disabled="@ViewModel.IsLaunched">
-                                    <option value="">Select Destination</option>
-                                    @foreach (var dest in ViewModel.Destinations)
-                                    {
-                                        <option value="@dest.Name">@dest.DisplayName</option>
-                                    }
-                                </select>
-                            </div>
-                            
-                            <!-- Row 2: Speed Preset -->
-                            <div class="dashboard-row">
-                                <label class="dash-label" for="speed-preset-select">Speed Preset:</label>
-                                <select id="speed-preset-select"
-                                        class="dash-select" 
-                                        @bind="ViewModel.SelectedPresetSpeed"
-                                        disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
-                                    <option value="">Select Speed Preset</option>
-                                    @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
-                                    {
-                                        <optgroup label="@group.Key">
-                                            @foreach (var preset in group)
-                                            {
-                                                <option value="@preset.SpeedMph">@preset.Name</option>
-                                            }
-                                        </optgroup>
-                                    }
-                                </select>
-                            </div>
-                            
-                            <!-- Launch and Reset Controls -->
-                            <div class="dashboard-button-row">
-                                <button class="btn btn-primary" 
-                                        @onclick="OnLaunchClicked" 
-                                        disabled="@ViewModel.IsLaunched">
-                                    🚀 Launch
-                                </button>
-                                <button class="btn btn-secondary" 
-                                        @onclick="OnResetClicked">
-                                    🔄 Reset
-                                </button>
-                            </div>
-                            
-                        <!-- Row 3: Speed -->
+                        <!-- Row 1: Speed -->
                         <div class="dashboard-row">
                             <span class="dash-label">Speed:</span>
                             <span class="dash-value">@ViewModel.SpeedMph.ToString("N0") mph (@ViewModel.PercentageOfLightSpeed.ToString("F6")% c)</span>
@@ -167,7 +178,7 @@
             </div>
 
             <!-- Journey Configuration & Controls -->
-            <div class="section">
+            <div class="section" style="display: none;">
                 <div class="journey-config">
                     <!-- Speed Controls -->
                     <div class="velocity-panel-inner">
