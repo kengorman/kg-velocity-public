@@ -227,6 +227,29 @@ html, body {
     color: var(--accent-orange); /* Distinguish ship time */
 }
 
+.dash-select {
+    font-family: 'SF Mono', 'Roboto Mono', Menlo, monospace;
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 600;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 6px 8px;
+    outline: none;
+    transition: border-color 0.2s;
+    cursor: pointer;
+}
+
+.dash-select:focus {
+    border-color: var(--border-focus);
+}
+
+.dash-select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Journey Config */
 .journey-config {
     display: flex;

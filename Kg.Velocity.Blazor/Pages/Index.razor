@@ -60,8 +60,18 @@
                         <div class="flight-dashboard-grid">
                             <!-- Row 1: Destination -->
                             <div class="dashboard-row">
-                                <span class="dash-label">Destination:</span>
-                                <span class="dash-value highlight">@(ViewModel.SelectedDestination?.Name ?? "Not Selected")</span>
+                                <label class="dash-label" for="destination-select">Destination:</label>
+                                <select id="destination-select"
+                                        class="dash-select" 
+                                        value="@(ViewModel.SelectedDestination?.Name ?? "")" 
+                                        @onchange="OnDestinationChanged" 
+                                        disabled="@ViewModel.IsLaunched">
+                                    <option value="">Select Destination</option>
+                                    @foreach (var dest in ViewModel.Destinations)
+                                    {
+                                        <option value="@dest.Name">@dest.DisplayName</option>
+                                    }
+                                </select>
                             </div>
                             
                         <!-- Row 2: Speed -->
@@ -122,20 +132,6 @@
             <!-- Journey Configuration & Controls -->
             <div class="section">
                 <div class="journey-config">
-                    <!-- Destination -->
-                    <div class="form-group">
-                        <select class="destination-select" 
-                                value="@(ViewModel.SelectedDestination?.Name ?? "")" 
-                                @onchange="OnDestinationChanged" 
-                                disabled="@ViewModel.IsLaunched">
-                            <option value="">Select Destination</option>
-                            @foreach (var dest in ViewModel.Destinations)
-                            {
-                                <option value="@dest.Name">@dest.DisplayName</option>
-                            }
-                        </select>
-                    </div>
-                    
                     <!-- Speed Controls -->
                     <div class="velocity-panel-inner">
                         <div class="form-group">
