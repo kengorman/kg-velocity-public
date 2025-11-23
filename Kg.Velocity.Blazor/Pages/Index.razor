@@ -102,6 +102,10 @@
                                 <span class="dash-value ship-time">@ViewModel.ShipTimeElapsed</span>
                             </div>
                             <div class="dashboard-row">
+                                <span class="dash-label">Time Dilation:</span>
+                                <span class="dash-value highlight">@ViewModel.TimeDifference</span>
+                            </div>
+                            <div class="dashboard-row">
                                 <span class="dash-label">ETA (Earth):</span>
                                 <span class="dash-value">@ViewModel.EstimatedTimeOfArrivalEarth</span>
                             </div>
@@ -198,14 +202,6 @@
                 </div>
             }
         </div>
-
-            <!-- Time Dilation Footer -->
-            <div class="footer">
-                <div class="footer-section">
-                    <div class="footer-title">TIME DILATION</div>
-                    <p>ΔTime: <strong class="time-diff">@ViewModel.TimeDifference</strong></p>
-                </div>
-            </div>
     </div>
 }
 else

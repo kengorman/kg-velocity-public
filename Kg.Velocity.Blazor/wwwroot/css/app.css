@@ -436,27 +436,6 @@ p strong {
 .velocity-controls .btn { flex: 1; }
 .journey-controls .btn { flex: 1; }
 
-/* Footer */
-.footer {
-    margin-top: auto; /* Push to bottom if space allows */
-    padding-top: 20px;
-    border-top: 1px solid var(--border-color);
-    text-align: center;
-}
-
-.footer-title {
-    font-size: 10px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    letter-spacing: 1px;
-    margin-bottom: 5px;
-}
-
-.time-diff {
-    color: var(--accent-blue);
-    font-size: 16px;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
     .app-container { padding: 15px; }
