@@ -478,6 +478,12 @@ p strong {
     color: white;
 }
 .btn-primary:hover { background-color: black; }
+.btn-primary:disabled {
+    background-color: transparent;
+    border: 2px solid var(--border-color);
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
 
 .btn-secondary {
     background-color: white;

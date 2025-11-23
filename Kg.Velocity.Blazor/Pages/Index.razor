@@ -71,7 +71,7 @@
                         <div class="config-button-row">
                             <button class="btn btn-primary" 
                                     @onclick="OnLaunchClicked" 
-                                    disabled="@ViewModel.IsLaunched">
+                                    disabled="@(ViewModel.IsLaunched || ViewModel.SelectedDestination == null || !ViewModel.SelectedPresetSpeed.HasValue)">
                                 🚀 Launch
                             </button>
                             <button class="btn btn-secondary" 
