@@ -75,7 +75,7 @@ public class MainViewModel
             new Destination { Name = "Voyager 1", DistanceMiles = 15_000_000_000, Category = "Space" },
             
             // Deep Space
-            new Destination { Name = "Horseshoe Nebula", DistanceMiles = 5_500 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
+            new Destination { Name = "Horsehead Nebula", DistanceMiles = 5_500 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
             new Destination { Name = "Milky Way (center)", DistanceMiles = 26_000 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
             new Destination { Name = "Andromeda Galaxy", DistanceMiles = 2_537_000 * PhysicsConstants.LightYearMiles, Category = "Deep Space" }
         ];
@@ -248,9 +248,9 @@ public class MainViewModel
         NotifyStateChanged();
     }
 
-    public void UpdateFromDragPosition(double percentage)
+    public void UpdateFromClickPosition(double percentage)
     {
-        // Can't drag after reaching destination
+        // Can't click after reaching destination
         if (_state.DestinationReached)
             return;
 

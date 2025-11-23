@@ -227,7 +227,7 @@ else
 @code {
     private bool _isInitialized = false;
     private ElementReference _progressTrackRef;
-    private bool _canDrag => ViewModel.SelectedDestination != null && !ViewModel.DestinationReached;
+    private bool _canClick => ViewModel.SelectedDestination != null && !ViewModel.DestinationReached;
 
     protected override void OnInitialized()
     {
@@ -299,10 +299,10 @@ else
         ViewModel.SetDecreaseHeld(false);
     }
 
-    // Track interaction handlers (Click only, no drag)
+    // Track interaction handlers
     private async void OnTrackPointerDown(PointerEventArgs e)
     {
-        if (_canDrag)
+        if (_canClick)
         {
             await HandleClick(e.ClientX);
         }
@@ -310,7 +310,7 @@ else
 
     private async void OnTrackTouchStart(TouchEventArgs e)
     {
-        if (_canDrag && e.Touches.Length > 0)
+        if (_canClick && e.Touches.Length > 0)
         {
             await HandleClick(e.Touches[0].ClientX);
         }
@@ -331,7 +331,7 @@ else
                 percentage = Math.Clamp(percentage, 0.0, 100.0);
 
                 // Update ViewModel
-                ViewModel.UpdateFromDragPosition(percentage);
+                ViewModel.UpdateFromClickPosition(percentage);
             }
         }
         catch
@@ -411,7 +411,7 @@ else
         }
     }
 
-    private string GetTrackCursorStyle() => $"cursor: {(_canDrag ? "pointer" : "default")}";
+    private string GetTrackCursorStyle() => $"cursor: {(_canClick ? "pointer" : "default")}";
 
     private string GetRocketStyle() => 
         $"left: {ViewModel.JourneyProgressPercentage}%;";
