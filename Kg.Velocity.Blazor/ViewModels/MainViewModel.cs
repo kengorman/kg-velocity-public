@@ -54,7 +54,8 @@ public class MainViewModel
         ShipDateTime = _startDateTime.ToString("MM/dd/yyyy HH:mm:ss.fff");
         DestinationReached = false;
         JourneyProgressPercentage = 0;
-        EstimatedTimeOfArrival = "N/A";
+        EstimatedTimeOfArrivalEarth = "N/A";
+        EstimatedTimeOfArrivalShip = "N/A";
         TimeDifference = "0s";
         JourneySummary = "Select a destination\nAdjust the ship's speed using W (accelerate) and X (decelerate).\nPress Q to launch.";
         AverageSpeedMph = 0;
@@ -100,6 +101,7 @@ public class MainViewModel
     public string EarthDateTime { get; set; } = "";
     public string ShipDateTime { get; set; } = "";
     public string ArrivalDateString { get; set; } = "N/A";
+    public string ArrivalShipDateString { get; set; } = "N/A";
     public bool DestinationReached { get; set; }
     public double TargetDistanceLightYears { get; set; } = PhysicsConstants.TargetDistanceLightYears;
     public ObservableCollection<Destination> Destinations { get; set; } = new();
@@ -122,7 +124,8 @@ public class MainViewModel
     }
     
     public double JourneyProgressPercentage { get; set; }
-    public string EstimatedTimeOfArrival { get; set; } = "N/A";
+    public string EstimatedTimeOfArrivalEarth { get; set; } = "N/A";
+    public string EstimatedTimeOfArrivalShip { get; set; } = "N/A";
     public string TravelingFor { get; set; } = "0m";
     public string TimeDifference { get; set; } = "0s";
     public string JourneySummary { get; set; } = "";
@@ -336,7 +339,23 @@ public class MainViewModel
             _timeSinceLastAverageUpdate = 0.0;
         }
 
-        EstimatedTimeOfArrival = FlightComputer.CalculateETA(_state.SpeedMph, _state.RemainingDistanceMiles);
+        // Calculate ETAs (Durations)
+        if (SpeedMph > 0 && RemainingMiles > 0)
+        {
+            // Earth Duration
+            double secondsToArriveEarth = RemainingMiles / (SpeedMph / 3600.0);
+            EstimatedTimeOfArrivalEarth = FlightComputer.FormatDuration(secondsToArriveEarth, DurationFormat.Verbose);
+
+            // Ship Duration (Time Dilated)
+            double secondsToArriveShip = secondsToArriveEarth / LorentzFactor;
+            EstimatedTimeOfArrivalShip = FlightComputer.FormatDuration(secondsToArriveShip, DurationFormat.Verbose);
+        }
+        else
+        {
+            EstimatedTimeOfArrivalEarth = "N/A";
+            EstimatedTimeOfArrivalShip = "N/A";
+        }
+
         TravelingFor = CalculateTravelingFor();
 
         _timeSinceLastTimeDiffUpdate += deltaSeconds;
@@ -346,61 +365,66 @@ public class MainViewModel
             _timeSinceLastTimeDiffUpdate = 0.0;
         }
 
-        // Calculate Arrival Date
+        // Calculate Arrival Dates
         if (IsLaunched && !DestinationReached && SpeedMph > 0 && RemainingMiles > 0)
         {
-            // ETA is in seconds based on current speed
+            // Earth Arrival
             double secondsToArrive = RemainingMiles / (SpeedMph / 3600.0);
             DateTime currentEarthTime = _startDateTime.AddSeconds(_state.EarthTimeSeconds);
-            
-            try 
-            {
-                // Handle massive timeframes that overflow DateTime (Year 9999)
-                // DateTime.MaxValue is roughly 315,537,897,599 seconds from year 1.
-                // But we just need to know if currentYear + yearsToAdd > 9999.
-                
-                double yearsToArrive = secondsToArrive / (365.2425 * 24 * 3600);
-                int currentYear = currentEarthTime.Year;
-                
-                if (currentYear + yearsToArrive > 9999)
-                {
-                    // Deep Time formatting
-                    double targetYear = currentYear + yearsToArrive;
-                    
-                    if (targetYear >= 1_000_000)
-                    {
-                        ArrivalDateString = $"Year {(targetYear / 1_000_000):N2} Million";
-                    }
-                    else
-                    {
-                        ArrivalDateString = $"Year {targetYear:N0}";
-                    }
-                }
-                else
-                {
-                    // Standard formatting
-                    DateTime arrivalDate = currentEarthTime.AddSeconds(secondsToArrive);
-                    ArrivalDateString = arrivalDate.ToString("MM/dd/yyyy HH:mm:ss 'UTC'");
-                }
-            }
-            catch
-            {
-                // Fallback for extreme overflows
-                ArrivalDateString = "Far Future";
-            }
+            ArrivalDateString = FormatArrivalDate(currentEarthTime, secondsToArrive);
+
+            // Ship Arrival (Projected based on current Lorentz Factor)
+            double shipSecondsToArrive = secondsToArrive / LorentzFactor;
+            DateTime currentShipTime = _startDateTime.AddSeconds(_state.ShipTimeSeconds);
+            ArrivalShipDateString = FormatArrivalDate(currentShipTime, shipSecondsToArrive);
         }
         else if (DestinationReached)
         {
             ArrivalDateString = "Arrived";
+            ArrivalShipDateString = "Arrived";
         }
         else
         {
             ArrivalDateString = "N/A";
+            ArrivalShipDateString = "N/A";
         }
 
         JourneySummary = GenerateJourneySummary();
         
         NotifyStateChanged();
+    }
+
+    private string FormatArrivalDate(DateTime currentBaseDate, double secondsToAdd)
+    {
+        try 
+        {
+            double yearsToAdd = secondsToAdd / (365.2425 * 24 * 3600);
+            int currentYear = currentBaseDate.Year;
+            
+            if (currentYear + yearsToAdd > 9999)
+            {
+                // Deep Time formatting
+                double targetYear = currentYear + yearsToAdd;
+                
+                if (targetYear >= 1_000_000)
+                {
+                    return $"Year {(targetYear / 1_000_000):N2} Million";
+                }
+                else
+                {
+                    return $"Year {targetYear:N0}";
+                }
+            }
+            else
+            {
+                DateTime arrivalDate = currentBaseDate.AddSeconds(secondsToAdd);
+                return arrivalDate.ToString("MM/dd/yyyy HH:mm:ss 'UTC'");
+            }
+        }
+        catch
+        {
+            return "Far Future";
+        }
     }
 
     private string CalculateTravelingFor()
@@ -425,7 +449,7 @@ public class MainViewModel
         }
         else
         {
-            string etaText = EstimatedTimeOfArrival != "N/A" ? $"ETA: {EstimatedTimeOfArrival}" : "";
+            string etaText = EstimatedTimeOfArrivalEarth != "N/A" ? $"ETA: {EstimatedTimeOfArrivalEarth}" : "";
             string timeDiffText = TimeDifference != "0s" && TimeDifference != "0ms" 
                 ? $"ΔTime: -{TimeDifference}" 
                 : "ΔTime: 0s";
@@ -472,4 +496,3 @@ public class MainViewModel
         }
     }
 }
-
