@@ -206,6 +206,27 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Journey Modal -->
+        @if (_showJourneyModal)
+        {
+            <div class="modal-backdrop" @onclick="CloseJourneyModal">
+                <div class="journey-modal @(_showJourneyModal ? "open" : "")" @onclick:stopPropagation>
+                    <div class="modal-header">
+                        <h2>🚀 Journey Briefing</h2>
+                        <button class="modal-close" @onclick="CloseJourneyModal">✕</button>
+                    </div>
+                    <div class="modal-content">
+                        <p><strong>Hi, this is the area that will summarize your journey including ETA, time dilations, speed and other interest facts. Enjoy your trip!</strong></p>
+                        <p>Destination: <strong>@(ViewModel.SelectedDestination?.DisplayName ?? "Unknown")</strong></p>
+                        <p>This POC demonstrates responsive modal behavior across devices.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" @onclick="CloseJourneyModal">Got it!</button>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 }
 else
@@ -220,6 +241,7 @@ else
     private bool _isInitialized = false;
     private ElementReference _progressTrackRef;
     private bool _canClick => ViewModel.SelectedDestination != null && !ViewModel.DestinationReached;
+    private bool _showJourneyModal = false;
 
     protected override void OnInitialized()
     {
@@ -264,6 +286,12 @@ else
     private void OnLaunchClicked()
     {
         ViewModel.Launch();
+        _showJourneyModal = true;
+    }
+    
+    private void CloseJourneyModal()
+    {
+        _showJourneyModal = false;
     }
 
     private void OnResetClicked()
