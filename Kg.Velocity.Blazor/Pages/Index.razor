@@ -39,7 +39,7 @@
                                     value="@(ViewModel.SelectedDestination?.Name ?? "")" 
                                     @onchange="OnDestinationChanged" 
                                     disabled="@ViewModel.IsLaunched">
-                                <option value="">Select Destination</option>
+                                <option value=""></option>
                                 @foreach (var dest in ViewModel.Destinations)
                                 {
                                     <option value="@dest.Name">@dest.DisplayName</option>
@@ -54,7 +54,7 @@
                                     class="config-select" 
                                     @bind="ViewModel.SelectedPresetSpeed"
                                     disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
-                                <option value="">Select Speed</option>
+                                <option value=""></option>
                                 @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
                                 {
                                     <optgroup label="@group.Key">
@@ -65,6 +65,20 @@
                                     </optgroup>
                                 }
                             </select>
+                        </div>
+                        
+                        <!-- Preferences -->
+                        <div class="config-preferences">
+                            <label class="toggle-option">
+                                <span>Launch briefing</span>
+                                <input type="checkbox" @bind="_showLaunchBriefing" />
+                                <span class="toggle-switch"></span>
+                            </label>
+                            <label class="toggle-option">
+                                <span>Arrival summary</span>
+                                <input type="checkbox" @bind="_showArrivalSummary" />
+                                <span class="toggle-switch"></span>
+                            </label>
                         </div>
                         
                         <!-- Launch and Reset Controls -->
@@ -271,6 +285,10 @@ else
     private bool _showJourneyModal = false;
     private bool _showCompletionModal = false;
     private bool _completionShown = false;
+    
+    // User preferences
+    private bool _showLaunchBriefing = true;
+    private bool _showArrivalSummary = true;
 
     protected override void OnInitialized()
     {
@@ -299,8 +317,8 @@ else
     {
         if (_isInitialized)
         {
-            // Check if destination reached and show completion modal once
-            if (ViewModel.DestinationReached && !_completionShown)
+            // Check if destination reached and show completion modal once (if enabled)
+            if (ViewModel.DestinationReached && !_completionShown && _showArrivalSummary)
             {
                 _showCompletionModal = true;
                 _completionShown = true;
@@ -321,7 +339,14 @@ else
     // Button event handlers
     private void OnLaunchClicked()
     {
-        _showJourneyModal = true;
+        if (_showLaunchBriefing)
+        {
+            _showJourneyModal = true;
+        }
+        else
+        {
+            ViewModel.Launch();
+        }
     }
     
     private void CloseJourneyModal()
