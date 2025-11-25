@@ -54,7 +54,7 @@
                                     class="config-select" 
                                     @bind="ViewModel.SelectedPresetSpeed"
                                     disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
-                                <option value="">Select Speed Preset</option>
+                                <option value="">Select Speed</option>
                                 @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
                                 {
                                     <optgroup label="@group.Key">
@@ -285,13 +285,13 @@ else
     // Button event handlers
     private void OnLaunchClicked()
     {
-        ViewModel.Launch();
         _showJourneyModal = true;
     }
     
     private void CloseJourneyModal()
     {
         _showJourneyModal = false;
+        ViewModel.Launch();
     }
 
     private void OnResetClicked()
