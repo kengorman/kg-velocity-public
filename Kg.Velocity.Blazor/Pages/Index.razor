@@ -227,6 +227,33 @@
                 </div>
             </div>
         }
+        
+        <!-- Completion Modal -->
+        @if (_showCompletionModal)
+        {
+            <div class="modal-backdrop" @onclick="CloseCompletionModal">
+                <div class="journey-modal completion-modal @(_showCompletionModal ? "open" : "")" @onclick:stopPropagation>
+                    <div class="modal-header">
+                        <h2>🎯 Destination Reached!</h2>
+                        <button class="modal-close" @onclick="CloseCompletionModal">✕</button>
+                    </div>
+                    <div class="modal-content">
+                        <p><strong>You've arrived at @(ViewModel.SelectedDestination?.DisplayName ?? "Unknown")!</strong></p>
+                        
+                        <p><strong>TODO:</strong> This will summarize your journey with AI-generated content including:</p>
+                        <ul>
+                            <li>Total journey time (Earth: @ViewModel.EarthTimeElapsed vs Ship: @ViewModel.ShipTimeElapsed)</li>
+                            <li>Time dilation experienced: @ViewModel.TimeDifference</li>
+                            <li>Interesting facts about the journey</li>
+                            <li>What you'd see at this destination</li>
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" @onclick="CloseCompletionModal">Close</button>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 }
 else
@@ -242,6 +269,8 @@ else
     private ElementReference _progressTrackRef;
     private bool _canClick => ViewModel.SelectedDestination != null && !ViewModel.DestinationReached;
     private bool _showJourneyModal = false;
+    private bool _showCompletionModal = false;
+    private bool _completionShown = false;
 
     protected override void OnInitialized()
     {
@@ -270,6 +299,13 @@ else
     {
         if (_isInitialized)
         {
+            // Check if destination reached and show completion modal once
+            if (ViewModel.DestinationReached && !_completionShown)
+            {
+                _showCompletionModal = true;
+                _completionShown = true;
+            }
+            
             InvokeAsync(StateHasChanged);
         }
     }
@@ -293,10 +329,16 @@ else
         _showJourneyModal = false;
         ViewModel.Launch();
     }
+    
+    private void CloseCompletionModal()
+    {
+        _showCompletionModal = false;
+    }
 
     private void OnResetClicked()
     {
         ViewModel.Reset();
+        _completionShown = false;
     }
 
     private void OnAccelerateDown(EventArgs e)

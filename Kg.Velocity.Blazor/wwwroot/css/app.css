@@ -642,11 +642,30 @@ p strong {
     display: block;
 }
 
+.modal-content ul {
+    margin: 12px 0;
+    padding-left: 24px;
+}
+
+.modal-content li {
+    margin: 8px 0;
+    color: var(--text-primary);
+}
+
 .modal-footer {
     padding: 20px;
     border-top: 1px solid var(--border-color);
     display: flex;
     justify-content: flex-end;
+}
+
+.completion-modal .modal-header {
+    background-color: #ecfdf5;
+    border-bottom-color: #d1fae5;
+}
+
+.completion-modal .modal-header h2 {
+    color: var(--accent-green);
 }
 
 /* Mobile - Bottom sheet */
