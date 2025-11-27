@@ -147,7 +147,16 @@ public class MainViewModel
                 _state.SpeedMph = value.Value;
                 _state.WHeldSeconds = 0;
                 _state.XHeldSeconds = 0;
-                NotifyStateChanged();
+                
+                // Auto-launch when speed is selected
+                if (SelectedDestination != null)
+                {
+                    Launch();
+                }
+                else
+                {
+                    NotifyStateChanged();
+                }
             }
         }
     }
