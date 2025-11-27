@@ -72,9 +72,12 @@ public class MainViewModel
             new Destination { Name = "The Sun", DistanceMiles = 93_000_000, Category = "Space" },
             new Destination { Name = "Mars", DistanceMiles = 140_000_000, Category = "Space" },
             new Destination { Name = "Saturn", DistanceMiles = 886_000_000, Category = "Space" },
+            new Destination { Name = "Uranus", DistanceMiles = 1_800_000_000, Category = "Space" },
+            new Destination { Name = "Pluto", DistanceMiles = 3_700_000_000, Category = "Space" },
             new Destination { Name = "Voyager 1", DistanceMiles = 15_000_000_000, Category = "Space" },
             
             // Deep Space
+            new Destination { Name = "Polaris (North Star)", DistanceMiles = 433 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
             new Destination { Name = "Horsehead Nebula", DistanceMiles = 5_500 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
             new Destination { Name = "Milky Way (center)", DistanceMiles = 26_000 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
             new Destination { Name = "Andromeda Galaxy", DistanceMiles = 2_537_000 * PhysicsConstants.LightYearMiles, Category = "Deep Space" }

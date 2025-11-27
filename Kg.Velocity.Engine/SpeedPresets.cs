@@ -8,6 +8,9 @@ public static class SpeedPresets
     public static readonly List<SpeedPreset> All = new()
     {
         // Atmosphere
+        new SpeedPreset { Name = "Walking", SpeedMph = 3, Group = "Atmosphere" },
+        new SpeedPreset { Name = "Horse", SpeedMph = 30, Group = "Atmosphere" },
+        new SpeedPreset { Name = "Wright Flyer", SpeedMph = 30, Group = "Atmosphere" },
         new SpeedPreset { Name = "Car (Highway)", SpeedMph = 65, Group = "Atmosphere" },
         new SpeedPreset { Name = "Boeing 747", SpeedMph = 570, Group = "Atmosphere" },
         new SpeedPreset { Name = "Concorde", SpeedMph = 1354, Group = "Atmosphere" },
@@ -29,8 +32,9 @@ public static class SpeedPresets
 
         // FTL
         new SpeedPreset { Name = "2x Light Speed", SpeedMph = PhysicsConstants.SpeedOfLightMph * 2.0, Group = "FTL" },
-        new SpeedPreset { Name = "10x Light Speed", SpeedMph = PhysicsConstants.SpeedOfLightMph * 10.0, Group = "FTL" },
-        new SpeedPreset { Name = "100x Light Speed", SpeedMph = PhysicsConstants.SpeedOfLightMph * 100.0, Group = "FTL" }
+        new SpeedPreset { Name = "Warp 2", SpeedMph = PhysicsConstants.SpeedOfLightMph * 10.0, Group = "FTL" },
+        new SpeedPreset { Name = "Warp 4", SpeedMph = PhysicsConstants.SpeedOfLightMph * 100.0, Group = "FTL" },
+        new SpeedPreset { Name = "Warp 8", SpeedMph = PhysicsConstants.SpeedOfLightMph * 512.0, Group = "FTL" }
     };
 }
 
