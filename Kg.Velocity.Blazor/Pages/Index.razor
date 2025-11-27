@@ -67,20 +67,6 @@
                             </select>
                         </div>
                         
-                        <!-- Preferences -->
-                        <div class="config-preferences">
-                            <label class="toggle-option">
-                                <span>Launch briefing</span>
-                                <input type="checkbox" @bind="_showLaunchBriefing" />
-                                <span class="toggle-switch"></span>
-                            </label>
-                            <label class="toggle-option">
-                                <span>Arrival summary</span>
-                                <input type="checkbox" @bind="_showArrivalSummary" />
-                                <span class="toggle-switch"></span>
-                            </label>
-                        </div>
-                        
                         <!-- Launch and Reset Controls -->
                         <div class="config-button-row">
                             <button class="btn btn-primary" 
@@ -220,54 +206,6 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Journey Modal -->
-        @if (_showJourneyModal)
-        {
-            <div class="modal-backdrop" @onclick="CloseJourneyModal">
-                <div class="journey-modal @(_showJourneyModal ? "open" : "")" @onclick:stopPropagation>
-                    <div class="modal-header">
-                        <h2>🚀 Journey Briefing</h2>
-                        <button class="modal-close" @onclick="CloseJourneyModal">✕</button>
-                    </div>
-                    <div class="modal-content">
-                        <p><strong>Hi, this is the area that will summarize your journey including ETA, time dilations, speed and other interest facts. Enjoy your trip!</strong></p>
-                        <p>Destination: <strong>@(ViewModel.SelectedDestination?.DisplayName ?? "Unknown")</strong></p>
-                        <p>This POC demonstrates responsive modal behavior across devices.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-primary" @onclick="CloseJourneyModal">Got it!</button>
-                    </div>
-                </div>
-            </div>
-        }
-        
-        <!-- Completion Modal -->
-        @if (_showCompletionModal)
-        {
-            <div class="modal-backdrop" @onclick="CloseCompletionModal">
-                <div class="journey-modal completion-modal @(_showCompletionModal ? "open" : "")" @onclick:stopPropagation>
-                    <div class="modal-header">
-                        <h2>🎯 Destination Reached!</h2>
-                        <button class="modal-close" @onclick="CloseCompletionModal">✕</button>
-                    </div>
-                    <div class="modal-content">
-                        <p><strong>You've arrived at @(ViewModel.SelectedDestination?.DisplayName ?? "Unknown")!</strong></p>
-                        
-                        <p><strong>TODO:</strong> This will summarize your journey with AI-generated content including:</p>
-                        <ul>
-                            <li>Total journey time (Earth: @ViewModel.EarthTimeElapsed vs Ship: @ViewModel.ShipTimeElapsed)</li>
-                            <li>Time dilation experienced: @ViewModel.TimeDifference</li>
-                            <li>Interesting facts about the journey</li>
-                            <li>What you'd see at this destination</li>
-                        </ul>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-primary" @onclick="CloseCompletionModal">Close</button>
-                    </div>
-                </div>
-            </div>
-        }
     </div>
 }
 else
@@ -282,13 +220,6 @@ else
     private bool _isInitialized = false;
     private ElementReference _progressTrackRef;
     private bool _canClick => ViewModel.SelectedDestination != null && !ViewModel.DestinationReached;
-    private bool _showJourneyModal = false;
-    private bool _showCompletionModal = false;
-    private bool _completionShown = false;
-    
-    // User preferences
-    private bool _showLaunchBriefing = true;
-    private bool _showArrivalSummary = true;
 
     protected override void OnInitialized()
     {
@@ -317,13 +248,6 @@ else
     {
         if (_isInitialized)
         {
-            // Check if destination reached and show completion modal once (if enabled)
-            if (ViewModel.DestinationReached && !_completionShown && _showArrivalSummary)
-            {
-                _showCompletionModal = true;
-                _completionShown = true;
-            }
-            
             InvokeAsync(StateHasChanged);
         }
     }
@@ -339,31 +263,12 @@ else
     // Button event handlers
     private void OnLaunchClicked()
     {
-        if (_showLaunchBriefing)
-        {
-            _showJourneyModal = true;
-        }
-        else
-        {
-            ViewModel.Launch();
-        }
-    }
-    
-    private void CloseJourneyModal()
-    {
-        _showJourneyModal = false;
         ViewModel.Launch();
-    }
-    
-    private void CloseCompletionModal()
-    {
-        _showCompletionModal = false;
     }
 
     private void OnResetClicked()
     {
         ViewModel.Reset();
-        _completionShown = false;
     }
 
     private void OnAccelerateDown(EventArgs e)
