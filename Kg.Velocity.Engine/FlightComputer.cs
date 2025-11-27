@@ -18,7 +18,26 @@ public static class FlightComputer
         if (totalSeconds < 0)
             return format == DurationFormat.Compact ? "0m" : "00:00:00";
 
-        int years = (int)(totalSeconds / (365.25 * 24 * 3600));
+        long years = (long)(totalSeconds / (365.25 * 24 * 3600));
+        
+        // Handle extremely long durations with simplified formatting
+        if (years >= 1_000_000_000_000_000) // Quadrillion+
+        {
+            return $"{(years / 1_000_000_000_000_000.0):N2} quadrillion years";
+        }
+        else if (years >= 1_000_000_000_000) // Trillion+
+        {
+            return $"{(years / 1_000_000_000_000.0):N2} trillion years";
+        }
+        else if (years >= 1_000_000_000) // Billion+
+        {
+            return $"{(years / 1_000_000_000.0):N2} billion years";
+        }
+        else if (years >= 1_000_000) // Million+
+        {
+            return $"{(years / 1_000_000.0):N2} million years";
+        }
+        
         double remainingSeconds = totalSeconds - (years * 365.25 * 24 * 3600);
 
         int days = (int)(remainingSeconds / (24 * 3600));
@@ -39,7 +58,7 @@ public static class FlightComputer
                 return "0m";
             
             if (years > 0)
-                return days > 0 ? $"{years}y {days}d" : $"{years}y";
+                return days > 0 ? $"{years:N0}y {days}d" : $"{years:N0}y";
             else if (days > 0)
                 return hours > 0 ? $"{days}d {hours}h" : $"{days}d";
             else if (hours > 0)
@@ -54,7 +73,7 @@ public static class FlightComputer
             // Verbose format: "2y 153d 04:15:30"
             if (years > 0)
             {
-                return $"{years}y {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
+                return $"{years:N0}y {days}d {hours:D2}:{minutes:D2}:{seconds:D2}";
             }
             else if (days > 0)
             {
@@ -114,6 +133,39 @@ public static class FlightComputer
         double averageSpeedPercentLight = (averageSpeedMph / PhysicsConstants.SpeedOfLightMph) * 100.0;
 
         return (averageSpeedMph, averageSpeedPercentLight);
+    }
+
+    public static string FormatDateTime(DateTime baseDate, double secondsToAdd)
+    {
+        try 
+        {
+            double yearsToAdd = secondsToAdd / (365.2425 * 24 * 3600);
+            int currentYear = baseDate.Year;
+            
+            if (currentYear + yearsToAdd > 9999)
+            {
+                // Deep Time formatting
+                double targetYear = currentYear + yearsToAdd;
+                
+                if (targetYear >= 1_000_000)
+                {
+                    return $"Year {(targetYear / 1_000_000):N2} Million";
+                }
+                else
+                {
+                    return $"Year {targetYear:N0}";
+                }
+            }
+            else
+            {
+                DateTime resultDate = baseDate.AddSeconds(secondsToAdd);
+                return resultDate.ToString("MM/dd/yyyy HH:mm:ss 'UTC'");
+            }
+        }
+        catch
+        {
+            return "Far Future";
+        }
     }
 }
 

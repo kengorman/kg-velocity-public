@@ -115,8 +115,8 @@ html, body {
 }
 
 .config-row {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: auto 1fr;
     align-items: baseline;
     gap: 15px;
 }

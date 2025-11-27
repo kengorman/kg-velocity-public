@@ -6,7 +6,6 @@
 @using Microsoft.JSInterop
 @inject IJSRuntime JSRuntime
 @inject MainViewModel ViewModel
-@inject GameLoop GameLoop
 @implements IDisposable
 
 <PageTitle>Absurd Travel Simulator</PageTitle>
@@ -227,36 +226,11 @@ else
         _isInitialized = true;
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            try
-            {
-                GameLoop.OnUpdate += OnGameLoopUpdate;
-                await GameLoop.Start();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error starting game loop: {ex.Message}");
-            }
-        }
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
     private void OnViewModelStateChanged()
     {
         if (_isInitialized)
         {
             InvokeAsync(StateHasChanged);
-        }
-    }
-
-    private void OnGameLoopUpdate()
-    {
-        if (_isInitialized)
-        {
-            ViewModel.Update();
         }
     }
 
@@ -370,9 +344,6 @@ else
 
     public void Dispose()
     {
-        GameLoop.OnUpdate -= OnGameLoopUpdate;
-        _ = GameLoop.Stop();
-        
         if (ViewModel != null)
         {
             ViewModel.StateChanged -= OnViewModelStateChanged;

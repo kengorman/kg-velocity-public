@@ -172,6 +172,9 @@ public class MainViewModel
         _startDateTime = DateTime.Now;
         _timeSinceLastAverageUpdate = 0.0;
         _timeSinceLastTimeDiffUpdate = 0.0;
+        
+        // Update display properties to reflect reset state
+        UpdatePropertiesWithoutNotification();
     }
 
     public void SetIncreaseHeld(bool held)
@@ -214,10 +217,64 @@ public class MainViewModel
         
         IsLaunched = true;
         
-        _timeSinceLastAverageUpdate = 1.0;
-        _timeSinceLastTimeDiffUpdate = 1.0;
+        // Instant calculation: Calculate entire journey
+        CalculateCompleteJourney();
         
         NotifyStateChanged();
+    }
+    
+    private void CalculateCompleteJourney()
+    {
+        // Journey is complete - set distance to target
+        _state.DistanceMiles = _state.TargetDistanceMiles;
+        
+        // Calculate time: Distance / Speed
+        // Speed is in mph, so time in hours = distance / speed
+        double hoursElapsed = _state.TargetDistanceMiles / _state.SpeedMph;
+        _state.EarthTimeSeconds = hoursElapsed * 3600.0;
+        
+        // Calculate ship time using Lorentz factor
+        double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
+        _state.ShipTimeSeconds = _state.EarthTimeSeconds / lorentzFactor;
+        
+        // Update all display properties
+        UpdateDisplayProperties(lorentzFactor);
+    }
+    
+    private void UpdateDisplayProperties(double lorentzFactor)
+    {
+        SpeedMph = _state.SpeedMph;
+        PercentageOfLightSpeed = RelativisticPhysics.CalculatePercentageOfLightSpeed(_state.SpeedMph);
+        LorentzFactor = lorentzFactor;
+        ShipClockRate = RelativisticPhysics.CalculateShipClockRate(lorentzFactor);
+        DistanceMiles = _state.DistanceMiles;
+        DistanceLightYears = RelativisticPhysics.MilesToLightYears(_state.DistanceMiles);
+        RemainingMiles = _state.RemainingDistanceMiles;
+        RemainingLightYears = RelativisticPhysics.MilesToLightYears(_state.RemainingDistanceMiles);
+        EarthTimeElapsed = FlightComputer.FormatDuration(_state.EarthTimeSeconds);
+        ShipTimeElapsed = FlightComputer.FormatDuration(_state.ShipTimeSeconds);
+        EarthDateTime = FlightComputer.FormatDateTime(_startDateTime, _state.EarthTimeSeconds);
+        ShipDateTime = FlightComputer.FormatDateTime(_startDateTime, _state.ShipTimeSeconds);
+        DestinationReached = true;
+        
+        JourneyProgressPercentage = 100.0;
+        
+        var (avgMph, avgPercent) = FlightComputer.CalculateAverageSpeed(_state.DistanceMiles, _state.EarthTimeSeconds);
+        AverageSpeedMph = avgMph;
+        AverageSpeedPercentLight = avgPercent;
+        
+        // ETAs are N/A since we've arrived
+        EstimatedTimeOfArrivalEarth = "N/A";
+        EstimatedTimeOfArrivalShip = "N/A";
+        
+        TravelingFor = CalculateTravelingFor();
+        TimeDifference = FlightComputer.CalculateTimeDifference(_state.EarthTimeSeconds, _state.ShipTimeSeconds);
+        
+        // Arrival dates show "Arrived"
+        ArrivalDateString = "Arrived";
+        ArrivalShipDateString = "Arrived";
+        
+        JourneySummary = GenerateJourneySummary();
     }
 
     public void Reset()
@@ -238,6 +295,9 @@ public class MainViewModel
         _startDateTime = DateTime.Now;
         _timeSinceLastAverageUpdate = 0.0;
         _timeSinceLastTimeDiffUpdate = 0.0;
+        
+        // Update display properties to reflect reset state
+        UpdatePropertiesWithoutNotification();
         
         NotifyStateChanged();
     }
@@ -390,35 +450,7 @@ public class MainViewModel
 
     private string FormatArrivalDate(DateTime currentBaseDate, double secondsToAdd)
     {
-        try 
-        {
-            double yearsToAdd = secondsToAdd / (365.2425 * 24 * 3600);
-            int currentYear = currentBaseDate.Year;
-            
-            if (currentYear + yearsToAdd > 9999)
-            {
-                // Deep Time formatting
-                double targetYear = currentYear + yearsToAdd;
-                
-                if (targetYear >= 1_000_000)
-                {
-                    return $"Year {(targetYear / 1_000_000):N2} Million";
-                }
-                else
-                {
-                    return $"Year {targetYear:N0}";
-                }
-            }
-            else
-            {
-                DateTime arrivalDate = currentBaseDate.AddSeconds(secondsToAdd);
-                return arrivalDate.ToString("MM/dd/yyyy HH:mm:ss 'UTC'");
-            }
-        }
-        catch
-        {
-            return "Far Future";
-        }
+        return FlightComputer.FormatDateTime(currentBaseDate, secondsToAdd);
     }
 
     private string CalculateTravelingFor()
