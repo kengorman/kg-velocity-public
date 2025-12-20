@@ -1,7 +1,7 @@
-/* Mobile-First Clean Design */
+/* Mobile-First Compact Design */
 :root {
     --bg-primary: #ffffff;
-    --bg-secondary: #f8f9fa;
+    --bg-card: #f8f9fa;
     --border-color: #e5e7eb;
     --text-primary: #111827;
     --text-secondary: #6b7280;
@@ -24,85 +24,62 @@ html, body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* App Container */
+/* App Container - fits viewport */
 .app-container {
     padding: 16px;
-    max-width: 480px;
+    max-width: 400px;
     margin: 0 auto;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Header */
+/* Header - compact */
 .header {
     text-align: center;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 16px;
 }
 
 .title {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--text-primary);
     letter-spacing: -0.3px;
 }
 
 .subtitle {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
-/* Sections */
-.section {
+/* Unified Journey Card */
+.journey-card {
+    background-color: var(--bg-card);
+    border-radius: 16px;
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Inputs Section */
+.inputs-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     margin-bottom: 20px;
 }
 
-.section-header {
-    margin-bottom: 12px;
-}
-
-.section-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Configuration Section */
-.config-section {
-    background-color: var(--bg-secondary);
-    border-radius: 12px;
-    padding: 16px;
-}
-
-.config-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.config-row {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.config-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-
-.config-select {
+.journey-select {
     width: 100%;
     font-size: 15px;
     font-weight: 500;
     color: var(--text-primary);
     background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 12px;
+    border-radius: 10px;
+    padding: 14px 12px;
     outline: none;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -111,73 +88,110 @@ html, body {
     cursor: pointer;
 }
 
-.config-select:focus {
+.journey-select:focus {
     border-color: var(--accent-blue);
 }
 
-.config-select:disabled {
+.journey-select:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    background-color: var(--bg-secondary);
 }
 
 /* Results Section */
-.progress-section {
-    background-color: var(--bg-secondary);
-    border-radius: 12px;
-    padding: 16px;
-}
-
-.progress-info {
-    margin-top: 4px;
+.results-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .results-grid {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
 }
 
-.result-item {
+/* Primary results - dominant arrival times */
+.result-item.primary {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
 }
 
-.result-label {
-    font-size: 11px;
-    font-weight: 500;
+.result-item.primary .result-label {
+    font-size: 10px;
+    font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
 }
 
-.result-value {
-    font-size: 17px;
-    font-weight: 600;
+.result-item.primary .result-value {
+    font-size: 24px;
+    font-weight: 700;
     color: var(--text-primary);
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.5px;
 }
 
-.result-value.highlight {
-    color: var(--accent-blue);
-}
-
-.result-value.ship-time {
+.result-item.primary .result-value.ship-time {
     color: var(--accent-amber);
 }
 
-/* Divider between arrival times and other stats */
-.results-divider {
-    height: 1px;
-    background-color: var(--border-color);
-    margin: 4px 0;
+/* Inline result rows */
+.result-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
-/* Secondary results (smaller, less prominent) */
-.result-item.secondary .result-value {
-    font-size: 15px;
+.result-label-inline {
+    font-size: 12px;
     font-weight: 500;
+    color: var(--text-muted);
+    min-width: 70px;
+}
+
+.result-value-inline {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.result-value-inline.ship-time {
+    color: var(--accent-amber);
+}
+
+.result-value-inline.highlight {
+    color: var(--accent-blue);
+}
+
+.result-arrow {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 40px 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.empty-state-text {
+    font-size: 16px;
+    color: var(--text-secondary);
 }
 
 /* Loading */
@@ -186,7 +200,7 @@ html, body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    height: 100dvh;
     gap: 16px;
 }
 

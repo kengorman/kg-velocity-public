@@ -16,93 +16,71 @@
             <p class="subtitle">Revealing the Scale of the Universe</p>
         </div>
 
-        <!-- Configure Journey -->
-        <div class="section">
-            <div class="section-header">
-                <span class="section-title">Configure</span>
-            </div>
-            <div class="config-section">
-                <div class="config-grid">
-                    <div class="config-row">
-                        <label class="config-label">Destination</label>
-                        <select class="config-select" 
-                                value="@(ViewModel.SelectedDestination?.Name ?? "")" 
-                                @onchange="OnDestinationChanged">
-                            <option value="">Select destination...</option>
-                            @foreach (var dest in ViewModel.Destinations)
+        <!-- Unified Journey Card -->
+        <div class="journey-card">
+            <!-- Inputs -->
+            <div class="inputs-section">
+                <select class="journey-select" 
+                        value="@(ViewModel.SelectedDestination?.Name ?? "")" 
+                        @onchange="OnDestinationChanged">
+                    <option value="">Select destination...</option>
+                    @foreach (var dest in ViewModel.Destinations)
+                    {
+                        <option value="@dest.Name">@dest.DisplayName</option>
+                    }
+                </select>
+                
+                <select class="journey-select" 
+                        @bind="ViewModel.SelectedPresetSpeed"
+                        disabled="@(ViewModel.SelectedDestination == null)">
+                    <option value="">Select speed...</option>
+                    @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
+                    {
+                        <optgroup label="@group.Key">
+                            @foreach (var preset in group)
                             {
-                                <option value="@dest.Name">@dest.DisplayName</option>
+                                <option value="@preset.SpeedMph">@preset.Name</option>
                             }
-                        </select>
-                    </div>
-                    
-                    <div class="config-row">
-                        <label class="config-label">Speed</label>
-                        <select class="config-select" 
-                                @bind="ViewModel.SelectedPresetSpeed"
-                                disabled="@(ViewModel.SelectedDestination == null)">
-                            <option value="">Select speed...</option>
-                            @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
-                            {
-                                <optgroup label="@group.Key">
-                                    @foreach (var preset in group)
-                                    {
-                                        <option value="@preset.SpeedMph">@preset.Name</option>
-                                    }
-                                </optgroup>
-                            }
-                        </select>
-                    </div>
-                </div>
+                        </optgroup>
+                    }
+                </select>
             </div>
-        </div>
-        
-        <!-- Journey Results -->
-        <div class="section">
-            <div class="section-header">
-                <span class="section-title">Results</span>
-            </div>
-            <div class="progress-section">
-                <div class="results-grid">
-                    <div class="result-item">
-                        <span class="result-label">Arrival (Earth time)</span>
-                        <span class="result-value">@ViewModel.ArrivalDateString</span>
+            
+            <!-- Results -->
+            <div class="results-section">
+                @if (!ViewModel.HasCalculated)
+                {
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🚀</div>
+                        <div class="empty-state-text">Where will you go?</div>
                     </div>
-                    
-                    <div class="result-item">
-                        <span class="result-label">Arrival (Ship time)</span>
-                        <span class="result-value ship-time">@ViewModel.ArrivalShipDateString</span>
+                }
+                else
+                {
+                    <div class="results-grid">
+                        <div class="result-item primary">
+                            <span class="result-label">Arrival (Earth)</span>
+                            <span class="result-value">@ViewModel.ArrivalDateString</span>
+                        </div>
+                        
+                        <div class="result-item primary">
+                            <span class="result-label">Arrival (Ship)</span>
+                            <span class="result-value ship-time">@ViewModel.ArrivalShipDateString</span>
+                        </div>
+                        
+                        <div class="result-row">
+                            <span class="result-label-inline">Duration</span>
+                            <span class="result-value-inline">@ViewModel.EarthTimeElapsed</span>
+                            <span class="result-arrow">→</span>
+                            <span class="result-value-inline ship-time">@ViewModel.ShipTimeElapsed</span>
+                        </div>
+                        
+                        <div class="result-row">
+                            <span class="result-label-inline">Time saved</span>
+                            <span class="result-value-inline highlight">@ViewModel.TimeDifference</span>
+                        </div>
                     </div>
-                    
-                    <div class="results-divider"></div>
-                    
-                    <div class="result-item secondary">
-                        <span class="result-label">Duration (Earth)</span>
-                        <span class="result-value">@ViewModel.EarthTimeElapsed</span>
-                    </div>
-                    
-                    <div class="result-item secondary">
-                        <span class="result-label">Duration (Ship)</span>
-                        <span class="result-value ship-time">@ViewModel.ShipTimeElapsed</span>
-                    </div>
-                    
-                    <div class="result-item secondary">
-                        <span class="result-label">Time Saved (Ship)</span>
-                        <span class="result-value highlight">@ViewModel.TimeDifference</span>
-                    </div>
-                    
-                    <div class="results-divider"></div>
-                    
-                    <div class="result-item secondary">
-                        <span class="result-label">Speed</span>
-                        <span class="result-value">@ViewModel.SpeedMph.ToString("N0") mph</span>
-                    </div>
-                    
-                    <div class="result-item secondary">
-                        <span class="result-label">Distance</span>
-                        <span class="result-value">@ViewModel.DistanceMiles.ToString("N0") miles</span>
-                    </div>
-                </div>
+                }
             </div>
         </div>
     </div>
