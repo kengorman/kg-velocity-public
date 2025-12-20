@@ -4,16 +4,51 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Velocity — Relativistic Travel Simulation</title>
+    <title>Absurd Travel Simulator</title>
     <base href="/" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="Kg.Velocity.Blazor.styles.css" rel="stylesheet" />
+    <style>
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+        }
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+        }
+        .loading-text {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .loading-slow {
+            display: none;
+            margin-top: 16px;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+    </style>
 </head>
 
 <body>
     <div id="app">
-        <img src="dualRing.gif" alt="Loading..." style="width: 80px; height: 80px; margin: 20vh auto; display: block;" />
+        <div class="loading-container">
+            <img src="dualRing.gif" alt="Loading..." class="loading-spinner" />
+            <div class="loading-text">Loading...</div>
+            <div class="loading-slow" id="slow-message">
+                Taking longer than expected.<br/>
+                Please wait or try refreshing.
+            </div>
+        </div>
     </div>
 
     <div id="blazor-error-ui">
@@ -21,35 +56,13 @@
         <a href="." class="reload">Reload</a>
         <span class="dismiss">🗙</span>
     </div>
+    
     <script>
-        window.getBoundingClientRect = function (element) {
-            if (element) {
-                var rect = element.getBoundingClientRect();
-                return {
-                    left: rect.left,
-                    top: rect.top,
-                    width: rect.width,
-                    height: rect.height
-                };
-            }
-            return null;
-        };
-
-        window.gameLoop = {
-            start: (dotNetHelper) => {
-                window.gameLoop.dotNetHelper = dotNetHelper;
-                window.gameLoop.loop();
-            },
-            stop: () => {
-                window.gameLoop.dotNetHelper = null;
-            },
-            loop: () => {
-                if (window.gameLoop.dotNetHelper) {
-                    window.gameLoop.dotNetHelper.invokeMethodAsync('OnFrame');
-                    requestAnimationFrame(window.gameLoop.loop);
-                }
-            }
-        };
+        // Show slow-loading message after 8 seconds
+        setTimeout(function() {
+            var slowMsg = document.getElementById('slow-message');
+            if (slowMsg) slowMsg.style.display = 'block';
+        }, 8000);
     </script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
