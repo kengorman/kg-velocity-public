@@ -103,38 +103,6 @@ public static class FlightComputer
         return FormatDuration(diffSeconds, DurationFormat.Compact);
     }
 
-    public static string CalculateETA(double speedMph, double remainingDistanceMiles)
-    {
-        if (speedMph <= 0 || remainingDistanceMiles <= 0)
-            return "N/A";
-
-        double remainingHours = remainingDistanceMiles / speedMph;
-        double remainingSeconds = remainingHours * 3600;
-
-        // Reuse FormatDuration for consistent output
-        return FormatDuration(remainingSeconds, DurationFormat.Compact);
-    }
-
-    public static double CalculateJourneyProgress(double currentDistanceMiles, double targetDistanceMiles)
-    {
-        if (targetDistanceMiles <= 0)
-            return 0.0;
-
-        double progress = (currentDistanceMiles / targetDistanceMiles) * 100.0;
-        return System.Math.Min(progress, 100.0);
-    }
-
-    public static (double SpeedMph, double PercentLight) CalculateAverageSpeed(double distanceMiles, double earthTimeSeconds)
-    {
-        if (earthTimeSeconds <= 0)
-            return (0.0, 0.0);
-
-        double averageSpeedMph = distanceMiles / (earthTimeSeconds / 3600.0);
-        double averageSpeedPercentLight = (averageSpeedMph / PhysicsConstants.SpeedOfLightMph) * 100.0;
-
-        return (averageSpeedMph, averageSpeedPercentLight);
-    }
-
     public static string FormatDateTime(DateTime baseDate, double secondsToAdd)
     {
         try 

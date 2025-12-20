@@ -28,29 +28,9 @@ public class SimulationState
     public double ShipTimeSeconds { get; set; }
 
     /// <summary>
-    /// Duration W key has been held in seconds (acceleration).
-    /// </summary>
-    public double WHeldSeconds { get; set; }
-
-    /// <summary>
-    /// Duration X key has been held in seconds (deceleration).
-    /// </summary>
-    public double XHeldSeconds { get; set; }
-
-    /// <summary>
     /// Target distance in miles.
     /// </summary>
     public double TargetDistanceMiles { get; set; }
-
-    /// <summary>
-    /// Remaining distance to destination in miles.
-    /// </summary>
-    public double RemainingDistanceMiles => System.Math.Max(0, TargetDistanceMiles - DistanceMiles);
-
-    /// <summary>
-    /// Whether the destination has been reached.
-    /// </summary>
-    public bool DestinationReached => DistanceMiles >= TargetDistanceMiles;
 
     public SimulationState()
     {

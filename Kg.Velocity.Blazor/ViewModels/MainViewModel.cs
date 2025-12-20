@@ -2,24 +2,13 @@ using Kg.Velocity.Math;
 using Kg.Velocity.Engine;
 using Kg.Velocity.Engine.Models;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace Kg.Velocity.Blazor.ViewModels;
 
 public class MainViewModel
 {
     private readonly SimulationState _state;
-    private readonly SimulationEngine _engine;
-    private readonly Stopwatch _stopwatch;
-    private double _lastElapsedSeconds;
     private DateTime _startDateTime;
-    private double _timeSinceLastAverageUpdate;
-    private double _timeSinceLastTimeDiffUpdate;
-
-    // Keyboard state
-    private bool _increaseHeld;
-    private bool _decreaseHeld;
-    private bool _slowHeld;
 
     // Event to notify UI of state changes
     public event Action? StateChanged;
@@ -27,8 +16,6 @@ public class MainViewModel
     public MainViewModel()
     {
         _state = new SimulationState();
-        _engine = new SimulationEngine(_state);
-        _stopwatch = Stopwatch.StartNew();
         _startDateTime = DateTime.Now;
 
         InitializeDestinations();
@@ -42,24 +29,13 @@ public class MainViewModel
         // Initialize properties to safe defaults for first render
         SpeedMph = 0;
         PercentageOfLightSpeed = 0;
-        LorentzFactor = 1;
-        ShipClockRate = 1;
         DistanceMiles = 0;
         DistanceLightYears = 0;
-        RemainingMiles = 0;
-        RemainingLightYears = 0;
         EarthTimeElapsed = "00:00:00";
         ShipTimeElapsed = "00:00:00";
-        EarthDateTime = _startDateTime.ToString("MM/dd/yyyy HH:mm:ss.fff");
-        ShipDateTime = _startDateTime.ToString("MM/dd/yyyy HH:mm:ss.fff");
-        DestinationReached = false;
-        JourneyProgressPercentage = 0;
-        EstimatedTimeOfArrivalEarth = "N/A";
-        EstimatedTimeOfArrivalShip = "N/A";
         TimeDifference = "0s";
-        JourneySummary = "Select a destination and speed to calculate your journey.";
-        AverageSpeedMph = 0;
-        AverageSpeedPercentLight = 0;
+        ArrivalDateString = "N/A";
+        ArrivalShipDateString = "N/A";
     }
 
     private void InitializeDestinations()
@@ -87,25 +63,16 @@ public class MainViewModel
     }
 
     // Properties
-    public bool IsAccelerating { get; set; }
-    public bool IsDecelerating { get; set; }
     public bool HasCalculated { get; set; }
     public double SpeedMph { get; set; }
     public double PercentageOfLightSpeed { get; set; }
-    public double LorentzFactor { get; set; }
-    public double ShipClockRate { get; set; }
     public double DistanceMiles { get; set; }
     public double DistanceLightYears { get; set; }
-    public double RemainingMiles { get; set; }
-    public double RemainingLightYears { get; set; }
     public string EarthTimeElapsed { get; set; } = "00:00:00";
     public string ShipTimeElapsed { get; set; } = "00:00:00";
-    public string EarthDateTime { get; set; } = "";
-    public string ShipDateTime { get; set; } = "";
     public string ArrivalDateString { get; set; } = "N/A";
     public string ArrivalShipDateString { get; set; } = "N/A";
-    public bool DestinationReached { get; set; }
-    public double TargetDistanceLightYears { get; set; } = PhysicsConstants.TargetDistanceLightYears;
+    public string TimeDifference { get; set; } = "0s";
     public ObservableCollection<Destination> Destinations { get; set; } = new();
     public List<SpeedPreset> SpeedPresets => Kg.Velocity.Engine.SpeedPresets.All;
     
@@ -119,7 +86,6 @@ public class MainViewModel
             if (value != null)
             {
                 _state.UpdateTargetDistance(value.DistanceMiles);
-                TargetDistanceLightYears = value.DistanceMiles / PhysicsConstants.LightYearMiles;
                 
                 // Recalculate if speed is already set
                 if (_state.SpeedMph > 0)
@@ -140,15 +106,6 @@ public class MainViewModel
             NotifyStateChanged();
         }
     }
-    
-    public double JourneyProgressPercentage { get; set; }
-    public string EstimatedTimeOfArrivalEarth { get; set; } = "N/A";
-    public string EstimatedTimeOfArrivalShip { get; set; } = "N/A";
-    public string TravelingFor { get; set; } = "0m";
-    public string TimeDifference { get; set; } = "0s";
-    public string JourneySummary { get; set; } = "";
-    public double AverageSpeedMph { get; set; }
-    public double AverageSpeedPercentLight { get; set; }
 
     public double? SelectedPresetSpeed
     {
@@ -162,8 +119,6 @@ public class MainViewModel
             if (value.HasValue && value.Value > 0)
             {
                 _state.SpeedMph = value.Value;
-                _state.WHeldSeconds = 0;
-                _state.XHeldSeconds = 0;
                 
                 // Calculate journey when speed is selected and destination exists
                 if (SelectedDestination != null)
@@ -183,32 +138,6 @@ public class MainViewModel
     }
 
     private void NotifyStateChanged() => StateChanged?.Invoke();
-
-    public void SetIncreaseHeld(bool held)
-    {
-        if (SelectedDestination == null || _state.DestinationReached)
-            return;
-            
-        _increaseHeld = held;
-        IsAccelerating = held;
-    }
-
-    public void SetDecreaseHeld(bool held)
-    {
-        if (SelectedDestination == null || _state.DestinationReached)
-            return;
-            
-        _decreaseHeld = held;
-        IsDecelerating = held;
-    }
-
-    public void SetSlowHeld(bool held)
-    {
-        if (SelectedDestination == null || _state.DestinationReached)
-            return;
-            
-        _slowHeld = held;
-    }
 
     private void CalculateCompleteJourney()
     {
@@ -232,36 +161,13 @@ public class MainViewModel
     {
         SpeedMph = _state.SpeedMph;
         PercentageOfLightSpeed = RelativisticPhysics.CalculatePercentageOfLightSpeed(_state.SpeedMph);
-        LorentzFactor = lorentzFactor;
-        ShipClockRate = RelativisticPhysics.CalculateShipClockRate(lorentzFactor);
         DistanceMiles = _state.DistanceMiles;
         DistanceLightYears = RelativisticPhysics.MilesToLightYears(_state.DistanceMiles);
-        RemainingMiles = _state.RemainingDistanceMiles;
-        RemainingLightYears = RelativisticPhysics.MilesToLightYears(_state.RemainingDistanceMiles);
         EarthTimeElapsed = FlightComputer.FormatDuration(_state.EarthTimeSeconds);
         ShipTimeElapsed = FlightComputer.FormatDuration(_state.ShipTimeSeconds);
-        EarthDateTime = FlightComputer.FormatDateTime(_startDateTime, _state.EarthTimeSeconds);
-        ShipDateTime = FlightComputer.FormatDateTime(_startDateTime, _state.ShipTimeSeconds);
-        DestinationReached = true;
-        
-        JourneyProgressPercentage = 100.0;
-        
-        var (avgMph, avgPercent) = FlightComputer.CalculateAverageSpeed(_state.DistanceMiles, _state.EarthTimeSeconds);
-        AverageSpeedMph = avgMph;
-        AverageSpeedPercentLight = avgPercent;
-        
-        // ETAs are N/A since we've arrived
-        EstimatedTimeOfArrivalEarth = "N/A";
-        EstimatedTimeOfArrivalShip = "N/A";
-        
-        TravelingFor = CalculateTravelingFor();
         TimeDifference = FlightComputer.CalculateTimeDifference(_state.EarthTimeSeconds, _state.ShipTimeSeconds);
-        
-        // Arrival dates show "Arrived"
-        ArrivalDateString = "Arrived";
-        ArrivalShipDateString = "Arrived";
-        
-        JourneySummary = GenerateJourneySummary();
+        ArrivalDateString = FlightComputer.FormatDateTime(_startDateTime, _state.EarthTimeSeconds);
+        ArrivalShipDateString = FlightComputer.FormatDateTime(_startDateTime, _state.ShipTimeSeconds);
     }
 
     /// <summary>
@@ -274,233 +180,12 @@ public class MainViewModel
         _state.DistanceMiles = 0;
         _state.EarthTimeSeconds = 0;
         _state.ShipTimeSeconds = 0;
-        _state.WHeldSeconds = 0;
-        _state.XHeldSeconds = 0;
 
-        _stopwatch.Restart();
-        _lastElapsedSeconds = 0;
         _startDateTime = DateTime.Now;
-        _timeSinceLastAverageUpdate = 0.0;
-        _timeSinceLastTimeDiffUpdate = 0.0;
         
         // Update display properties to reflect cleared state
         UpdatePropertiesWithoutNotification();
         
         NotifyStateChanged();
-    }
-
-    public void UpdateFromClickPosition(double percentage)
-    {
-        // Can't click after reaching destination
-        if (_state.DestinationReached)
-            return;
-
-        // Clamp percentage to valid range
-        percentage = System.Math.Clamp(percentage, 0.0, 100.0);
-
-        // Calculate new distance based on percentage
-        double newDistance = (percentage / 100.0) * _state.TargetDistanceMiles;
-        
-        // Clamp to target (don't exceed destination)
-        newDistance = System.Math.Min(newDistance, _state.TargetDistanceMiles);
-        _state.DistanceMiles = newDistance;
-
-        // Calculate time based on distance traveled at current speed
-        if (_state.SpeedMph > 0)
-        {
-            // Calculate Earth time: distance / speed
-            double hoursElapsed = newDistance / _state.SpeedMph;
-            _state.EarthTimeSeconds = hoursElapsed * 3600.0;
-            
-            // Calculate ship time using Lorentz factor
-            double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
-            _state.ShipTimeSeconds = _state.EarthTimeSeconds / lorentzFactor;
-        }
-        else
-        {
-            _state.EarthTimeSeconds = 0.0;
-            _state.ShipTimeSeconds = 0.0;
-        }
-        
-        // RemainingDistanceMiles and DestinationReached are computed properties - no need to set them
-        
-        NotifyStateChanged();
-    }
-
-    public void Update()
-    {
-        double elapsedSeconds = _stopwatch.Elapsed.TotalSeconds;
-        double deltaSeconds = elapsedSeconds - _lastElapsedSeconds;
-        _lastElapsedSeconds = elapsedSeconds;
-
-        if (deltaSeconds <= 0)
-            return;
-
-        if (_state.DestinationReached)
-        {
-            // Do nothing - keep all values frozen until reset
-        }
-        else
-        {
-            _state.WHeldSeconds = _increaseHeld ? _state.WHeldSeconds + deltaSeconds : 0.0;
-            _state.XHeldSeconds = _decreaseHeld ? _state.XHeldSeconds + deltaSeconds : 0.0;
-
-            _engine.Update(deltaSeconds, _increaseHeld, _decreaseHeld, _slowHeld);
-        }
-
-        double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
-
-        SpeedMph = _state.SpeedMph;
-        PercentageOfLightSpeed = RelativisticPhysics.CalculatePercentageOfLightSpeed(_state.SpeedMph);
-        LorentzFactor = lorentzFactor;
-        ShipClockRate = RelativisticPhysics.CalculateShipClockRate(lorentzFactor);
-        DistanceMiles = _state.DistanceMiles;
-        DistanceLightYears = RelativisticPhysics.MilesToLightYears(_state.DistanceMiles);
-        RemainingMiles = _state.RemainingDistanceMiles;
-        RemainingLightYears = RelativisticPhysics.MilesToLightYears(_state.RemainingDistanceMiles);
-        EarthTimeElapsed = FlightComputer.FormatDuration(_state.EarthTimeSeconds);
-        ShipTimeElapsed = FlightComputer.FormatDuration(_state.ShipTimeSeconds);
-        EarthDateTime = _startDateTime.AddSeconds(_state.EarthTimeSeconds).ToString("MM/dd/yyyy HH:mm:ss.fff");
-        ShipDateTime = _startDateTime.AddSeconds(_state.ShipTimeSeconds).ToString("MM/dd/yyyy HH:mm:ss.fff");
-        DestinationReached = _state.DestinationReached;
-        
-        JourneyProgressPercentage = FlightComputer.CalculateJourneyProgress(_state.DistanceMiles, _state.TargetDistanceMiles);
-
-        _timeSinceLastAverageUpdate += deltaSeconds;
-        if (_timeSinceLastAverageUpdate >= 1.0)
-        {
-            var (avgMph, avgPercent) = FlightComputer.CalculateAverageSpeed(_state.DistanceMiles, _state.EarthTimeSeconds);
-            AverageSpeedMph = avgMph;
-            AverageSpeedPercentLight = avgPercent;
-            _timeSinceLastAverageUpdate = 0.0;
-        }
-
-        // Calculate ETAs (Durations)
-        if (SpeedMph > 0 && RemainingMiles > 0)
-        {
-            // Earth Duration
-            double secondsToArriveEarth = RemainingMiles / (SpeedMph / 3600.0);
-            EstimatedTimeOfArrivalEarth = FlightComputer.FormatDuration(secondsToArriveEarth, DurationFormat.Verbose);
-
-            // Ship Duration (Time Dilated)
-            double secondsToArriveShip = secondsToArriveEarth / LorentzFactor;
-            EstimatedTimeOfArrivalShip = FlightComputer.FormatDuration(secondsToArriveShip, DurationFormat.Verbose);
-        }
-        else
-        {
-            EstimatedTimeOfArrivalEarth = "N/A";
-            EstimatedTimeOfArrivalShip = "N/A";
-        }
-
-        TravelingFor = CalculateTravelingFor();
-
-        _timeSinceLastTimeDiffUpdate += deltaSeconds;
-        if (_timeSinceLastTimeDiffUpdate >= 1.0)
-        {
-            TimeDifference = FlightComputer.CalculateTimeDifference(_state.EarthTimeSeconds, _state.ShipTimeSeconds);
-            _timeSinceLastTimeDiffUpdate = 0.0;
-        }
-
-        // Calculate Arrival Dates
-        if (HasCalculated && !DestinationReached && SpeedMph > 0 && RemainingMiles > 0)
-        {
-            // Earth Arrival
-            double secondsToArrive = RemainingMiles / (SpeedMph / 3600.0);
-            DateTime currentEarthTime = _startDateTime.AddSeconds(_state.EarthTimeSeconds);
-            ArrivalDateString = FormatArrivalDate(currentEarthTime, secondsToArrive);
-
-            // Ship Arrival (Projected based on current Lorentz Factor)
-            double shipSecondsToArrive = secondsToArrive / LorentzFactor;
-            DateTime currentShipTime = _startDateTime.AddSeconds(_state.ShipTimeSeconds);
-            ArrivalShipDateString = FormatArrivalDate(currentShipTime, shipSecondsToArrive);
-        }
-        else if (DestinationReached)
-        {
-            ArrivalDateString = "Arrived";
-            ArrivalShipDateString = "Arrived";
-        }
-        else
-        {
-            ArrivalDateString = "N/A";
-            ArrivalShipDateString = "N/A";
-        }
-
-        JourneySummary = GenerateJourneySummary();
-        
-        NotifyStateChanged();
-    }
-
-    private string FormatArrivalDate(DateTime currentBaseDate, double secondsToAdd)
-    {
-        return FlightComputer.FormatDateTime(currentBaseDate, secondsToAdd);
-    }
-
-    private string CalculateTravelingFor()
-    {
-        return FlightComputer.FormatDuration(_state.EarthTimeSeconds, DurationFormat.Compact);
-    }
-
-    private string GenerateJourneySummary()
-    {
-        if (SelectedDestination == null)
-        {
-            return "Select destination\nSet speed with preset or 'Faster'\nTap Launch to begin";
-        }
-
-        string destinationName = SelectedDestination.Name;
-        string speedText = $"{SpeedMph:N0} mph";
-        string percentLight = $"{PercentageOfLightSpeed:F6}%";
-
-        if (!HasCalculated)
-        {
-            return $"→ {destinationName}\nSelect a speed to calculate journey";
-        }
-        else
-        {
-            string etaText = EstimatedTimeOfArrivalEarth != "N/A" ? $"ETA: {EstimatedTimeOfArrivalEarth}" : "";
-            string timeDiffText = TimeDifference != "0s" && TimeDifference != "0ms" 
-                ? $"ΔTime: -{TimeDifference}" 
-                : "ΔTime: 0s";
-            
-            string avgSpeedText = AverageSpeedMph > 0 
-                ? $"Avg: {AverageSpeedMph:N0} mph ({AverageSpeedPercentLight:F6}% c)" 
-                : "";
-
-            if (DestinationReached)
-            {
-                var lines = new List<string>
-                {
-                    $"Arrived at {destinationName}!",
-                    $"Final: {speedText} ({percentLight} c)"
-                };
-                
-                if (!string.IsNullOrEmpty(avgSpeedText))
-                    lines.Add(avgSpeedText);
-                    
-                lines.Add(timeDiffText);
-                lines.Add("Tap Reset to restart");
-                
-                return string.Join("\n", lines);
-            }
-            else
-            {
-                var lines = new List<string>
-                {
-                    $"→ {destinationName} @ {speedText} ({percentLight} c)"
-                };
-                
-                if (!string.IsNullOrEmpty(avgSpeedText))
-                    lines.Add(avgSpeedText);
-                    
-                lines.Add($"Duration: {TravelingFor}");
-                
-                if (!string.IsNullOrEmpty(etaText))
-                    lines.Add(etaText);
-                    
-                lines.Add(timeDiffText);
-                
-                return string.Join("\n", lines);
-            }
-        }
     }
 }

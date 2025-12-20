@@ -1,10 +1,7 @@
 @page "/"
 @using Kg.Velocity.Blazor.ViewModels
-@using Kg.Velocity.Blazor.Services
 @using Kg.Velocity.Engine.Models
 @using System.Linq
-@using Microsoft.JSInterop
-@inject IJSRuntime JSRuntime
 @inject MainViewModel ViewModel
 @implements IDisposable
 
@@ -69,62 +66,29 @@
                 </div>
             </div>
             
-            <!-- Journey Progress Visualization -->
+            <!-- Journey Results -->
             <div class="section">
                 <div class="progress-section">
                     <div class="section-header">
                         <span class="section-title">JOURNEY RESULTS</span>
-                        @if (ViewModel.DestinationReached)
-                        {
-                            <span class="status-badge status-inflight">Complete</span>
-                        }
-                    </div>
-                    
-                    <div class="progress-track-container">
-                        <div class="progress-label-start">Earth</div>
-                        
-                        <div class="progress-track" 
-                             @ref="_progressTrackRef"
-                             style="@GetTrackCursorStyle()"
-                             @onpointerdown="OnTrackPointerDown"
-                             @ontouchstart="OnTrackTouchStart">
-                            <div class="progress-bar" style="width: @(ViewModel.JourneyProgressPercentage)%"></div>
-                            <div class="rocket-icon" 
-                                 style="@GetRocketStyle()">
-                                🚀
-                            </div>
-                        </div>
-                        
-                        <div class="progress-label-end">@(ViewModel.SelectedDestination?.Name ?? "")</div>
                     </div>
                     
                     <div class="progress-info">
                         <div class="flight-dashboard-grid">
-                        <!-- Row 1: Speed -->
-                        <div class="dashboard-row">
-                            <span class="dash-label">Speed:</span>
-                            <span class="dash-value">@ViewModel.SpeedMph.ToString("N0") mph (@ViewModel.PercentageOfLightSpeed.ToString("F6")% c)</span>
-                        </div>
-
-                        <!-- Row 3: Traveled -->
-                        <div class="dashboard-row">
-                            <span class="dash-label">Traveled:</span>
+                            <div class="dashboard-row">
+                                <span class="dash-label">Speed:</span>
+                                <span class="dash-value">@ViewModel.SpeedMph.ToString("N0") mph (@ViewModel.PercentageOfLightSpeed.ToString("F6")% c)</span>
+                            </div>
+                            <div class="dashboard-row">
+                                <span class="dash-label">Distance:</span>
                                 <span class="dash-value">@ViewModel.DistanceMiles.ToString("N0") mi (@ViewModel.DistanceLightYears.ToString("N6") ly)</span>
                             </div>
-
-                            <!-- Row 4: Remaining -->
-                            <div class="dashboard-row">
-                                <span class="dash-label">Remaining:</span>
-                                <span class="dash-value">@ViewModel.RemainingMiles.ToString("N0") mi (@ViewModel.RemainingLightYears.ToString("N6") ly)</span>
-                            </div>
-
-                            <!-- Row 5: Time -->
                             <div class="dashboard-row">
                                 <span class="dash-label">Duration (Earth):</span>
-                            <span class="dash-value">@ViewModel.EarthTimeElapsed</span>
-                        </div>
-                        <div class="dashboard-row">
-                            <span class="dash-label">Duration (Ship):</span>
+                                <span class="dash-value">@ViewModel.EarthTimeElapsed</span>
+                            </div>
+                            <div class="dashboard-row">
+                                <span class="dash-label">Duration (Ship):</span>
                                 <span class="dash-value ship-time">@ViewModel.ShipTimeElapsed</span>
                             </div>
                             <div class="dashboard-row">
@@ -132,61 +96,18 @@
                                 <span class="dash-value highlight">@ViewModel.TimeDifference</span>
                             </div>
                             <div class="dashboard-row">
-                                <span class="dash-label">ETA (Earth):</span>
-                                <span class="dash-value">@ViewModel.EstimatedTimeOfArrivalEarth</span>
-                            </div>
-                            <div class="dashboard-row">
-                                <span class="dash-label">ETA (Ship):</span>
-                                <span class="dash-value highlight">@ViewModel.EstimatedTimeOfArrivalShip</span>
-                            </div>
-                            <div class="dashboard-row">
-                                <span class="dash-label">Arrival (Earth):</span>
+                                <span class="dash-label">Arrival (Earth time):</span>
                                 <span class="dash-value">@ViewModel.ArrivalDateString</span>
                             </div>
                             <div class="dashboard-row">
-                                <span class="dash-label">Arrival (Ship):</span>
+                                <span class="dash-label">Arrival (Ship time):</span>
                                 <span class="dash-value highlight">@ViewModel.ArrivalShipDateString</span>
                             </div>
                         </div>
                     </div>
-
-                    @if (ViewModel.DestinationReached)
-                    {
-                        <div class="success-banner">
-                            🎯 DESTINATION REACHED!
-                        </div>
-                    }
                 </div>
             </div>
 
-            <!-- Journey Configuration & Controls -->
-            <div class="section" style="display: none;">
-                <div class="journey-config">
-                    <!-- Speed Controls -->
-                    <div class="velocity-panel-inner">
-                        <div class="velocity-controls">
-                            <button class="btn btn-success" 
-                                    @onpointerdown="OnAccelerateDown"
-                                    @onpointerup="OnAccelerateUp"
-                                    @onpointerleave="OnAccelerateUp"
-                                    @ontouchstart="OnAccelerateDown"
-                                    @ontouchend="OnAccelerateUp"
-                                    disabled="@(ViewModel.SelectedDestination == null)">
-                                ▲ Faster
-                            </button>
-                            <button class="btn btn-danger" 
-                                    @onpointerdown="OnDecelerateDown"
-                                    @onpointerup="OnDecelerateUp"
-                                    @onpointerleave="OnDecelerateUp"
-                                    @ontouchstart="OnDecelerateDown"
-                                    @ontouchend="OnDecelerateUp"
-                                    disabled="@(ViewModel.SelectedDestination == null)">
-                                ▼ Slower
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 }
@@ -200,8 +121,6 @@ else
 
 @code {
     private bool _isInitialized = false;
-    private ElementReference _progressTrackRef;
-    private bool _canClick => ViewModel.SelectedDestination != null && !ViewModel.DestinationReached;
 
     protected override void OnInitialized()
     {
@@ -217,75 +136,6 @@ else
         }
     }
 
-    private void OnAccelerateDown(EventArgs e)
-    {
-        ViewModel.SetIncreaseHeld(true);
-    }
-
-    private void OnAccelerateUp(EventArgs e)
-    {
-        ViewModel.SetIncreaseHeld(false);
-    }
-
-    private void OnDecelerateDown(EventArgs e)
-    {
-        ViewModel.SetDecreaseHeld(true);
-    }
-
-    private void OnDecelerateUp(EventArgs e)
-    {
-        ViewModel.SetDecreaseHeld(false);
-    }
-
-    // Track interaction handlers
-    private async void OnTrackPointerDown(PointerEventArgs e)
-    {
-        if (_canClick)
-        {
-            await HandleClick(e.ClientX);
-        }
-    }
-
-    private async void OnTrackTouchStart(TouchEventArgs e)
-    {
-        if (_canClick && e.Touches.Length > 0)
-        {
-            await HandleClick(e.Touches[0].ClientX);
-        }
-    }
-
-    private async Task HandleClick(double clientX)
-    {
-        try
-        {
-            // Get the bounding rect of the progress track
-            var trackRect = await JSRuntime.InvokeAsync<BoundingClientRect>("getBoundingClientRect", _progressTrackRef);
-            
-            if (trackRect != null && trackRect.Width > 0)
-            {
-                // Calculate position relative to track
-                double relativeX = clientX - trackRect.Left;
-                double percentage = (relativeX / trackRect.Width) * 100.0;
-                percentage = Math.Clamp(percentage, 0.0, 100.0);
-
-                // Update ViewModel
-                ViewModel.UpdateFromClickPosition(percentage);
-            }
-        }
-        catch
-        {
-            // Silently fail if JS interop fails
-        }
-    }
-
-    private class BoundingClientRect
-    {
-        public double Left { get; set; }
-        public double Top { get; set; }
-        public double Width { get; set; }
-        public double Height { get; set; }
-    }
-
     private void OnDestinationChanged(ChangeEventArgs e)
     {
         var selectedName = e.Value?.ToString();
@@ -298,20 +148,6 @@ else
             ViewModel.SelectedDestination = ViewModel.Destinations
                 .FirstOrDefault(d => d.Name == selectedName);
         }
-    }
-
-    private string GetTrackCursorStyle() => $"cursor: {(_canClick ? "pointer" : "default")}";
-
-    private string GetRocketStyle() => 
-        $"left: {ViewModel.JourneyProgressPercentage}%;";
-
-    private string GetAccelerationClass()
-    {
-        if (ViewModel.IsAccelerating)
-            return "accelerating";
-        if (ViewModel.IsDecelerating)
-            return "decelerating";
-        return "";
     }
 
     public void Dispose()
