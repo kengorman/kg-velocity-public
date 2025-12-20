@@ -111,14 +111,14 @@ html, body {
     gap: 16px;
 }
 
-/* Primary results - dominant arrival times */
-.result-item.primary {
+/* Unified label styling for all result items */
+.result-item {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
 
-.result-item.primary .result-label {
+.result-label {
     font-size: 10px;
     font-weight: 600;
     color: var(--text-muted);
@@ -126,6 +126,7 @@ html, body {
     letter-spacing: 0.5px;
 }
 
+/* Primary results - dominant arrival times */
 .result-item.primary .result-value {
     font-size: 24px;
     font-weight: 700;
@@ -138,39 +139,32 @@ html, body {
     color: var(--accent-amber);
 }
 
-/* Inline result rows */
-.result-row {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.result-label-inline {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-muted);
-    min-width: 70px;
-}
-
-.result-value-inline {
-    font-size: 14px;
+/* Secondary results - smaller values */
+.result-item.secondary .result-value {
+    font-size: 17px;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-variant-numeric: tabular-nums;
 }
 
-.result-value-inline.ship-time {
+.result-item.secondary .result-value.ship-time {
     color: var(--accent-amber);
 }
 
-.result-value-inline.highlight {
+.result-item.secondary .result-value.highlight {
     color: var(--accent-blue);
 }
 
-.result-arrow {
-    color: var(--text-muted);
-    font-size: 12px;
+/* Journey Summary - the narrative */
+.journey-summary {
+    margin-top: 16px;
+    padding: 14px;
+    background-color: var(--bg-primary);
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    font-style: italic;
 }
 
 /* Empty state */
@@ -190,8 +184,16 @@ html, body {
 }
 
 .empty-state-text {
-    font-size: 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.empty-state-subtext {
+    font-size: 14px;
     color: var(--text-secondary);
+    margin-top: 8px;
+    line-height: 1.6;
 }
 
 /* Loading */

@@ -53,6 +53,7 @@
                     <div class="empty-state">
                         <div class="empty-state-icon">🚀</div>
                         <div class="empty-state-text">Where will you go?</div>
+                        <div class="empty-state-subtext">How long will it take?<br/>How much will you age?</div>
                     </div>
                 }
                 else
@@ -68,16 +69,28 @@
                             <span class="result-value ship-time">@ViewModel.ArrivalShipDateString</span>
                         </div>
                         
-                        <div class="result-row">
-                            <span class="result-label-inline">Duration</span>
-                            <span class="result-value-inline">@ViewModel.EarthTimeElapsed</span>
-                            <span class="result-arrow">→</span>
-                            <span class="result-value-inline ship-time">@ViewModel.ShipTimeElapsed</span>
+                        <div class="result-item secondary">
+                            <span class="result-label">Duration (Earth)</span>
+                            <span class="result-value">@ViewModel.EarthTimeElapsed</span>
                         </div>
                         
-                        <div class="result-row">
-                            <span class="result-label-inline">Time saved</span>
-                            <span class="result-value-inline highlight">@ViewModel.TimeDifference</span>
+                        <div class="result-item secondary">
+                            <span class="result-label">Duration (Ship)</span>
+                            <span class="result-value ship-time">@ViewModel.ShipTimeElapsed</span>
+                        </div>
+                        
+                        <div class="result-item secondary">
+                            <span class="result-label">Younger By</span>
+                            <span class="result-value highlight">@ViewModel.TimeDifference</span>
+                        </div>
+                        
+                        <div class="result-item secondary">
+                            <span class="result-label">Distance</span>
+                            <span class="result-value">@FormatDistance(ViewModel.DistanceMiles)</span>
+                        </div>
+                        
+                        <div class="journey-summary">
+                            <strong>In progress - AI summary:</strong> @ViewModel.JourneySummary
                         </div>
                     </div>
                 }
@@ -122,6 +135,20 @@ else
             ViewModel.SelectedDestination = ViewModel.Destinations
                 .FirstOrDefault(d => d.Name == selectedName);
         }
+    }
+
+    private string FormatDistance(double miles)
+    {
+        if (miles < 1_000)
+            return $"{miles:N0} miles";
+        else if (miles < 1_000_000)
+            return $"{miles / 1_000:N1}k miles";
+        else if (miles < 1_000_000_000)
+            return $"{miles / 1_000_000:N1}M miles";
+        else if (miles < 1_000_000_000_000)
+            return $"{miles / 1_000_000_000:N2}B miles";
+        else
+            return $"{miles / 1_000_000_000_000:N2}T miles";
     }
 
     public void Dispose()
