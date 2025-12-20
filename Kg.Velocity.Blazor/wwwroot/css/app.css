@@ -1,150 +1,118 @@
-/* Clean, Modern Theme (Paper/Scientific Instrument Style) */
+/* Mobile-First Clean Design */
 :root {
-    /* Backgrounds */
     --bg-primary: #ffffff;
-    --bg-secondary: #f8f9fa; /* Very light gray for cards/sections */
-    --bg-highlight: #eef2f7;
-    
-    /* Borders */
-    --border-color: #e1e4e8;
-    --border-focus: #3b82f6;
-    
-    /* Text */
-    --text-primary: #1f2937; /* Nearly black for high contrast */
-    --text-secondary: #4b5563; /* Dark gray */
-    --text-muted: #9ca3af; /* Light gray for metadata */
-    
-    /* Action Colors (Muted, not neon) */
-    --accent-blue: #2563eb; /* Royal Blue for primary actions/highlights */
-    --accent-green: #10b981; /* Emerald for success/go */
-    --accent-orange: #f59e0b; /* Amber for warnings */
-    --accent-red: #ef4444; /* Red for stop/danger */
-    
-    /* Functional Colors */
-    --track-bg: #e5e7eb;
-    --progress-fill: #3b82f6;
+    --bg-secondary: #f8f9fa;
+    --border-color: #e5e7eb;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    --accent-blue: #2563eb;
+    --accent-amber: #d97706;
 }
 
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 html, body {
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    height: 100%;
-    line-height: 1.5;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
 }
 
+/* App Container */
 .app-container {
-    padding: 20px;
-    max-width: 600px; /* Tighter width for a more 'device-like' feel */
+    padding: 16px;
+    max-width: 480px;
     margin: 0 auto;
-    outline: none;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
 }
 
 /* Header */
 .header {
     text-align: center;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
     border-bottom: 1px solid var(--border-color);
 }
 
 .title {
-    font-size: 24px;
-    font-weight: 800;
+    font-size: 20px;
+    font-weight: 700;
     color: var(--text-primary);
-    margin: 0;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.3px;
 }
 
 .subtitle {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-secondary);
-    margin: 4px 0 0 0;
-    font-weight: 400;
-}
-
-/* Main Content */
-.main-content {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    flex: 1;
+    margin-top: 4px;
 }
 
 /* Sections */
 .section {
-    background-color: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px; /* Softer corners */
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Subtle lift */
+    margin-bottom: 20px;
+}
+
+.section-header {
+    margin-bottom: 12px;
 }
 
 .section-title {
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 1.2px;
-    margin-bottom: 15px;
-    display: block;
+    letter-spacing: 0.5px;
 }
 
-/* Configure Journey Section */
+/* Configuration Section */
 .config-section {
-    display: flex;
-    flex-direction: column;
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
 }
 
 .config-grid {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    background-color: var(--bg-secondary);
-    padding: 15px;
-    border-radius: 8px;
+    gap: 16px;
 }
 
 .config-row {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: baseline;
-    gap: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .config-label {
     font-size: 12px;
-    color: var(--text-secondary);
     font-weight: 500;
-    white-space: nowrap;
+    color: var(--text-secondary);
 }
 
 .config-select {
-    flex: 1;
-    min-width: 0;
-    font-size: 13px;
+    width: 100%;
+    font-size: 15px;
+    font-weight: 500;
     color: var(--text-primary);
-    font-weight: 600;
     background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 8px 10px;
+    border-radius: 8px;
+    padding: 12px;
     outline: none;
-    transition: border-color 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
     cursor: pointer;
 }
 
 .config-select:focus {
-    border-color: var(--border-focus);
+    border-color: var(--accent-blue);
 }
 
 .config-select:disabled {
@@ -153,608 +121,103 @@ html, body {
     background-color: var(--bg-secondary);
 }
 
-.config-preferences {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 12px 0;
-    border-top: 1px solid var(--border-color);
-    margin-top: 8px;
-}
-
-.toggle-option {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-}
-
-.toggle-option span:first-child {
-    font-size: 13px;
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
-.toggle-option input[type="checkbox"] {
-    display: none;
-}
-
-.toggle-switch {
-    position: relative;
-    width: 44px;
-    height: 24px;
-    background-color: #cbd5e1;
-    border-radius: 24px;
-    transition: background-color 0.3s ease;
-    flex-shrink: 0;
-}
-
-.toggle-switch::after {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background-color: white;
-    border-radius: 50%;
-    top: 2px;
-    left: 2px;
-    transition: left 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.toggle-option input:checked + .toggle-switch {
-    background-color: var(--accent-blue);
-}
-
-.toggle-option input:checked + .toggle-switch::after {
-    left: 22px;
-}
-
-.config-button-row {
-    display: flex;
-    gap: 10px;
-    padding-top: 8px;
-}
-
-.config-button-row .btn {
-    flex: 1;
-}
-
-/* Progress Section */
-.section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 15px;
-}
-
-/* Status Badges */
-.status-badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 20px; /* Pill shape */
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.success-banner {
-    text-align: center;
-    padding: 15px;
-    margin-top: 15px;
-    background-color: #ecfdf5;
-    color: var(--accent-green);
-    border: 1px solid #d1fae5;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 700;
-}
-
-.status-prelaunch {
-    background-color: #fff7ed;
-    color: var(--accent-orange);
-    border: 1px solid #ffedd5;
-}
-
-.status-inflight {
-    background-color: #ecfdf5;
-    color: var(--accent-green);
-    border: 1px solid #d1fae5;
-}
-
-/* Progress Track */
-.progress-track-container {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 15px;
-    align-items: center;
-    margin: 15px 0;
-}
-
-.progress-label-start,
-.progress-label-end {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    white-space: nowrap;
-}
-
-.progress-track {
-    position: relative;
-    height: 6px; /* Slightly thicker */
-    background-color: var(--track-bg);
-    border-radius: 3px;
-    padding: 12px 0; /* Click area */
-    margin: -12px 0;
-}
-
-.progress-bar {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    background-color: var(--progress-fill);
-    border-radius: 3px;
-    transition: width 0.1s linear;
-}
-
-.rocket-icon {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 18px;
-    background: white;
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: left 0.1s linear;
-}
-
-/* Dashboard Grid Layout */
-.flight-dashboard-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
+/* Results Section */
+.progress-section {
     background-color: var(--bg-secondary);
-    padding: 15px;
-    border-radius: 8px;
-    margin-top: 10px;
+    border-radius: 12px;
+    padding: 16px;
 }
 
-.dashboard-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    border-bottom: 1px solid rgba(0,0,0,0.03);
-    padding-bottom: 8px;
+.progress-info {
+    margin-top: 4px;
 }
 
-.dashboard-row:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-}
-
-.dash-label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
-.dash-value {
-    font-family: 'SF Mono', 'Roboto Mono', Menlo, monospace;
-    font-size: 13px;
-    color: var(--text-primary);
-    font-weight: 600;
-}
-
-.dash-value.highlight {
-    color: var(--accent-blue);
-}
-
-.dash-value.ship-time {
-    color: var(--accent-orange); /* Distinguish ship time */
-}
-
-.dash-select {
-    font-family: 'SF Mono', 'Roboto Mono', Menlo, monospace;
-    font-size: 13px;
-    color: var(--text-primary);
-    font-weight: 600;
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 6px 8px;
-    outline: none;
-    transition: border-color 0.2s;
-    cursor: pointer;
-}
-
-.dash-select:focus {
-    border-color: var(--border-focus);
-}
-
-.dash-select:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.dashboard-button-row {
-    display: flex;
-    gap: 10px;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(0,0,0,0.03);
-}
-
-.dashboard-button-row .btn {
-    flex: 1;
-}
-
-/* Journey Config */
-.journey-config {
+.results-grid {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-.form-group {
+.result-item {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
-.form-group label {
-    font-size: 12px;
+.result-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.result-value {
+    font-size: 17px;
     font-weight: 600;
-    color: var(--text-secondary);
-}
-
-.textbox-display, .destination-select, .speed-preset-select {
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 14px;
     color: var(--text-primary);
-    width: 100%;
-    outline: none;
-    font-family: inherit;
-    transition: border-color 0.2s;
+    font-variant-numeric: tabular-nums;
 }
 
-.textbox-display {
-    color: var(--text-secondary);
-    background-color: var(--bg-primary); /* Distinguish read-only */
+.result-value.highlight {
+    color: var(--accent-blue);
 }
 
-.destination-select:focus, .speed-preset-select:focus {
-    border-color: var(--border-focus);
-    background-color: var(--bg-primary);
+.result-value.ship-time {
+    color: var(--accent-amber);
 }
 
-/* Panel Divider */
-.panel-divider {
+/* Divider between arrival times and other stats */
+.results-divider {
     height: 1px;
     background-color: var(--border-color);
-    border: none;
-    margin: 10px 0;
+    margin: 4px 0;
 }
 
-/* Velocity Panel Inner */
-.velocity-panel-inner {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    background-color: var(--bg-secondary);
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-}
-
-/* Data Display */
-p {
-    margin: 8px 0;
-    font-size: 14px;
-    color: var(--text-secondary);
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-}
-
-p strong {
-    color: var(--text-primary);
-    font-weight: 600;
-    font-family: 'SF Mono', 'Roboto Mono', Menlo, monospace; /* Monospace for data */
+/* Secondary results (smaller, less prominent) */
+.result-item.secondary .result-value {
     font-size: 15px;
+    font-weight: 500;
 }
 
-.indent {
-    padding-left: 15px;
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: -4px;
-}
-
-/* Time Grid */
-.time-display-grid {
-    display: grid;
-    grid-template-columns: 1fr 1px 1fr;
-    gap: 20px;
-    background-color: var(--bg-secondary);
-    padding: 15px;
-    border-radius: 8px;
-    align-items: center;
-}
-
-.time-column {
-    text-align: center;
-}
-
-.time-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-    letter-spacing: 1px;
-}
-
-.time-value {
-    font-size: 20px;
-    font-weight: 700;
-    font-family: 'SF Mono', 'Roboto Mono', monospace;
-    color: var(--text-primary);
-    margin: 5px 0;
-}
-
-.time-datetime {
-    font-size: 10px;
-    color: var(--text-muted);
-    font-family: 'SF Mono', 'Roboto Mono', monospace;
-}
-
-.ship-time {
-    color: var(--accent-blue);
-}
-
-.vertical-divider {
-    width: 1px;
-    height: 100%;
-    background-color: var(--border-color);
-}
-
-/* Buttons */
-.btn {
-    border: none;
-    border-radius: 8px;
-    padding: 12px 20px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.1s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn:active { transform: translateY(1px); }
-
-.btn-primary {
-    background-color: var(--text-primary); /* Dark button */
-    color: white;
-}
-.btn-primary:hover { background-color: black; }
-.btn-primary:disabled {
-    background-color: transparent;
-    border: 2px solid var(--border-color);
-    color: var(--text-muted);
-    cursor: not-allowed;
-}
-
-.btn-secondary {
-    background-color: white;
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary);
-}
-.btn-secondary:hover { background-color: var(--bg-secondary); border-color: var(--text-secondary); }
-
-.btn-success {
-    background-color: var(--bg-secondary);
-    color: var(--accent-green);
-    border: 1px solid var(--border-color);
-}
-.btn-success:hover { border-color: var(--accent-green); background-color: #fff; }
-
-.btn-danger {
-    background-color: var(--bg-secondary);
-    color: var(--accent-red);
-    border: 1px solid var(--border-color);
-}
-.btn-danger:hover { border-color: var(--accent-red); background-color: #fff; }
-
-/* Controls Layouts */
-.journey-controls, .velocity-controls {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.velocity-controls .btn { flex: 1; }
-.journey-controls .btn { flex: 1; }
-
-/* Responsive */
-@media (max-width: 768px) {
-    .app-container { padding: 15px; }
-    .progress-track-container { font-size: 11px; gap: 10px; }
-    .time-value { font-size: 16px; }
-    
-    /* Stack controls on mobile */
-    .journey-controls, .velocity-controls {
-        flex-direction: column;
-    }
-}
-
-/* Loading Spinner */
+/* Loading */
 .loading-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100vh;
-    background-color: var(--bg-primary);
+    gap: 16px;
 }
 
 .loading-spinner {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 20px;
+    width: 48px;
+    height: 48px;
 }
 
 .loading-text {
-    margin-top: 20px;
     color: var(--text-secondary);
-    font-weight: 600;
     font-size: 14px;
-    text-align: center;
 }
 
-/* Blazor Loading & Error UI */
+/* Blazor error UI */
 #blazor-error-ui {
-    background: #ef5350;
+    background: #dc2626;
     bottom: 0;
     box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
     display: none;
     left: 0;
-    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    padding: 12px 16px;
     position: fixed;
     width: 100%;
     z-index: 1000;
     color: white;
+    font-size: 14px;
 }
 
 #blazor-error-ui .dismiss {
     cursor: pointer;
     position: absolute;
-    right: 0.75rem;
-    top: 0.5rem;
-}
-
-/* Journey Modal */
-.modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-}
-
-.journey-modal {
-    background-color: var(--bg-primary);
-    width: 100%;
-    max-height: 70vh;
-    overflow-y: auto;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-}
-
-.modal-close:hover {
-    background-color: var(--bg-secondary);
-}
-
-.modal-content {
-    padding: 20px;
-    color: var(--text-primary);
-}
-
-.modal-content p {
-    margin: 12px 0;
-    display: block;
-}
-
-.modal-content ul {
-    margin: 12px 0;
-    padding-left: 24px;
-}
-
-.modal-content li {
-    margin: 8px 0;
-    color: var(--text-primary);
-}
-
-.modal-footer {
-    padding: 20px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: flex-end;
-}
-
-.completion-modal .modal-header {
-    background-color: #ecfdf5;
-    border-bottom-color: #d1fae5;
-}
-
-.completion-modal .modal-header h2 {
-    color: var(--accent-green);
-}
-
-/* Mobile - Bottom sheet */
-@media (max-width: 1023px) and (orientation: portrait) {
-    .journey-modal {
-        border-radius: 16px 16px 0 0;
-    }
-}
-
-/* Tablet landscape, Laptop, Desktop - Centered modal */
-@media (min-width: 1024px), (orientation: landscape) and (min-width: 768px) {
-    .modal-backdrop {
-        align-items: center;
-    }
-    
-    .journey-modal {
-        max-width: 500px;
-        width: 90%;
-        max-height: 80vh;
-        border-radius: 12px;
-    }
+    right: 12px;
+    top: 12px;
 }
