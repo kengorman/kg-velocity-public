@@ -127,7 +127,7 @@ public static class FlightComputer
             else
             {
                 DateTime resultDate = baseDate.AddSeconds(secondsToAdd);
-                return resultDate.ToString("MM/dd/yyyy HH:mm:ss 'UTC'");
+                return resultDate.ToString("MM/dd/yyyy h:mm:ss tt");
             }
         }
         catch
