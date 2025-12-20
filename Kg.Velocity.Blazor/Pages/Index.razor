@@ -36,8 +36,7 @@
                             <select id="destination-select"
                                     class="config-select" 
                                     value="@(ViewModel.SelectedDestination?.Name ?? "")" 
-                                    @onchange="OnDestinationChanged" 
-                                    disabled="@ViewModel.IsLaunched">
+                                    @onchange="OnDestinationChanged">
                                 <option value=""></option>
                                 @foreach (var dest in ViewModel.Destinations)
                                 {
@@ -52,7 +51,7 @@
                             <select id="speed-preset-select"
                                     class="config-select" 
                                     @bind="ViewModel.SelectedPresetSpeed"
-                                    disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
+                                    disabled="@(ViewModel.SelectedDestination == null)">
                                 <option value=""></option>
                                 @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
                                 {
@@ -66,18 +65,6 @@
                             </select>
                         </div>
                         
-                        <!-- Launch and Reset Controls -->
-                        <div class="config-button-row">
-                            <button class="btn btn-primary" 
-                                    @onclick="OnLaunchClicked" 
-                                    disabled="true">
-                                🚀 Launch
-                            </button>
-                            <button class="btn btn-secondary" 
-                                    @onclick="OnResetClicked">
-                                🔄 Reset
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -86,14 +73,10 @@
             <div class="section">
                 <div class="progress-section">
                     <div class="section-header">
-                        <span class="section-title">PROGRESS</span>
-                        @if (!ViewModel.IsLaunched)
+                        <span class="section-title">JOURNEY RESULTS</span>
+                        @if (ViewModel.DestinationReached)
                         {
-                            <span class="status-badge status-prelaunch">Pre-Launch</span>
-                        }
-                        else
-                        {
-                            <span class="status-badge status-inflight">In-Flight</span>
+                            <span class="status-badge status-inflight">Complete</span>
                         }
                     </div>
                     
@@ -188,7 +171,7 @@
                                     @onpointerleave="OnAccelerateUp"
                                     @ontouchstart="OnAccelerateDown"
                                     @ontouchend="OnAccelerateUp"
-                                    disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
+                                    disabled="@(ViewModel.SelectedDestination == null)">
                                 ▲ Faster
                             </button>
                             <button class="btn btn-danger" 
@@ -197,7 +180,7 @@
                                     @onpointerleave="OnDecelerateUp"
                                     @ontouchstart="OnDecelerateDown"
                                     @ontouchend="OnDecelerateUp"
-                                    disabled="@(!ViewModel.IsLaunched && ViewModel.SelectedDestination == null)">
+                                    disabled="@(ViewModel.SelectedDestination == null)">
                                 ▼ Slower
                             </button>
                         </div>
@@ -232,17 +215,6 @@ else
         {
             InvokeAsync(StateHasChanged);
         }
-    }
-
-    // Button event handlers
-    private void OnLaunchClicked()
-    {
-        ViewModel.Launch();
-    }
-
-    private void OnResetClicked()
-    {
-        ViewModel.Reset();
     }
 
     private void OnAccelerateDown(EventArgs e)

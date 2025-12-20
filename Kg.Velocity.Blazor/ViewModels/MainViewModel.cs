@@ -57,7 +57,7 @@ public class MainViewModel
         EstimatedTimeOfArrivalEarth = "N/A";
         EstimatedTimeOfArrivalShip = "N/A";
         TimeDifference = "0s";
-        JourneySummary = "Select a destination\nAdjust the ship's speed using the Faster/Slower buttons.\nTap Launch to begin.";
+        JourneySummary = "Select a destination and speed to calculate your journey.";
         AverageSpeedMph = 0;
         AverageSpeedPercentLight = 0;
     }
@@ -89,7 +89,7 @@ public class MainViewModel
     // Properties
     public bool IsAccelerating { get; set; }
     public bool IsDecelerating { get; set; }
-    public bool IsLaunched { get; set; }
+    public bool HasCalculated { get; set; }
     public double SpeedMph { get; set; }
     public double PercentageOfLightSpeed { get; set; }
     public double LorentzFactor { get; set; }
@@ -118,9 +118,26 @@ public class MainViewModel
             _selectedDestination = value;
             if (value != null)
             {
-                ResetSimulation(value.DistanceMiles);
-                NotifyStateChanged();
+                _state.UpdateTargetDistance(value.DistanceMiles);
+                TargetDistanceLightYears = value.DistanceMiles / PhysicsConstants.LightYearMiles;
+                
+                // Recalculate if speed is already set
+                if (_state.SpeedMph > 0)
+                {
+                    CalculateCompleteJourney();
+                    HasCalculated = true;
+                }
+                else
+                {
+                    ClearCalculations();
+                }
             }
+            else
+            {
+                // Blank destination selected - clear calculations
+                ClearCalculations();
+            }
+            NotifyStateChanged();
         }
     }
     
@@ -142,52 +159,30 @@ public class MainViewModel
         }
         set
         {
-            if (value.HasValue)
+            if (value.HasValue && value.Value > 0)
             {
                 _state.SpeedMph = value.Value;
                 _state.WHeldSeconds = 0;
                 _state.XHeldSeconds = 0;
                 
-                // Auto-launch when speed is selected
+                // Calculate journey when speed is selected and destination exists
                 if (SelectedDestination != null)
                 {
-                    Launch();
+                    CalculateCompleteJourney();
+                    HasCalculated = true;
                 }
-                else
-                {
-                    NotifyStateChanged();
-                }
+                NotifyStateChanged();
+            }
+            else
+            {
+                // Blank speed selected - clear speed and calculations
+                _state.SpeedMph = 0;
+                ClearCalculations();
             }
         }
     }
 
     private void NotifyStateChanged() => StateChanged?.Invoke();
-
-    private void ResetSimulation(double newTargetMiles)
-    {
-        IsLaunched = false;
-        
-        _state.SpeedMph = 0;
-        _state.DistanceMiles = 0;
-        _state.EarthTimeSeconds = 0;
-        _state.ShipTimeSeconds = 0;
-        _state.WHeldSeconds = 0;
-        _state.XHeldSeconds = 0;
-
-        _state.UpdateTargetDistance(newTargetMiles);
-        
-        double newTargetLightYears = newTargetMiles / PhysicsConstants.LightYearMiles;
-        TargetDistanceLightYears = newTargetLightYears;
-
-        _stopwatch.Restart();
-        _lastElapsedSeconds = 0;
-        _startDateTime = DateTime.Now;
-        _timeSinceLastAverageUpdate = 0.0;
-        _timeSinceLastTimeDiffUpdate = 0.0;
-        
-        // Update display properties to reflect reset state
-        UpdatePropertiesWithoutNotification();
-    }
 
     public void SetIncreaseHeld(bool held)
     {
@@ -215,26 +210,6 @@ public class MainViewModel
         _slowHeld = held;
     }
 
-    public void Launch()
-    {
-        if (SelectedDestination == null)
-        {
-            return;
-        }
-        
-        if (_state.SpeedMph <= 0)
-        {
-            _state.SpeedMph = 1.0;
-        }
-        
-        IsLaunched = true;
-        
-        // Instant calculation: Calculate entire journey
-        CalculateCompleteJourney();
-        
-        NotifyStateChanged();
-    }
-    
     private void CalculateCompleteJourney()
     {
         // Journey is complete - set distance to target
@@ -289,18 +264,18 @@ public class MainViewModel
         JourneySummary = GenerateJourneySummary();
     }
 
-    public void Reset()
+    /// <summary>
+    /// Clears all calculation results without changing dropdown selections.
+    /// </summary>
+    private void ClearCalculations()
     {
-        IsLaunched = false;
+        HasCalculated = false;
         
-        _state.SpeedMph = 0;
         _state.DistanceMiles = 0;
         _state.EarthTimeSeconds = 0;
         _state.ShipTimeSeconds = 0;
         _state.WHeldSeconds = 0;
         _state.XHeldSeconds = 0;
-
-        SelectedDestination = null;
 
         _stopwatch.Restart();
         _lastElapsedSeconds = 0;
@@ -308,7 +283,7 @@ public class MainViewModel
         _timeSinceLastAverageUpdate = 0.0;
         _timeSinceLastTimeDiffUpdate = 0.0;
         
-        // Update display properties to reflect reset state
+        // Update display properties to reflect cleared state
         UpdatePropertiesWithoutNotification();
         
         NotifyStateChanged();
@@ -330,26 +305,21 @@ public class MainViewModel
         newDistance = System.Math.Min(newDistance, _state.TargetDistanceMiles);
         _state.DistanceMiles = newDistance;
 
-        if (!IsLaunched)
+        // Calculate time based on distance traveled at current speed
+        if (_state.SpeedMph > 0)
         {
-            // Pre-launch: keep time at 0
-            _state.EarthTimeSeconds = 0.0;
-            _state.ShipTimeSeconds = 0.0;
+            // Calculate Earth time: distance / speed
+            double hoursElapsed = newDistance / _state.SpeedMph;
+            _state.EarthTimeSeconds = hoursElapsed * 3600.0;
+            
+            // Calculate ship time using Lorentz factor
+            double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
+            _state.ShipTimeSeconds = _state.EarthTimeSeconds / lorentzFactor;
         }
         else
         {
-            // During flight: calculate time based on distance traveled at current speed
-            // This gives a rough approximation for scrubbing
-            if (_state.SpeedMph > 0)
-            {
-                // Calculate Earth time: distance / speed
-                double hoursElapsed = newDistance / _state.SpeedMph;
-                _state.EarthTimeSeconds = hoursElapsed * 3600.0;
-                
-                // Calculate ship time using Lorentz factor
-                double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
-                _state.ShipTimeSeconds = _state.EarthTimeSeconds / lorentzFactor;
-            }
+            _state.EarthTimeSeconds = 0.0;
+            _state.ShipTimeSeconds = 0.0;
         }
         
         // RemainingDistanceMiles and DestinationReached are computed properties - no need to set them
@@ -375,7 +345,7 @@ public class MainViewModel
             _state.WHeldSeconds = _increaseHeld ? _state.WHeldSeconds + deltaSeconds : 0.0;
             _state.XHeldSeconds = _decreaseHeld ? _state.XHeldSeconds + deltaSeconds : 0.0;
 
-            _engine.Update(deltaSeconds, _increaseHeld, _decreaseHeld, _slowHeld, IsLaunched);
+            _engine.Update(deltaSeconds, _increaseHeld, _decreaseHeld, _slowHeld);
         }
 
         double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
@@ -432,7 +402,7 @@ public class MainViewModel
         }
 
         // Calculate Arrival Dates
-        if (IsLaunched && !DestinationReached && SpeedMph > 0 && RemainingMiles > 0)
+        if (HasCalculated && !DestinationReached && SpeedMph > 0 && RemainingMiles > 0)
         {
             // Earth Arrival
             double secondsToArrive = RemainingMiles / (SpeedMph / 3600.0);
@@ -481,9 +451,9 @@ public class MainViewModel
         string speedText = $"{SpeedMph:N0} mph";
         string percentLight = $"{PercentageOfLightSpeed:F6}%";
 
-        if (!IsLaunched)
+        if (!HasCalculated)
         {
-            return $"→ {destinationName}\nSpeed: {speedText} ({percentLight} c)\nTap Launch to begin";
+            return $"→ {destinationName}\nSelect a speed to calculate journey";
         }
         else
         {
