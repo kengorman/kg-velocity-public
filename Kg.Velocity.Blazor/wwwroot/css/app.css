@@ -237,3 +237,13 @@ html, body {
     right: 12px;
     top: 12px;
 }
+
+/* Build info */
+.build-info {
+    margin-top: auto;
+    padding-top: 16px;
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: monospace;
+}

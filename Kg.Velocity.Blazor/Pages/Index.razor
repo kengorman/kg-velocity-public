@@ -2,6 +2,7 @@
 @using Kg.Velocity.Blazor.ViewModels
 @using Kg.Velocity.Engine.Models
 @using System.Linq
+@using System.Reflection
 @inject MainViewModel ViewModel
 @implements IDisposable
 
@@ -96,6 +97,8 @@
                 }
             </div>
         </div>
+
+        <div class="build-info">Build: @_buildVersion</div>
     </div>
 }
 else
@@ -108,6 +111,21 @@ else
 
 @code {
     private bool _isInitialized = false;
+    private string _buildVersion = GetShortCommitHash();
+
+    private static string GetShortCommitHash()
+    {
+        var version = Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
+        
+        // Format: 1.0.0-20251221.145308+084afce53482e9405bf0c1ca759bda007ed76f09
+        var plusIndex = version.IndexOf('+');
+        if (plusIndex >= 0 && version.Length > plusIndex + 7)
+        {
+            return version.Substring(plusIndex + 1, 7);
+        }
+        return "dev";
+    }
 
     protected override void OnInitialized()
     {
