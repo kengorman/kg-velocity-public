@@ -9,6 +9,20 @@ public class AiSummaryService
 {
     private readonly ChatClient _chatClient;
 
+    private static readonly string[] Tones = 
+    [
+        "Be witty and slightly irreverent.",
+        "Be dramatic and awe-inspiring.",
+        "Be philosophical and contemplative.",
+        "Be humorous with a dry wit.",
+        "Be poetic and lyrical.",
+        "Be matter-of-fact with a surprising twist at the end.",
+        "Channel your inner Carl Sagan.",
+        "Be enthusiastic like an excited scientist.",
+        "Be humorously disappointed about not passing any alien spaceships.",
+        "Be a rapper - throw in a couple a' rhymes."
+    ];
+
     public AiSummaryService(IConfiguration configuration)
     {
         var apiKey = configuration["Groq:ApiKey"] 
@@ -21,15 +35,19 @@ public class AiSummaryService
         };
         
         var client = new OpenAIClient(credential, options);
-        _chatClient = client.GetChatClient("llama-3.3-70b-versatile");
+        _chatClient = client.GetChatClient("meta-llama/llama-4-scout-17b-16e-instruct");
     }
 
     public async Task<string> GenerateSummaryAsync(TripEvaluationRequest request)
     {
+        // Pick a tone based on current milliseconds
+        var toneIndex = DateTime.UtcNow.Millisecond % Tones.Length;
+        var tone = Tones[toneIndex];
+
         var prompt = $"""
-            You are a witty science narrator. Generate a brief, engaging 2-3 sentence summary 
-            of this hypothetical space journey. Include a fun fact or perspective-giving comparison.
-            Be conversational but informative. Do not use markdown.
+            You are a brilliant cosmologist. Generate a brief, engaging 2-3 sentence summary 
+            of this hypothetical space journey.  {tone} Include a fun fact or perspective-giving comparison.
+            Do not use markdown.
 
             Journey Details:
             - Destination: {request.Destination}
@@ -42,9 +60,19 @@ public class AiSummaryService
 
         try
         {
-            var completion = await _chatClient.CompleteChatAsync(prompt);
+            var messages = new List<ChatMessage>
+            {
+                new UserChatMessage(prompt)
+            };
+
+            var chatOptions = new ChatCompletionOptions
+            {
+                Temperature = 1.0f
+            };
+
+            var completion = await _chatClient.CompleteChatAsync(messages, chatOptions);
             var summary = completion.Value.Content[0].Text;
-            return $"{summary}";
+            return summary;
         }
         catch (Exception ex)
         {
@@ -52,4 +80,3 @@ public class AiSummaryService
         }
     }
 }
-

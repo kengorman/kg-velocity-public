@@ -37,7 +37,7 @@ html, body {
 /* Header - compact */
 .header {
     text-align: center;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .title {
@@ -108,7 +108,7 @@ html, body {
 .results-grid {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 /* Unified label styling for all result items */
@@ -156,7 +156,7 @@ html, body {
 
 /* Journey Summary - the narrative */
 .journey-summary {
-    margin-top: 16px;
+    margin-top: 10px;
     padding: 14px;
     background-color: var(--bg-primary);
     border-radius: 10px;
@@ -240,7 +240,7 @@ html, body {
 /* Build info */
 .build-info {
     margin-top: auto;
-    padding-top: 16px;
+    padding-top: 10px;
     text-align: center;
     font-size: 10px;
     color: var(--text-muted);
