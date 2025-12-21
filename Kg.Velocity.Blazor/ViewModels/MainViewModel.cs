@@ -53,7 +53,6 @@ public class MainViewModel
             new Destination { Name = "Saturn", DistanceMiles = 886_000_000, Category = "Space" },
             new Destination { Name = "Uranus", DistanceMiles = 1_800_000_000, Category = "Space" },
             new Destination { Name = "Pluto", DistanceMiles = 3_700_000_000, Category = "Space" },
-            new Destination { Name = "Voyager 1", DistanceMiles = 15_000_000_000, Category = "Space" },
             
             // Deep Space
             new Destination { Name = "Polaris (North Star)", DistanceMiles = 433 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
