@@ -67,24 +67,24 @@ html, body {
 .inputs-section {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 8px;
+    margin-bottom: 16px;
 }
 
 .journey-select {
     width: 100%;
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 500;
     color: var(--text-primary);
     background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: 10px;
-    padding: 14px 12px;
+    padding: 12px 10px;
     outline: none;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 12px center;
+    background-position: right 10px center;
     cursor: pointer;
 }
 
@@ -108,7 +108,7 @@ html, body {
 .results-grid {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 
 /* Unified label styling for all result items */
@@ -126,13 +126,12 @@ html, body {
     letter-spacing: 0.5px;
 }
 
-/* Primary results - dominant arrival times */
+/* Primary results - arrival times (same size as secondary) */
 .result-item.primary .result-value {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 17px;
+    font-weight: 600;
     color: var(--text-primary);
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.5px;
 }
 
 .result-item.primary .result-value.ship-time {

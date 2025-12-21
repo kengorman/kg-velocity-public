@@ -6,6 +6,7 @@ public static class TripSummaryGenerator
 {
     public static string Generate(TripEvaluationRequest request)
     {
+        var timestamp = DateTime.UtcNow.ToString("HH:mm:ss");
         double earthYears = request.EarthTimeSeconds / (365.25 * 24 * 3600);
         double shipYears = request.ShipTimeSeconds / (365.25 * 24 * 3600);
         double timeSavedYears = earthYears - shipYears;
@@ -55,11 +56,11 @@ public static class TripSummaryGenerator
             mainSummary = $"This {billionYears:N1} billion year journey to {destination} exceeds the remaining lifespan of our Sun. Earth itself may not exist when you arrive.";
         }
 
-        if (!string.IsNullOrEmpty(timeDilationNote))
-        {
-            return $"{mainSummary} {timeDilationNote}";
-        }
-        return mainSummary;
+        var summary = !string.IsNullOrEmpty(timeDilationNote)
+            ? $"{mainSummary} {timeDilationNote}"
+            : mainSummary;
+        
+        return $"[{timestamp}] {summary}";
     }
 
     private static string GetTimeDilationNote(
