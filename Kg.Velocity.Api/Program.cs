@@ -17,8 +17,8 @@ var app = builder.Build();
 
 app.UseResponseCompression();
 
-app.UseBlazorFrameworkFiles();
-app.UseStaticFiles();
+// Routing must be established before static files
+app.UseRouting();
 
 app.MapPost("/api/evaluate-trip", (TripEvaluationRequest request) =>
 {
@@ -26,6 +26,9 @@ app.MapPost("/api/evaluate-trip", (TripEvaluationRequest request) =>
     return Results.Ok(new TripEvaluationResponse(summary));
 });
 
+// Static files and fallback after API routes
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
 app.MapFallbackToFile("index.html");
 
 app.Run();
