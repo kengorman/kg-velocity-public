@@ -6,7 +6,6 @@ public static class TripSummaryGenerator
 {
     public static string Generate(TripEvaluationRequest request)
     {
-        var timestamp = DateTime.UtcNow.ToString("HH:mm:ss");
         double earthYears = request.EarthTimeSeconds / (365.25 * 24 * 3600);
         double shipYears = request.ShipTimeSeconds / (365.25 * 24 * 3600);
         double timeSavedYears = earthYears - shipYears;
@@ -60,7 +59,7 @@ public static class TripSummaryGenerator
             ? $"{mainSummary} {timeDilationNote}"
             : mainSummary;
         
-        return $"[{timestamp}] {summary}";
+        return $"{summary}";
     }
 
     private static string GetTimeDilationNote(

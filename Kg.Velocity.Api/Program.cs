@@ -13,6 +13,8 @@ builder.Services.AddResponseCompression(options =>
         ["application/octet-stream", "application/wasm"]);
 });
 
+builder.Services.AddSingleton<AiSummaryService>();
+
 var app = builder.Build();
 
 app.UseResponseCompression();
@@ -20,9 +22,9 @@ app.UseResponseCompression();
 // Routing must be established before static files
 app.UseRouting();
 
-app.MapPost("/api/evaluate-trip", (TripEvaluationRequest request) =>
+app.MapPost("/api/evaluate-trip", async (TripEvaluationRequest request, AiSummaryService aiService) =>
 {
-    var summary = TripSummaryGenerator.Generate(request);
+    var summary = await aiService.GenerateSummaryAsync(request);
     return Results.Ok(new TripEvaluationResponse(summary));
 });
 
