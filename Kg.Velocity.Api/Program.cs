@@ -77,9 +77,9 @@ static string GenerateJourneySummary(TripEvaluationRequest request)
 
     if (!string.IsNullOrEmpty(timeDilationNote))
     {
-        return $"{mainSummary} {timeDilationNote}";
+        return $"api call: {mainSummary} {timeDilationNote}";
     }
-    return mainSummary;
+    return "api call: " +  mainSummary;
 }
 
 static string GetTimeDilationNote(
