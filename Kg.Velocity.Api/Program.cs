@@ -1,9 +1,21 @@
 using Kg.Velocity.Api.Models;
 using Kg.Velocity.Api.Services;
+using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+        ["application/octet-stream", "application/wasm"]);
+});
+
 var app = builder.Build();
+
+app.UseResponseCompression();
 
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
