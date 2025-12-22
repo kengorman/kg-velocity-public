@@ -11,7 +11,6 @@ public class AiSummaryService
 
     private static readonly string[] Tones = 
     [
-        "Be witty and slightly irreverent.",
         "Be dramatic and awe-inspiring.",
         "Be philosophical and contemplative.",
         "Be humorous with a dry wit.",
@@ -20,7 +19,6 @@ public class AiSummaryService
         "Channel your inner Carl Sagan.",
         "Be enthusiastic like an excited scientist.",
         "Be humorously disappointed about not passing any alien spaceships.",
-        "Be a rapper - throw in a couple a' rhymes."
     ];
 
     public AiSummaryService(IConfiguration configuration)
