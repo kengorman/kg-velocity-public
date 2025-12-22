@@ -252,8 +252,16 @@ html, body {
 .build-info {
     margin-top: auto;
     padding-top: 10px;
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
     font-size: 10px;
     color: var(--text-muted);
+}
+
+.build-info span:first-child {
     font-family: monospace;
+}
+
+.build-info .credit {
+    font-family: inherit;
 }
