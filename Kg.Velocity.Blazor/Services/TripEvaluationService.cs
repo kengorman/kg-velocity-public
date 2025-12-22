@@ -14,7 +14,7 @@ public record TripEvaluationRequest(
     string TimeDifference
 );
 
-public record TripEvaluationResponse(string Summary);
+public record TripEvaluationResponse(string Summary, string PersonaName);
 
 public class TripEvaluationService
 {
@@ -25,7 +25,7 @@ public class TripEvaluationService
         _httpClient = httpClient;
     }
 
-    public async Task<string> EvaluateTripAsync(TripEvaluationRequest request)
+    public async Task<(string Summary, string PersonaName)> EvaluateTripAsync(TripEvaluationRequest request)
     {
         try
         {
@@ -33,11 +33,11 @@ public class TripEvaluationService
             response.EnsureSuccessStatusCode();
             
             var result = await response.Content.ReadFromJsonAsync<TripEvaluationResponse>();
-            return result?.Summary ?? "Unable to generate summary.";
+            return (result?.Summary ?? "Unable to generate summary.", result?.PersonaName ?? "");
         }
         catch (Exception ex)
         {
-            return $"Error connecting to API: {ex.Message}";
+            return ($"Error connecting to API: {ex.Message}", "System");
         }
     }
 }

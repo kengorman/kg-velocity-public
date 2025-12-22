@@ -1,6 +1,6 @@
 namespace Kg.Velocity.Api.Models;
 
-public record TripEvaluationResponse(string Summary);
+public record TripEvaluationResponse(string Summary, string PersonaName);
 
 
 

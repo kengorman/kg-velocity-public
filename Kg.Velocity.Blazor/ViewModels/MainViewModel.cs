@@ -80,6 +80,7 @@ public class MainViewModel
     public string ArrivalShipDateString { get; set; } = "N/A";
     public string TimeDifference { get; set; } = "0s";
     public string JourneySummary { get; set; } = "";
+    public string PersonaName { get; set; } = "";
     public ObservableCollection<Destination> Destinations { get; set; } = new();
     public List<SpeedPreset> SpeedPresets => Kg.Velocity.Engine.SpeedPresets.All;
     
@@ -181,6 +182,7 @@ public class MainViewModel
         
         // Show loading state immediately
         JourneySummary = "Generating trip summary...";
+        PersonaName = "";
     }
 
     private async Task FetchJourneySummaryAsync()
@@ -202,8 +204,9 @@ public class MainViewModel
             TimeDifference: TimeDifference
         );
 
-        var summary = await _tripEvaluationService.EvaluateTripAsync(request);
+        var (summary, personaName) = await _tripEvaluationService.EvaluateTripAsync(request);
         JourneySummary = summary;
+        PersonaName = personaName;
         NotifyStateChanged();
     }
 
