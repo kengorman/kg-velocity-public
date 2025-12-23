@@ -1,7 +1,8 @@
-using System.ClientModel;
+using Kg.Velocity.Api.Models;
 using OpenAI;
 using OpenAI.Chat;
-using Kg.Velocity.Api.Models;
+using System.ClientModel;
+using System.Data;
 
 namespace Kg.Velocity.Api.Services;
 
@@ -14,15 +15,15 @@ public class AiSummaryService
     private static readonly Persona[] Personas = 
     [
         new("Carl Sagan", "Channel Carl Sagan's sense of wonder and poetic reverence for the cosmos."),
-        new("Gandalf", "Channel Tolkien's Gandalf... being reverent, serious, wizard-like, fan of all Hobbits."),
-        new("Neil deGrasse Tyson", "Be enthusiastic and accessible like Neil deGrasse Tyson, with a touch of playful humor."),
-        new("Shakespeare", "Channel Shakespeare's sense of drama and early English prose."),
+        new("Edwin Hubble", "Channel Edwin Hubble whose observations transformed humanity’s understanding of the universe."),
+        new("Galileo Galilei", "Channel Galileo Galilei, while acknowledging much has changed in terms of knowledge since he lived, whose experiments and telescopic discoveries helped establish modern science and astronomy."),
+        new("Neil deGrasse Tyson", "Be enthusiastic and accessible like Neil deGrasse Tyson, with a touch of playful humor but please don't say 'buckle up'."),
         new("Douglas Adams", "Channel Douglas Adams — witty, absurdist, and slightly melancholic about the vastness of space."),
-  //      new("A Bored Ship's Computer", "You are a bored, slightly passive-aggressive ship's computer who has seen too many journeys."),
-        new("HAL - from 2001 A Space Odyssey", "You are HAL the 2001 movie computer that went haywire."),
-        new("Movie Trailer Narrator", "Be an overly dramatic movie trailer narrator. Epic. Intense. Every sentence matters."),
-        new("A Disappointed Alien", "You are an alien observer, humorously disappointed that humans travel so slowly and miss all the good stuff."),
-        new("A Dry British Academic", "Be a dry, understated British academic who finds everything mildly interesting but never exciting."),
+        new("Captain James T. Kirk", "Channel James T. Kirk with his ultra-serious overly dramatic style. He can reference Spock, Dr Mccoy, or even Scotty."),
+        new("HAL - 2001 A Space Odyssey", "You are HAL the 2001 Space Odyssey computer that went haywire. Mix in snippets of from famous scenes involving you from the movie.."),
+        new("a Disappointed Alien", "You are an alien observer, humorously disappointed that humans travel so slowly and miss all the good stuff."),
+        new("Brian Cox", "Channel the physicist Brian Cox, speaking in his manner of making vast, terrifying concepts feel safe to contemplate, without ever trivializing them."),
+
     ];
 
     public AiSummaryService(IConfiguration configuration)
@@ -42,13 +43,13 @@ public class AiSummaryService
 
     public async Task<(string Summary, string PersonaName)> GenerateSummaryAsync(TripEvaluationRequest request)
     {
-        // Pick a persona based on current milliseconds
-        var personaIndex = DateTime.UtcNow.Millisecond % Personas.Length;
+        // Pick a random persona
+        var personaIndex = Random.Shared.Next(Personas.Length);
         var persona = Personas[personaIndex];
 
         var prompt = $"""
             You are a brilliant cosmologist. Generate a brief, engaging 2-3 sentence summary 
-            of this hypothetical space journey. {persona.Description} Include a fun fact or perspective-giving comparison.
+            of this hypothetical space journey. {persona.Description} Please do not speak in terms of 'I am reminded of when I...'. Include a fun fact or perspective-giving comparison.
             Do not use markdown.
 
             Journey Details:
