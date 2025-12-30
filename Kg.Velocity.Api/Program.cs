@@ -2,6 +2,7 @@ using Kg.Velocity.Api.Models;
 using Kg.Velocity.Api.Services;
 using Microsoft.AspNetCore.ResponseCompression;
 using AspNetCoreRateLimit;
+using OpenAI.Chat;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +46,13 @@ builder.Services.AddResponseCompression(options =>
         ["application/octet-stream", "application/wasm"]);
 });
 
+builder.Services.AddSingleton<GroqChatClientFactory>();
+builder.Services.AddSingleton<ChatClient>(sp =>
+    sp.GetRequiredService<GroqChatClientFactory>()
+      .CreateChatClient("meta-llama/llama-4-scout-17b-16e-instruct"));
+builder.Services.AddSingleton<PromptStore>();
+builder.Services.AddSingleton<IPersonaSelector, RandomPersonaSelector>();
+builder.Services.AddSingleton<TripSummaryPromptBuilder>();
 builder.Services.AddSingleton<AiSummaryService>();
 
 var app = builder.Build();
@@ -65,8 +73,8 @@ app.MapPost("/api/evaluate-trip", async (TripEvaluationRequest request, AiSummar
     if (string.IsNullOrWhiteSpace(request.SpeedName) || request.SpeedName.Length > maxLength)
         return Results.BadRequest("Invalid speed name");
     
-    var (summary, personaName) = await aiService.GenerateSummaryAsync(request);
-    return Results.Ok(new TripEvaluationResponse(summary, personaName));
+    var (summary, timeline, personaName) = await aiService.GenerateSummaryAsync(request);
+    return Results.Ok(new TripEvaluationResponse(summary, timeline, personaName));
 });
 
 // Static files and fallback after API routes

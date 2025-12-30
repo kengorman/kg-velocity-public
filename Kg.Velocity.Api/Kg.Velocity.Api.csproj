@@ -16,6 +16,13 @@
     <ProjectReference Include="..\Kg.Velocity.Blazor\Kg.Velocity.Blazor.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Prompts\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
 
 

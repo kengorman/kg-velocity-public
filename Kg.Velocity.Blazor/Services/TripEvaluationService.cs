@@ -2,6 +2,18 @@ using System.Net.Http.Json;
 
 namespace Kg.Velocity.Blazor.Services;
 
+public record TimelineEvent(
+    string Label,
+    string? Description,
+    string? EarthTime,
+    string? ShipTime
+);
+
+public class TimelineResponse
+{
+    public List<TimelineEvent> Events { get; set; } = [];
+}
+
 public record TripEvaluationRequest(
     string Destination,
     string SpeedName,
@@ -14,10 +26,11 @@ public record TripEvaluationRequest(
     string DepartedEarthTime,
     string ArrivedEarthTime,
     string ArrivedShipTime,
-    string TimeDifference
+    string TimeDifference,
+    int? PersonaId = null
 );
 
-public record TripEvaluationResponse(string Summary, string PersonaName);
+public record TripEvaluationResponse(string Summary, TimelineResponse Timeline, string PersonaName);
 
 public class TripEvaluationService
 {
@@ -28,7 +41,7 @@ public class TripEvaluationService
         _httpClient = httpClient;
     }
 
-    public async Task<(string Summary, string PersonaName)> EvaluateTripAsync(TripEvaluationRequest request)
+    public async Task<(string Summary, string PersonaName, TimelineResponse Timeline)> EvaluateTripAsync(TripEvaluationRequest request)
     {
         try
         {
@@ -36,11 +49,15 @@ public class TripEvaluationService
             response.EnsureSuccessStatusCode();
             
             var result = await response.Content.ReadFromJsonAsync<TripEvaluationResponse>();
-            return (result?.Summary ?? "Unable to generate summary.", result?.PersonaName ?? "");
+            return (
+                result?.Summary ?? "Unable to generate summary.",
+                result?.PersonaName ?? "",
+                result?.Timeline ?? new TimelineResponse()
+            );
         }
         catch (Exception ex)
         {
-            return ($"Error connecting to API: {ex.Message}", "System");
+            return ($"Error connecting to API: {ex.Message}", "System", new TimelineResponse());
         }
     }
 }

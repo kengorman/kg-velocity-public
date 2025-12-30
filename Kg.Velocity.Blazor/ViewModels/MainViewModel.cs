@@ -10,15 +10,17 @@ public class MainViewModel
 {
     private readonly SimulationState _state;
     private readonly TripEvaluationService _tripEvaluationService;
+    private readonly PersonaRotationService _personaRotationService;
     private DateTime _startDateTime;
 
     // Event to notify UI of state changes
     public event Action? StateChanged;
 
-    public MainViewModel(TripEvaluationService tripEvaluationService)
+    public MainViewModel(TripEvaluationService tripEvaluationService, PersonaRotationService personaRotationService)
     {
         _state = new SimulationState();
         _tripEvaluationService = tripEvaluationService;
+        _personaRotationService = personaRotationService;
         _startDateTime = DateTime.Now;
 
         InitializeDestinations();
@@ -81,6 +83,7 @@ public class MainViewModel
     public string TimeDifference { get; set; } = "0s";
     public string JourneySummary { get; set; } = "";
     public string PersonaName { get; set; } = "";
+    public TimelineResponse? Timeline { get; set; }
     public ObservableCollection<Destination> Destinations { get; set; } = new();
     public List<SpeedPreset> SpeedPresets => Kg.Velocity.Engine.SpeedPresets.All;
     
@@ -192,6 +195,8 @@ public class MainViewModel
         var speedPreset = SpeedPresets.FirstOrDefault(p => System.Math.Abs(p.SpeedMph - _state.SpeedMph) < 0.001);
         string speedName = speedPreset?.Name ?? $"{SpeedMph:N0} mph";
 
+        var personaId = await _personaRotationService.TryGetNextPersonaIdAsync();
+
         var request = new TripEvaluationRequest(
             Destination: SelectedDestination.Name,
             SpeedName: speedName,
@@ -204,12 +209,14 @@ public class MainViewModel
             DepartedEarthTime: FlightComputer.FormatDateTime(_startDateTime, 0),
             ArrivedEarthTime: ArrivalDateString,
             ArrivedShipTime: ArrivalShipDateString,
-            TimeDifference: TimeDifference
+            TimeDifference: TimeDifference,
+            PersonaId: personaId
         );
 
-        var (summary, personaName) = await _tripEvaluationService.EvaluateTripAsync(request);
+        var (summary, personaName, timeline) = await _tripEvaluationService.EvaluateTripAsync(request);
         JourneySummary = summary;
         PersonaName = personaName;
+        Timeline = timeline;
         NotifyStateChanged();
     }
 

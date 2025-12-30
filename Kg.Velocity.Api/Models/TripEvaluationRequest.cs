@@ -12,7 +12,8 @@ public record TripEvaluationRequest(
     string DepartedEarthTime,
     string ArrivedEarthTime,
     string ArrivedShipTime,
-    string TimeDifference
+    string TimeDifference,
+    int? PersonaId = null
 );
 
 
