@@ -9,6 +9,9 @@ public record TripEvaluationRequest(
     double ShipTimeSeconds,
     string EarthTimeFormatted,
     string ShipTimeFormatted,
+    string DepartedEarthTime,
+    string ArrivedEarthTime,
+    string ArrivedShipTime,
     string TimeDifference
 );
 

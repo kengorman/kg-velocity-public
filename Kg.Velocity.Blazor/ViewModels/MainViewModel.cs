@@ -201,6 +201,9 @@ public class MainViewModel
             ShipTimeSeconds: _state.ShipTimeSeconds,
             EarthTimeFormatted: EarthTimeElapsed,
             ShipTimeFormatted: ShipTimeElapsed,
+            DepartedEarthTime: FlightComputer.FormatDateTime(_startDateTime, 0),
+            ArrivedEarthTime: ArrivalDateString,
+            ArrivedShipTime: ArrivalShipDateString,
             TimeDifference: TimeDifference
         );
 
