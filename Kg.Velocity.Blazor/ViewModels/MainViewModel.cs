@@ -2,6 +2,8 @@ using Kg.Velocity.Blazor.Services;
 using Kg.Velocity.Contracts.Catalogs;
 using Kg.Velocity.Contracts.Trips;
 using System.Collections.ObjectModel;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Kg.Velocity.Blazor.ViewModels;
 
@@ -13,6 +15,7 @@ public class MainViewModel
     private DateTimeOffset _startTime;
     private double _selectedSpeedMph;
     private int _evaluationRequestVersion;
+    private int _summaryAnimationVersion;
 
     // Event to notify UI of state changes
     public event Action? StateChanged;
@@ -71,6 +74,7 @@ public class MainViewModel
     public string ArrivalShipDateString { get; set; } = "N/A";
     public string TimeDifference { get; set; } = "0s";
     public string JourneySummary { get; set; } = "";
+    public string DisplayedJourneySummary { get; set; } = "";
     public string PersonaName { get; set; } = "";
     public ObservableCollection<DestinationDto> Destinations { get; set; } = new();
     public List<SpeedPresetDto> SpeedPresets { get; set; } = [];
@@ -144,6 +148,7 @@ public class MainViewModel
         if (_selectedSpeedMph <= 0) return;
 
         var requestVersion = ++_evaluationRequestVersion;
+        _summaryAnimationVersion++;
 
         var speedPreset = SpeedPresets.FirstOrDefault(p => System.Math.Abs(p.SpeedMph - _selectedSpeedMph) < 0.001);
         string speedName = speedPreset?.Name ?? $"{_selectedSpeedMph:N0} mph";
@@ -151,6 +156,7 @@ public class MainViewModel
         HasCalculated = true;
         IsCalculatingTrip = true;
         JourneySummary = "Calculating trip...";
+        DisplayedJourneySummary = JourneySummary;
         PersonaName = "";
         NotifyStateChanged();
 
@@ -189,6 +195,11 @@ public class MainViewModel
             HasCalculated = true;
             IsCalculatingTrip = false;
             NotifyStateChanged();
+
+            _ = AnimateSummaryAsync(
+                summary: JourneySummary,
+                requestVersion: requestVersion,
+                animationVersion: _summaryAnimationVersion);
         }
         catch (Exception ex)
         {
@@ -196,9 +207,49 @@ public class MainViewModel
 
             IsCalculatingTrip = false;
             JourneySummary = ex.Message;
+            DisplayedJourneySummary = JourneySummary;
             PersonaName = "System";
             HasCalculated = true;
             NotifyStateChanged();
+        }
+    }
+
+    private async Task AnimateSummaryAsync(string summary, int requestVersion, int animationVersion)
+    {
+        // If summary is empty, just mirror it.
+        if (string.IsNullOrEmpty(summary))
+        {
+            DisplayedJourneySummary = "";
+            NotifyStateChanged();
+            return;
+        }
+
+        // Reveal summary word-by-word while preserving whitespace/punctuation.
+        // Tokenization returns alternating word/punctuation and whitespace tokens.
+        var tokens = Regex.Matches(summary, @"(\s+|\S+)")
+            .Select(m => m.Value)
+            .ToArray();
+
+        DisplayedJourneySummary = "";
+        NotifyStateChanged();
+
+        var sb = new StringBuilder(summary.Length);
+
+        foreach (var token in tokens)
+        {
+            // Cancel if a new trip evaluation started, or a newer animation began.
+            if (requestVersion != _evaluationRequestVersion) return;
+            if (animationVersion != _summaryAnimationVersion) return;
+
+            sb.Append(token);
+            DisplayedJourneySummary = sb.ToString();
+            NotifyStateChanged();
+
+            // Delay only after non-whitespace tokens to approximate "100ms per word".
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                await Task.Delay(25);
+            }
         }
     }
 
@@ -210,10 +261,12 @@ public class MainViewModel
         HasCalculated = false;
         IsCalculatingTrip = false;
         _startTime = DateTimeOffset.Now;
+        _summaryAnimationVersion++;
         
         // Update display properties to reflect cleared state
         UpdatePropertiesWithoutNotification();
         JourneySummary = "";
+        DisplayedJourneySummary = "";
         
         NotifyStateChanged();
     }
