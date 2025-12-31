@@ -128,6 +128,16 @@ public class MainViewModel
 
     private void NotifyStateChanged() => StateChanged?.Invoke();
 
+    public Task RegenerateSummaryAsync()
+    {
+        // Regenerate by re-evaluating with the current inputs.
+        // The API advances persona deterministically when PersonaId is provided.
+        if (SelectedDestination == null) return Task.CompletedTask;
+        if (_selectedSpeedMph <= 0) return Task.CompletedTask;
+
+        return EvaluateTripAsync();
+    }
+
     private async Task EvaluateTripAsync()
     {
         if (SelectedDestination == null) return;

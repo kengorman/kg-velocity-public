@@ -94,10 +94,20 @@
                         </div>
                         
                         <div class="journey-summary">
-                            @if (!string.IsNullOrEmpty(ViewModel.PersonaName))
-                            {
-                                <div class="persona-name">...in the style of @ViewModel.PersonaName</div>
-                            }
+                            <div class="summary-header">
+                                @if (!string.IsNullOrEmpty(ViewModel.PersonaName))
+                                {
+                                    <div class="persona-name">...as @ViewModel.PersonaName</div>
+                                }
+                                @if (!ViewModel.IsCalculatingTrip)
+                                {
+                                    <button type="button"
+                                            class="regenerate-summary"
+                                            @onclick="ViewModel.RegenerateSummaryAsync">
+                                        Next persona
+                                    </button>
+                                }
+                            </div>
                             <div class="summary-text">@ViewModel.JourneySummary</div>
                         </div>
                     </div>

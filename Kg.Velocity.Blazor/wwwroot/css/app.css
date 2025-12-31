@@ -173,12 +173,38 @@ html, body {
     color: var(--text-secondary);
 }
 
+.journey-summary .summary-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
 .journey-summary .persona-name {
     font-size: 11px;
     font-weight: 600;
     color: var(--text-muted);
-    margin-bottom: 6px;
+    margin-bottom: 0;
     font-style: italic;
+}
+
+.journey-summary .regenerate-summary {
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent-blue);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.journey-summary .regenerate-summary:disabled {
+    opacity: 0.5;
+    cursor: default;
+    text-decoration: none;
 }
 
 .journey-summary .summary-text {
