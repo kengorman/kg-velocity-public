@@ -1,4 +1,5 @@
 using Kg.Velocity.Contracts.Trips;
+using Kg.Velocity.Contracts.Catalogs;
 using Kg.Velocity.Api.Services;
 using Microsoft.AspNetCore.ResponseCompression;
 using AspNetCoreRateLimit;
@@ -55,6 +56,7 @@ builder.Services.AddSingleton<IPersonaSelector, RandomPersonaSelector>();
 builder.Services.AddSingleton<TripSummaryPromptBuilder>();
 builder.Services.AddSingleton<AiSummaryService>();
 builder.Services.AddSingleton<TripComputationService>();
+builder.Services.AddSingleton<TripCatalogService>();
 
 var app = builder.Build();
 
@@ -64,6 +66,18 @@ app.UseResponseCompression();
 
 // Routing must be established before static files
 app.UseRouting();
+
+app.MapGet("/api/destinations", (TripCatalogService catalogs) =>
+{
+    IReadOnlyList<DestinationDto> destinations = catalogs.GetDestinations();
+    return Results.Ok(destinations);
+});
+
+app.MapGet("/api/speed-presets", (TripCatalogService catalogs) =>
+{
+    IReadOnlyList<SpeedPresetDto> presets = catalogs.GetSpeedPresets();
+    return Results.Ok(presets);
+});
 
 app.MapPost("/api/evaluate-trip", async (
     TripEvaluateRequest request,

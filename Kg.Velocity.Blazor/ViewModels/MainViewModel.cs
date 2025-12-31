@@ -1,8 +1,6 @@
-using Kg.Velocity.Engine;
 using Kg.Velocity.Blazor.Services;
+using Kg.Velocity.Contracts.Catalogs;
 using Kg.Velocity.Contracts.Trips;
-using Kg.Velocity.Engine.Models;
-using Kg.Velocity.Math;
 using System.Collections.ObjectModel;
 
 namespace Kg.Velocity.Blazor.ViewModels;
@@ -11,6 +9,7 @@ public class MainViewModel
 {
     private readonly TripEvaluationService _tripEvaluationService;
     private readonly PersonaIdStore _personaIdStore;
+    private readonly TripCatalogClient _catalogClient;
     private DateTimeOffset _startTime;
     private double _selectedSpeedMph;
     private int _evaluationRequestVersion;
@@ -18,15 +17,17 @@ public class MainViewModel
     // Event to notify UI of state changes
     public event Action? StateChanged;
 
-    public MainViewModel(TripEvaluationService tripEvaluationService, PersonaIdStore personaIdStore)
+    public MainViewModel(
+        TripEvaluationService tripEvaluationService,
+        PersonaIdStore personaIdStore,
+        TripCatalogClient catalogClient)
     {
         _tripEvaluationService = tripEvaluationService;
         _personaIdStore = personaIdStore;
+        _catalogClient = catalogClient;
         _startTime = DateTimeOffset.Now;
         _selectedSpeedMph = 0;
 
-        InitializeDestinations();
-        
         // Initialize display properties without triggering state change
         UpdatePropertiesWithoutNotification();
     }
@@ -45,31 +46,16 @@ public class MainViewModel
         ArrivalShipDateString = "N/A";
     }
 
-    private void InitializeDestinations()
+    public async Task InitializeAsync()
     {
-        Destinations =
-        [
-            // Solar System
-            new Destination { Name = "The Moon", DistanceMiles = 238_855, Category = "Space" },
-            new Destination { Name = "Mercury", DistanceMiles = 56_000_000, Category = "Space" },
-            new Destination { Name = "The Sun", DistanceMiles = 93_000_000, Category = "Space" },
-            new Destination { Name = "Mars", DistanceMiles = 140_000_000, Category = "Space" },
-            new Destination { Name = "Saturn", DistanceMiles = 886_000_000, Category = "Space" },
-            new Destination { Name = "Uranus", DistanceMiles = 1_800_000_000, Category = "Space" },
-            new Destination { Name = "Pluto", DistanceMiles = 3_700_000_000, Category = "Space" },
-            
-            // Deep Space
-            new Destination { Name = "Proxima Centauri", DistanceMiles = 4.24 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
-            new Destination { Name = "Polaris (North Star)", DistanceMiles = 433 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
-            new Destination { Name = "Betelgeuse", DistanceMiles = 700 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
-            new Destination { Name = "Horsehead Nebula", DistanceMiles = 1_500 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
-            new Destination { Name = "Crab Nebula", DistanceMiles = 6_500 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
-            new Destination { Name = "Pillars of Creation", DistanceMiles = 6_500 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
-            new Destination { Name = "Milky Way (center)", DistanceMiles = 26_000 * PhysicsConstants.LightYearMiles, Category = "Deep Space" },
-            new Destination { Name = "Andromeda Galaxy", DistanceMiles = 2_537_000 * PhysicsConstants.LightYearMiles, Category = "Deep Space" }
-        ];
+        var destinations = await _catalogClient.GetDestinationsAsync();
+        Destinations = new ObservableCollection<DestinationDto>(destinations);
+
+        var presets = await _catalogClient.GetSpeedPresetsAsync();
+        SpeedPresets = presets.ToList();
 
         SelectedDestination = null;
+        NotifyStateChanged();
     }
 
     // Properties
@@ -86,11 +72,11 @@ public class MainViewModel
     public string TimeDifference { get; set; } = "0s";
     public string JourneySummary { get; set; } = "";
     public string PersonaName { get; set; } = "";
-    public ObservableCollection<Destination> Destinations { get; set; } = new();
-    public List<SpeedPreset> SpeedPresets => Kg.Velocity.Engine.SpeedPresets.All;
+    public ObservableCollection<DestinationDto> Destinations { get; set; } = new();
+    public List<SpeedPresetDto> SpeedPresets { get; set; } = [];
     
-    private Destination? _selectedDestination;
-    public Destination? SelectedDestination
+    private DestinationDto? _selectedDestination;
+    public DestinationDto? SelectedDestination
     {
         get => _selectedDestination;
         set

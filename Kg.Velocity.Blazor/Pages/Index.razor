@@ -1,6 +1,5 @@
 @page "/"
 @using Kg.Velocity.Blazor.ViewModels
-@using Kg.Velocity.Engine.Models
 @using System.Linq
 @using System.Reflection
 @inject MainViewModel ViewModel
@@ -138,9 +137,10 @@ else
         return "dev";
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         ViewModel.StateChanged += OnViewModelStateChanged;
+        await ViewModel.InitializeAsync();
         _isInitialized = true;
     }
 
