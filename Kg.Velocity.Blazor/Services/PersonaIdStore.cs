@@ -25,7 +25,8 @@ public class PersonaIdStore(IJSRuntime js)
 
         try
         {
-            await js.InvokeAsync<object?>("localStorage.setItem", Key, personaId.ToString());
+            // localStorage.setItem returns void/undefined; use InvokeVoidAsync to avoid marshal errors.
+            await js.InvokeVoidAsync("localStorage.setItem", Key, personaId.ToString());
         }
         catch
         {

@@ -16,6 +16,7 @@ public class MainViewModel
     private double _selectedSpeedMph;
     private int _evaluationRequestVersion;
     private int _summaryAnimationVersion;
+    private int? _currentPersonaId;
 
     // Event to notify UI of state changes
     public event Action? StateChanged;
@@ -162,7 +163,9 @@ public class MainViewModel
 
         try
         {
-            var personaId = await _personaIdStore.TryGetAsync();
+            // Prefer in-memory persona id for consistent rotation even if localStorage is unavailable.
+            // Fall back to localStorage on first run (or after reload) to preserve continuity across sessions.
+            _currentPersonaId ??= await _personaIdStore.TryGetAsync();
             _startTime = DateTimeOffset.Now;
 
             var request = new TripEvaluateRequest(
@@ -171,12 +174,13 @@ public class MainViewModel
                 SpeedMph: _selectedSpeedMph,
                 DistanceMiles: SelectedDestination.DistanceMiles,
                 StartTime: _startTime,
-                PersonaId: personaId
+                PersonaId: _currentPersonaId
             );
 
             var response = await _tripEvaluationService.EvaluateTripAsync(request);
             if (requestVersion != _evaluationRequestVersion) return;
 
+            _currentPersonaId = response.PersonaId;
             await _personaIdStore.TrySetAsync(response.PersonaId);
 
             // Render authoritative server-computed values
@@ -262,6 +266,7 @@ public class MainViewModel
         IsCalculatingTrip = false;
         _startTime = DateTimeOffset.Now;
         _summaryAnimationVersion++;
+        _currentPersonaId = null;
         
         // Update display properties to reflect cleared state
         UpdatePropertiesWithoutNotification();
