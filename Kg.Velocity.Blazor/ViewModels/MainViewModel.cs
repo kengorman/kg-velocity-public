@@ -10,17 +10,17 @@ public class MainViewModel
 {
     private readonly SimulationState _state;
     private readonly TripEvaluationService _tripEvaluationService;
-    private readonly PersonaRotationService _personaRotationService;
+    private readonly PersonaIdStore _personaIdStore;
     private DateTime _startDateTime;
 
     // Event to notify UI of state changes
     public event Action? StateChanged;
 
-    public MainViewModel(TripEvaluationService tripEvaluationService, PersonaRotationService personaRotationService)
+    public MainViewModel(TripEvaluationService tripEvaluationService, PersonaIdStore personaIdStore)
     {
         _state = new SimulationState();
         _tripEvaluationService = tripEvaluationService;
-        _personaRotationService = personaRotationService;
+        _personaIdStore = personaIdStore;
         _startDateTime = DateTime.Now;
 
         InitializeDestinations();
@@ -195,7 +195,7 @@ public class MainViewModel
         var speedPreset = SpeedPresets.FirstOrDefault(p => System.Math.Abs(p.SpeedMph - _state.SpeedMph) < 0.001);
         string speedName = speedPreset?.Name ?? $"{SpeedMph:N0} mph";
 
-        var personaId = await _personaRotationService.TryGetNextPersonaIdAsync();
+        var personaId = await _personaIdStore.TryGetAsync();
 
         var request = new TripEvaluationRequest(
             Destination: SelectedDestination.Name,
@@ -213,7 +213,8 @@ public class MainViewModel
             PersonaId: personaId
         );
 
-        var (summary, personaName, timeline) = await _tripEvaluationService.EvaluateTripAsync(request);
+        var (summary, personaName, timeline, returnedPersonaId) = await _tripEvaluationService.EvaluateTripAsync(request);
+        await _personaIdStore.TrySetAsync(returnedPersonaId);
         JourneySummary = summary;
         PersonaName = personaName;
         Timeline = timeline;

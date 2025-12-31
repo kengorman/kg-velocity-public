@@ -73,8 +73,8 @@ app.MapPost("/api/evaluate-trip", async (TripEvaluationRequest request, AiSummar
     if (string.IsNullOrWhiteSpace(request.SpeedName) || request.SpeedName.Length > maxLength)
         return Results.BadRequest("Invalid speed name");
     
-    var (summary, timeline, personaName) = await aiService.GenerateSummaryAsync(request);
-    return Results.Ok(new TripEvaluationResponse(summary, timeline, personaName));
+    var (summary, timeline, persona) = await aiService.GenerateSummaryAsync(request);
+    return Results.Ok(new TripEvaluationResponse(summary, timeline, persona.Id, persona.Name));
 });
 
 // Static files and fallback after API routes

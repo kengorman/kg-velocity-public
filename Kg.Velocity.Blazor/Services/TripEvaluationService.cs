@@ -30,7 +30,7 @@ public record TripEvaluationRequest(
     int? PersonaId = null
 );
 
-public record TripEvaluationResponse(string Summary, TimelineResponse Timeline, string PersonaName);
+public record TripEvaluationResponse(string Summary, TimelineResponse Timeline, int PersonaId, string PersonaName);
 
 public class TripEvaluationService
 {
@@ -41,7 +41,7 @@ public class TripEvaluationService
         _httpClient = httpClient;
     }
 
-    public async Task<(string Summary, string PersonaName, TimelineResponse Timeline)> EvaluateTripAsync(TripEvaluationRequest request)
+    public async Task<(string Summary, string PersonaName, TimelineResponse Timeline, int PersonaId)> EvaluateTripAsync(TripEvaluationRequest request)
     {
         try
         {
@@ -52,12 +52,13 @@ public class TripEvaluationService
             return (
                 result?.Summary ?? "Unable to generate summary.",
                 result?.PersonaName ?? "",
-                result?.Timeline ?? new TimelineResponse()
+                result?.Timeline ?? new TimelineResponse(),
+                result?.PersonaId ?? 0
             );
         }
         catch (Exception ex)
         {
-            return ($"Error connecting to API: {ex.Message}", "System", new TimelineResponse());
+            return ($"Error connecting to API: {ex.Message}", "System", new TimelineResponse(), 0);
         }
     }
 }

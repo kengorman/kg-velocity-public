@@ -19,10 +19,10 @@ public class AiSummaryService
         _tripSummaryPromptBuilder = tripSummaryPromptBuilder;
     }
 
-    public async Task<(string Summary, TimelineResponse timeline, string PersonaName)> GenerateSummaryAsync(TripEvaluationRequest request)
+    public async Task<(string Summary, TimelineResponse timeline, Persona Persona)> GenerateSummaryAsync(TripEvaluationRequest request)
     {
-        var persona = request.PersonaId is int personaId && PersonaCatalog.TryGetById(personaId, out var requestedPersona)
-            ? requestedPersona
+        var persona = request.PersonaId is int personaId
+            ? PersonaCatalog.GetNextById(personaId)
             : _personaSelector.SelectPersona();
         var prompt = _tripSummaryPromptBuilder.BuildPrompt(request, persona);
 
@@ -41,11 +41,14 @@ public class AiSummaryService
             var completion = await _chatClient.CompleteChatAsync(messages, chatOptions);
             var summary = completion.Value.Content[0].Text;
             var timeline = new TimelineResponse();
-            return (summary, timeline, persona.Name);
+            return (summary, timeline, persona);
         }
         catch (Exception ex)
         {
-            return ($"AI unavailable: {ex.Message}",new TimelineResponse(), "System");
+            // Keep a consistent PersonaId even when AI is unavailable:
+            // - If caller provided PersonaId, we already advanced deterministically.
+            // - Otherwise, we picked a persona via selector above.
+            return ($"AI unavailable: {ex.Message}", new TimelineResponse(), persona);
         }
     }
 }
