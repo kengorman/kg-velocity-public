@@ -22,16 +22,5 @@ public static class PhysicsConstants
     /// Note: Saturn's distance varies from ~746 million miles (closest) to ~1.03 billion miles (farthest).
     /// </summary>
     public const double TargetDistanceLightYears = 0.00015;
-
-    /// <summary>
-    /// Exponential growth rate for acceleration per second.
-    /// ~= ln(2)/0.75, which doubles speed approximately every 0.75 seconds when key is held.
-    /// </summary>
-    public const double ExponentialGrowthRatePerSecond = 0.924196240747;
-
-    /// <summary>
-    /// Modifier for slow mode - reduces acceleration rate by this factor.
-    /// </summary>
-    public const double SlowModeModifier = 0.5;
 }
 
