@@ -1,27 +1,29 @@
-using Kg.Velocity.Math;
 using Kg.Velocity.Engine;
-using Kg.Velocity.Engine.Models;
 using Kg.Velocity.Blazor.Services;
+using Kg.Velocity.Contracts.Trips;
+using Kg.Velocity.Engine.Models;
+using Kg.Velocity.Math;
 using System.Collections.ObjectModel;
 
 namespace Kg.Velocity.Blazor.ViewModels;
 
 public class MainViewModel
 {
-    private readonly SimulationState _state;
     private readonly TripEvaluationService _tripEvaluationService;
     private readonly PersonaIdStore _personaIdStore;
-    private DateTime _startDateTime;
+    private DateTimeOffset _startTime;
+    private double _selectedSpeedMph;
+    private int _evaluationRequestVersion;
 
     // Event to notify UI of state changes
     public event Action? StateChanged;
 
     public MainViewModel(TripEvaluationService tripEvaluationService, PersonaIdStore personaIdStore)
     {
-        _state = new SimulationState();
         _tripEvaluationService = tripEvaluationService;
         _personaIdStore = personaIdStore;
-        _startDateTime = DateTime.Now;
+        _startTime = DateTimeOffset.Now;
+        _selectedSpeedMph = 0;
 
         InitializeDestinations();
         
@@ -72,6 +74,7 @@ public class MainViewModel
 
     // Properties
     public bool HasCalculated { get; set; }
+    public bool IsCalculatingTrip { get; set; }
     public double SpeedMph { get; set; }
     public double PercentageOfLightSpeed { get; set; }
     public double DistanceMiles { get; set; }
@@ -83,7 +86,6 @@ public class MainViewModel
     public string TimeDifference { get; set; } = "0s";
     public string JourneySummary { get; set; } = "";
     public string PersonaName { get; set; } = "";
-    public TimelineResponse? Timeline { get; set; }
     public ObservableCollection<Destination> Destinations { get; set; } = new();
     public List<SpeedPreset> SpeedPresets => Kg.Velocity.Engine.SpeedPresets.All;
     
@@ -96,18 +98,11 @@ public class MainViewModel
             _selectedDestination = value;
             if (value != null)
             {
-                _state.UpdateTargetDistance(value.DistanceMiles);
-                
-                // Recalculate if speed is already set
-                if (_state.SpeedMph > 0)
-                {
-                    CalculateCompleteJourney();
-                    HasCalculated = true;
-                }
+                // Re-evaluate if speed is already set
+                if (_selectedSpeedMph > 0)
+                    _ = EvaluateTripAsync();
                 else
-                {
                     ClearCalculations();
-                }
             }
             else
             {
@@ -122,27 +117,24 @@ public class MainViewModel
     {
         get
         {
-            var match = SpeedPresets.FirstOrDefault(p => System.Math.Abs(p.SpeedMph - _state.SpeedMph) < 0.001);
+            var match = SpeedPresets.FirstOrDefault(p => System.Math.Abs(p.SpeedMph - _selectedSpeedMph) < 0.001);
             return match?.SpeedMph;
         }
         set
         {
             if (value.HasValue && value.Value > 0)
             {
-                _state.SpeedMph = value.Value;
-                
-                // Calculate journey when speed is selected and destination exists
+                _selectedSpeedMph = value.Value;
+
+                // Evaluate journey when speed is selected and destination exists
                 if (SelectedDestination != null)
-                {
-                    CalculateCompleteJourney();
-                    HasCalculated = true;
-                }
+                    _ = EvaluateTripAsync();
                 NotifyStateChanged();
             }
             else
             {
                 // Blank speed selected - clear speed and calculations
-                _state.SpeedMph = 0;
+                _selectedSpeedMph = 0;
                 ClearCalculations();
             }
         }
@@ -150,75 +142,68 @@ public class MainViewModel
 
     private void NotifyStateChanged() => StateChanged?.Invoke();
 
-    private void CalculateCompleteJourney()
-    {
-        // Journey is complete - set distance to target
-        _state.DistanceMiles = _state.TargetDistanceMiles;
-        
-        // Calculate time: Distance / Speed
-        // Speed is in mph, so time in hours = distance / speed
-        double hoursElapsed = _state.TargetDistanceMiles / _state.SpeedMph;
-        _state.EarthTimeSeconds = hoursElapsed * 3600.0;
-        
-        // Calculate ship time using Lorentz factor
-        double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(_state.SpeedMph);
-        _state.ShipTimeSeconds = _state.EarthTimeSeconds / lorentzFactor;
-        
-        // Update all display properties
-        UpdateDisplayProperties(lorentzFactor);
-        
-        // Fire async API call for summary
-        _ = FetchJourneySummaryAsync();
-    }
-    
-    private void UpdateDisplayProperties(double lorentzFactor)
-    {
-        SpeedMph = _state.SpeedMph;
-        PercentageOfLightSpeed = RelativisticPhysics.CalculatePercentageOfLightSpeed(_state.SpeedMph);
-        DistanceMiles = _state.DistanceMiles;
-        DistanceLightYears = RelativisticPhysics.MilesToLightYears(_state.DistanceMiles);
-        EarthTimeElapsed = FlightComputer.FormatDuration(_state.EarthTimeSeconds);
-        ShipTimeElapsed = FlightComputer.FormatDuration(_state.ShipTimeSeconds);
-        TimeDifference = FlightComputer.CalculateTimeDifference(_state.EarthTimeSeconds, _state.ShipTimeSeconds);
-        ArrivalDateString = FlightComputer.FormatDateTime(_startDateTime, _state.EarthTimeSeconds);
-        ArrivalShipDateString = FlightComputer.FormatDateTime(_startDateTime, _state.ShipTimeSeconds);
-        
-        // Show loading state immediately
-        JourneySummary = "Generating trip summary...";
-        PersonaName = "";
-    }
-
-    private async Task FetchJourneySummaryAsync()
+    private async Task EvaluateTripAsync()
     {
         if (SelectedDestination == null) return;
+        if (_selectedSpeedMph <= 0) return;
 
-        var speedPreset = SpeedPresets.FirstOrDefault(p => System.Math.Abs(p.SpeedMph - _state.SpeedMph) < 0.001);
-        string speedName = speedPreset?.Name ?? $"{SpeedMph:N0} mph";
+        var requestVersion = ++_evaluationRequestVersion;
 
-        var personaId = await _personaIdStore.TryGetAsync();
+        var speedPreset = SpeedPresets.FirstOrDefault(p => System.Math.Abs(p.SpeedMph - _selectedSpeedMph) < 0.001);
+        string speedName = speedPreset?.Name ?? $"{_selectedSpeedMph:N0} mph";
 
-        var request = new TripEvaluationRequest(
-            Destination: SelectedDestination.Name,
-            SpeedName: speedName,
-            SpeedMph: _state.SpeedMph,
-            DistanceMiles: _state.DistanceMiles,
-            EarthTimeSeconds: _state.EarthTimeSeconds,
-            ShipTimeSeconds: _state.ShipTimeSeconds,
-            EarthTimeFormatted: EarthTimeElapsed,
-            ShipTimeFormatted: ShipTimeElapsed,
-            DepartedEarthTime: FlightComputer.FormatDateTime(_startDateTime, 0),
-            ArrivedEarthTime: ArrivalDateString,
-            ArrivedShipTime: ArrivalShipDateString,
-            TimeDifference: TimeDifference,
-            PersonaId: personaId
-        );
-
-        var (summary, personaName, timeline, returnedPersonaId) = await _tripEvaluationService.EvaluateTripAsync(request);
-        await _personaIdStore.TrySetAsync(returnedPersonaId);
-        JourneySummary = summary;
-        PersonaName = personaName;
-        Timeline = timeline;
+        HasCalculated = true;
+        IsCalculatingTrip = true;
+        JourneySummary = "Calculating trip...";
+        PersonaName = "";
         NotifyStateChanged();
+
+        try
+        {
+            var personaId = await _personaIdStore.TryGetAsync();
+            _startTime = DateTimeOffset.Now;
+
+            var request = new TripEvaluateRequest(
+                Destination: SelectedDestination.Name,
+                SpeedName: speedName,
+                SpeedMph: _selectedSpeedMph,
+                DistanceMiles: SelectedDestination.DistanceMiles,
+                StartTime: _startTime,
+                PersonaId: personaId
+            );
+
+            var response = await _tripEvaluationService.EvaluateTripAsync(request);
+            if (requestVersion != _evaluationRequestVersion) return;
+
+            await _personaIdStore.TrySetAsync(response.PersonaId);
+
+            // Render authoritative server-computed values
+            SpeedMph = response.Trip.SpeedMph;
+            PercentageOfLightSpeed = response.Trip.PercentageOfLightSpeed;
+            DistanceMiles = response.Trip.DistanceMiles;
+            DistanceLightYears = response.Trip.DistanceLightYears;
+            EarthTimeElapsed = response.Trip.EarthTimeFormatted;
+            ShipTimeElapsed = response.Trip.ShipTimeFormatted;
+            TimeDifference = response.Trip.TimeDifferenceFormatted;
+            ArrivalDateString = response.Trip.ArrivedEarthTime;
+            ArrivalShipDateString = response.Trip.ArrivedShipTime;
+
+            JourneySummary = response.Summary;
+            PersonaName = response.PersonaName;
+            HasCalculated = true;
+            IsCalculatingTrip = false;
+            NotifyStateChanged();
+        }
+        catch (Exception ex)
+        {
+            if (requestVersion != _evaluationRequestVersion) return;
+
+            IsCalculatingTrip = false;
+            JourneySummary = ex.Message;
+            PersonaName = "System";
+            HasCalculated = true;
+            NotifyStateChanged();
+        }
     }
 
     /// <summary>
@@ -227,12 +212,8 @@ public class MainViewModel
     private void ClearCalculations()
     {
         HasCalculated = false;
-        
-        _state.DistanceMiles = 0;
-        _state.EarthTimeSeconds = 0;
-        _state.ShipTimeSeconds = 0;
-
-        _startDateTime = DateTime.Now;
+        IsCalculatingTrip = false;
+        _startTime = DateTimeOffset.Now;
         
         // Update display properties to reflect cleared state
         UpdatePropertiesWithoutNotification();

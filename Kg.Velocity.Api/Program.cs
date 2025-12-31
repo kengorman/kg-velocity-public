@@ -1,4 +1,4 @@
-using Kg.Velocity.Api.Models;
+using Kg.Velocity.Contracts.Trips;
 using Kg.Velocity.Api.Services;
 using Microsoft.AspNetCore.ResponseCompression;
 using AspNetCoreRateLimit;
@@ -54,6 +54,7 @@ builder.Services.AddSingleton<PromptStore>();
 builder.Services.AddSingleton<IPersonaSelector, RandomPersonaSelector>();
 builder.Services.AddSingleton<TripSummaryPromptBuilder>();
 builder.Services.AddSingleton<AiSummaryService>();
+builder.Services.AddSingleton<TripComputationService>();
 
 var app = builder.Build();
 
@@ -64,7 +65,10 @@ app.UseResponseCompression();
 // Routing must be established before static files
 app.UseRouting();
 
-app.MapPost("/api/evaluate-trip", async (TripEvaluationRequest request, AiSummaryService aiService) =>
+app.MapPost("/api/evaluate-trip", async (
+    TripEvaluateRequest request,
+    TripComputationService tripComputationService,
+    AiSummaryService aiService) =>
 {
     // Input validation
     const int maxLength = 100;
@@ -72,9 +76,17 @@ app.MapPost("/api/evaluate-trip", async (TripEvaluationRequest request, AiSummar
         return Results.BadRequest("Invalid destination");
     if (string.IsNullOrWhiteSpace(request.SpeedName) || request.SpeedName.Length > maxLength)
         return Results.BadRequest("Invalid speed name");
-    
-    var (summary, timeline, persona) = await aiService.GenerateSummaryAsync(request);
-    return Results.Ok(new TripEvaluationResponse(summary, timeline, persona.Id, persona.Name));
+
+    if (request.SpeedMph <= 0 || double.IsNaN(request.SpeedMph) || double.IsInfinity(request.SpeedMph))
+        return Results.BadRequest("Invalid speed");
+    if (request.DistanceMiles <= 0 || double.IsNaN(request.DistanceMiles) || double.IsInfinity(request.DistanceMiles))
+        return Results.BadRequest("Invalid distance");
+    if (request.StartTime == default)
+        return Results.BadRequest("Invalid start time");
+
+    var trip = tripComputationService.Compute(request);
+    var (summary, persona) = await aiService.GenerateSummaryAsync(request, trip);
+    return Results.Ok(new TripEvaluateResponse(trip, summary, persona.Id, persona.Name));
 });
 
 // Static files and fallback after API routes

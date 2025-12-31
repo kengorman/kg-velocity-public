@@ -60,6 +60,10 @@
                 else
                 {
                     <div class="results-grid">
+                        @if (ViewModel.IsCalculatingTrip)
+                        {
+                            <div class="calculating-trip-status" role="status" aria-live="polite"><em>Calculating trip...</em></div>
+                        }
                         <div class="result-item primary">
                             <span class="result-label">Arrival (Earth)</span>
                             <span class="result-value">@ViewModel.ArrivalDateString</span>

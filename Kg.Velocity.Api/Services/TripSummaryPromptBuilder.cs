@@ -1,4 +1,4 @@
-using Kg.Velocity.Api.Models;
+using Kg.Velocity.Contracts.Trips;
 
 namespace Kg.Velocity.Api.Services;
 
@@ -6,23 +6,24 @@ public class TripSummaryPromptBuilder(PromptStore prompts)
 {
     private const string TripSummaryPromptPath = "Prompts/trip-summary.md";
 
-    public string BuildPrompt(TripEvaluationRequest request, Persona persona)
+    public string BuildPrompt(TripComputationResult trip, Persona persona)
     {
         var template = prompts.GetPrompt(TripSummaryPromptPath);
 
         return PromptRenderer.Render(template, new Dictionary<string, string>
         {
             ["PersonaDescription"] = persona.Description,
-            ["Destination"] = request.Destination,
-            ["SpeedName"] = request.SpeedName,
-            ["SpeedMph"] = request.SpeedMph.ToString("N0"),
-            ["DistanceMiles"] = request.DistanceMiles.ToString("N0"),
-            ["EarthTimeFormatted"] = request.EarthTimeFormatted,
-            ["ShipTimeFormatted"] = request.ShipTimeFormatted,
-            ["TimeDifference"] = request.TimeDifference,
+            ["Destination"] = trip.Destination,
+            ["SpeedName"] = trip.SpeedName,
+            ["SpeedMph"] = trip.SpeedMph.ToString("N0"),
+            ["DistanceMiles"] = trip.DistanceMiles.ToString("N0"),
+            ["EarthTimeFormatted"] = trip.EarthTimeFormatted,
+            ["ShipTimeFormatted"] = trip.ShipTimeFormatted,
+            ["TimeDifference"] = trip.TimeDifferenceFormatted,
         });
     }
 }
+
 
 
 

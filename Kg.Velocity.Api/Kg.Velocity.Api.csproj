@@ -14,6 +14,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Kg.Velocity.Blazor\Kg.Velocity.Blazor.csproj" />
+    <ProjectReference Include="..\Kg.Velocity.Contracts\Kg.Velocity.Contracts.csproj" />
+    <ProjectReference Include="..\Kg.Velocity.Engine\Kg.Velocity.Engine.csproj" />
   </ItemGroup>
 
   <ItemGroup>

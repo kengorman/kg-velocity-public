@@ -1,4 +1,4 @@
-using Kg.Velocity.Api.Models;
+using Kg.Velocity.Contracts.Trips;
 using OpenAI.Chat;
 
 namespace Kg.Velocity.Api.Services;
@@ -19,12 +19,14 @@ public class AiSummaryService
         _tripSummaryPromptBuilder = tripSummaryPromptBuilder;
     }
 
-    public async Task<(string Summary, TimelineResponse timeline, Persona Persona)> GenerateSummaryAsync(TripEvaluationRequest request)
+    public async Task<(string Summary, Persona Persona)> GenerateSummaryAsync(
+        TripEvaluateRequest request,
+        TripComputationResult trip)
     {
         var persona = request.PersonaId is int personaId
             ? PersonaCatalog.GetNextById(personaId)
             : _personaSelector.SelectPersona();
-        var prompt = _tripSummaryPromptBuilder.BuildPrompt(request, persona);
+        var prompt = _tripSummaryPromptBuilder.BuildPrompt(trip, persona);
 
         try
         {
@@ -40,15 +42,14 @@ public class AiSummaryService
 
             var completion = await _chatClient.CompleteChatAsync(messages, chatOptions);
             var summary = completion.Value.Content[0].Text;
-            var timeline = new TimelineResponse();
-            return (summary, timeline, persona);
+            return (summary, persona);
         }
         catch (Exception ex)
         {
             // Keep a consistent PersonaId even when AI is unavailable:
             // - If caller provided PersonaId, we already advanced deterministically.
             // - Otherwise, we picked a persona via selector above.
-            return ($"AI unavailable: {ex.Message}", new TimelineResponse(), persona);
+            return ($"AI unavailable: {ex.Message}", persona);
         }
     }
 }

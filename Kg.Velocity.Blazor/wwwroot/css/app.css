@@ -111,6 +111,14 @@ html, body {
     gap: 10px;
 }
 
+/* Temporary status shown only while the API is computing */
+.calculating-trip-status {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-style: italic !important;
+    margin-bottom: 2px;
+}
+
 /* Unified label styling for all result items */
 .result-item {
     display: flex;
