@@ -110,6 +110,40 @@
                             </div>
                             <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
                         </div>
+
+                        @if (ViewModel.IsDownloadingPoster || !string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
+                        {
+                            <div class="poster-panel" hidden aria-label="Generated poster preview">
+                                <div class="poster-panel-header">
+                                    <div class="poster-title">Poster</div>
+                                    <div class="poster-meta">
+                                        @(ViewModel.IsDownloadingPoster ? "Generating..." : ViewModel.PosterGeneratedAtDisplay)
+                                    </div>
+                                </div>
+
+                                @if (ViewModel.IsDownloadingPoster)
+                                {
+                                    <div class="poster-loading" role="status" aria-live="polite">
+                                        Generating poster…
+                                    </div>
+                                }
+                                else
+                                {
+                                    <img class="poster-preview"
+                                         src="@ViewModel.PosterDataUrl"
+                                         alt="Generated trip poster (server SVG)"
+                                         loading="lazy" />
+
+                                    <div class="poster-actions">
+                                        <a class="poster-download"
+                                           href="@ViewModel.PosterDataUrl"
+                                           download="@ViewModel.PosterFileName">
+                                            Download SVG
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        }
                     </div>
                 }
             </div>

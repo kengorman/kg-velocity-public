@@ -4,6 +4,8 @@ using Kg.Velocity.Api.Services;
 using Microsoft.AspNetCore.ResponseCompression;
 using AspNetCoreRateLimit;
 using OpenAI.Chat;
+using System.Globalization;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -100,7 +102,24 @@ app.MapPost("/api/evaluate-trip", async (
 
     var trip = tripComputationService.Compute(request);
     var (summary, persona) = await aiService.GenerateSummaryAsync(request, trip);
-    return Results.Ok(new TripEvaluateResponse(trip, summary, persona.Id, persona.Name));
+
+    // Option A: return a separate poster URL that the client can fetch as bytes.
+    // For now this is a stub SVG poster, keyed by a nonce so each trip visibly regenerates.
+    var nonce = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
+    var posterUrl =
+        $"/api/poster.svg?nonce={nonce}" +
+        $"&destination={Uri.EscapeDataString(request.Destination)}" +
+        $"&speed={Uri.EscapeDataString(request.SpeedName)}";
+
+    await Task.Delay(500);
+    return Results.Ok(new TripEvaluateResponse(trip, summary, persona.Id, persona.Name, PosterUrl: posterUrl));
+});
+
+app.MapGet("/api/poster.svg", (HttpRequest httpRequest) =>
+{
+    var bytes = TripPosterService.GeneratePoster(httpRequest);
+    var nonce = httpRequest.Query["nonce"].ToString();
+    return Results.File(bytes, "image/svg+xml; charset=utf-8", fileDownloadName: $"velocity-poster-{nonce}.svg");
 });
 
 // Static files and fallback after API routes

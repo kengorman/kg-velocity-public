@@ -2,6 +2,7 @@ using Kg.Velocity.Blazor.Services;
 using Kg.Velocity.Contracts.Catalogs;
 using Kg.Velocity.Contracts.Trips;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -77,6 +78,10 @@ public class MainViewModel
     public string JourneySummary { get; set; } = "";
     public string DisplayedJourneySummary { get; set; } = "";
     public string PersonaName { get; set; } = "";
+    public string PosterDataUrl { get; set; } = "";
+    public string PosterFileName { get; set; } = "velocity-poster.svg";
+    public string PosterGeneratedAtDisplay { get; set; } = "";
+    public bool IsDownloadingPoster { get; set; }
     public ObservableCollection<DestinationDto> Destinations { get; set; } = new();
     public List<SpeedPresetDto> SpeedPresets { get; set; } = [];
     
@@ -156,9 +161,12 @@ public class MainViewModel
 
         HasCalculated = true;
         IsCalculatingTrip = true;
+        IsDownloadingPoster = false;
         JourneySummary = "Calculating trip...";
         DisplayedJourneySummary = JourneySummary;
         PersonaName = "";
+        PosterDataUrl = "";
+        PosterGeneratedAtDisplay = "";
         NotifyStateChanged();
 
         try
@@ -198,6 +206,37 @@ public class MainViewModel
             PersonaName = response.PersonaName;
             HasCalculated = true;
             IsCalculatingTrip = false;
+
+            // Option A: API returns a PosterUrl. Download bytes and display them.
+            if (!string.IsNullOrWhiteSpace(response.PosterUrl))
+            {
+                IsDownloadingPoster = true;
+                NotifyStateChanged();
+
+                try
+                {
+                    var posterBytes = await _tripEvaluationService.GetPosterBytesAsync(response.PosterUrl);
+                    if (requestVersion != _evaluationRequestVersion) return;
+
+                    // For now the server returns SVG bytes. Encode as a data URL for display + download.
+                    PosterDataUrl = "data:image/svg+xml;base64," + Convert.ToBase64String(posterBytes);
+
+                    var nowLocal = DateTimeOffset.Now.ToLocalTime();
+                    PosterGeneratedAtDisplay = nowLocal.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    PosterFileName = $"velocity-poster-{nowLocal:yyyyMMdd-HHmmss}.svg";
+                }
+                catch
+                {
+                    // Trip results should still render even if the poster can't be fetched.
+                    PosterDataUrl = "";
+                    PosterGeneratedAtDisplay = "";
+                }
+                finally
+                {
+                    IsDownloadingPoster = false;
+                }
+            }
+
             NotifyStateChanged();
 
             _ = AnimateSummaryAsync(
@@ -264,6 +303,7 @@ public class MainViewModel
     {
         HasCalculated = false;
         IsCalculatingTrip = false;
+        IsDownloadingPoster = false;
         _startTime = DateTimeOffset.Now;
         _summaryAnimationVersion++;
         _currentPersonaId = null;
@@ -272,6 +312,9 @@ public class MainViewModel
         UpdatePropertiesWithoutNotification();
         JourneySummary = "";
         DisplayedJourneySummary = "";
+        PosterDataUrl = "";
+        PosterFileName = "velocity-poster.svg";
+        PosterGeneratedAtDisplay = "";
         
         NotifyStateChanged();
     }

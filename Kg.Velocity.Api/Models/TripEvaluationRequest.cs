@@ -1,6 +1,6 @@
 namespace Kg.Velocity.Api.Models;
 
-public record TripEvaluationRequest(
+public record TripEvaluationRequestzz(
     string Destination,
     string SpeedName,
     double SpeedMph,

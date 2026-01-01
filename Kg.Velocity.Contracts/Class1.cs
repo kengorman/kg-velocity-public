@@ -36,5 +36,6 @@ public sealed record TripEvaluateResponse(
     TripComputationResult Trip,
     string Summary,
     int PersonaId,
-    string PersonaName
+    string PersonaName,
+    string? PosterUrl = null
 );

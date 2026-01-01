@@ -8,10 +8,10 @@ public static class SpeedPresets
     public static readonly List<SpeedPreset> All = new()
     {
         // Atmosphere
-        new SpeedPreset { Name = "Walking", SpeedMph = 3, Group = "— Atmosphere —" },
-        new SpeedPreset { Name = "Car (Highway)", SpeedMph = 65, Group = "— Atmosphere —" },
-        new SpeedPreset { Name = "Boeing 747", SpeedMph = 570, Group = "— Atmosphere —" },
-        new SpeedPreset { Name = "SR-71 Blackbird", SpeedMph = 2200, Group = "— Atmosphere —" },
+        new SpeedPreset { Name = "Walking Speed", SpeedMph = 3, Group = "— Atmosphere —" },
+        new SpeedPreset { Name = "Car (Highway) Speed", SpeedMph = 65, Group = "— Atmosphere —" },
+        new SpeedPreset { Name = "Boeing 747 Speed", SpeedMph = 570, Group = "— Atmosphere —" },
+        new SpeedPreset { Name = "SR-71 Blackbird Speed", SpeedMph = 2200, Group = "— Atmosphere —" },
 
         // Space
         new SpeedPreset { Name = "ISS Orbit Speed", SpeedMph = 17500, Group = "— Space —" },

@@ -28,6 +28,21 @@ public class TripEvaluationService
             throw new InvalidOperationException($"Error connecting to API: {ex.Message}", ex);
         }
     }
+
+    public async Task<byte[]> GetPosterBytesAsync(string posterUrl)
+    {
+        if (string.IsNullOrWhiteSpace(posterUrl))
+            throw new ArgumentException("Poster URL is required.", nameof(posterUrl));
+
+        try
+        {
+            return await _httpClient.GetByteArrayAsync(posterUrl);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Error downloading poster: {ex.Message}", ex);
+        }
+    }
 }
 
 
