@@ -22,24 +22,24 @@ Branch system:
   header_subtitle_offset = 45
   header_meta_offset = 85
 
-  #
+  # 
   # EARTH (absolute anchor)
-  #
+  # 
   earth_horizon_y = earth_cy - earth_r
 
-  #
+  # 
   # BAR (bottom-anchored, adjustable)
-  #
+  # 
   bar_launch_offset = 10
   bar_launch_y = earth_horizon_y + bar_launch_offset
 
   bar_top_y = bar_launch_y - bar_height
-
+  
   bar_mid_y = bar_top_y + (bar_height / 2)
 
-  #
+  # 
   # SMOKE / FIRE (decorative)
-  #
+  # 
   smoke_offset_y = 322
 
   #
@@ -49,27 +49,19 @@ Branch system:
   branch_zone_top = bar_top_y + 80
   branch_zone_bottom = bar_launch_y - 60
   branch_zone_height = branch_zone_bottom - branch_zone_top
-
+  
   # Calculate spacing based on number of events
   event_count = events.size
-  if event_count > 1
-    branch_spacing = branch_zone_height / (event_count - 1)
-  else
-    branch_spacing = 0
-  end
-
+  branch_spacing = event_count > 1 ? branch_zone_height / (event_count - 1) : 0
+  
   # Branch geometry
   branch_length = 140
   branch_end_radius = 18
   branch_stroke_width = 3.5
-
-  # Text positioning and boundaries
+  
+  # Text positioning
   text_offset_x = 32
-  left_margin = 20
-  right_margin = 780
-  text_max_width = 200
-  text_box_height = 50
-
+  
 ~}}
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
@@ -78,7 +70,7 @@ Branch system:
       <stop offset="0%" stop-color="{{ accent2 }}" stop-opacity="0.9"/>
       <stop offset="100%" stop-color="{{ accent }}" stop-opacity="0.95"/>
     </linearGradient>
-
+    
     <!-- Branch gradients -->
     <linearGradient id="branchGradientLeft" x1="0" x2="1" y1="0" y2="0">
       <stop offset="0%" stop-color="{{ accent }}" stop-opacity="0.7"/>
@@ -88,7 +80,7 @@ Branch system:
       <stop offset="0%" stop-color="{{ accent }}" stop-opacity="0.7"/>
       <stop offset="100%" stop-color="{{ accent2 }}" stop-opacity="0.9"/>
     </linearGradient>
-
+    
     <radialGradient id="earthOcean" cx="35%" cy="25%" r="80%">
       <stop offset="0%" stop-color="#60a5fa" stop-opacity="1"/>
       <stop offset="55%" stop-color="#1d4ed8" stop-opacity="1"/>
@@ -138,13 +130,13 @@ Branch system:
       .title { font: 800 54px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; fill: #fbbf24; }
       .subtitle { font: 500 26px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; fill: #cbd5e1; }
       .meta { font: 600 18px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; fill: #94a3b8; }
-      .branch-label {
-        font: 500 16px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-        fill: #e2e8f0;
+      .branch-label { 
+        font: 500 16px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; 
+        fill: #e2e8f0; 
       }
-      .branch-desc {
-        font: 400 13px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-        fill: #94a3b8;
+      .branch-desc { 
+        font: 400 13px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; 
+        fill: #94a3b8; 
       }
     </style>
   </defs>
@@ -191,115 +183,73 @@ Branch system:
 
   <!-- DYNAMIC BRANCHES -->
   {{~ for event in events ~}}
-    {{~
+    {{~ 
       # Calculate position for this branch
       branch_index = for.index
       is_left = (branch_index % 2) == 0
-
+      
       # Position from bottom to top
-      if event_count == 1
-        branch_y = branch_zone_top + branch_zone_height / 2
-      else
-        branch_y = branch_zone_bottom - (branch_index * branch_spacing)
-      end
-
+      branch_y = event_count == 1 ? (branch_zone_top + branch_zone_height / 2) : (branch_zone_bottom - (branch_index * branch_spacing))
+      
       # Spine connection point (center of bar)
       spine_x = 400
-
+      
       # Branch end point
-      if is_left
-        branch_end_x = spine_x - branch_length
-      else
-        branch_end_x = spine_x + branch_length
-      end
-
-      # Text positioning for foreignObject
-      if is_left
-        # Right-aligned: box ends at circle minus offset
-        text_box_x = branch_end_x - text_offset_x - text_max_width
-        text_align = "right"
-      else
-        # Left-aligned: box starts at circle plus offset
-        text_box_x = branch_end_x + text_offset_x
-        text_align = "left"
-      end
-      text_box_y = branch_y - 20
-
+      branch_end_x = is_left ? (spine_x - branch_length) : (spine_x + branch_length)
+      
+      # Text positioning
+      text_x = is_left ? (branch_end_x - text_offset_x) : (branch_end_x + text_offset_x)
+      text_anchor = is_left ? "end" : "start"
+      
       # Select gradient based on side
-      if is_left
-        curve_offset = -30
-      else
-        curve_offset = 30
-      end
-
-      # Curve control point
-      curve_control_x = spine_x + curve_offset
+      branch_gradient = is_left ? "url(#branchGradientLeft)" : "url(#branchGradientRight)"
     ~}}
-
+    
     <g class="branch" opacity="0.88">
-      <!-- Branch line from spine to circle -->
-      <line
-        x1="{{ spine_x }}"
-        y1="{{ branch_y }}"
-        x2="{{ branch_end_x }}"
-        y2="{{ branch_y }}"
-        stroke="{{ accent2 }}"
+      <!-- Branch line with subtle curve -->
+      <path 
+        d="M {{ spine_x }},{{ branch_y }} 
+           Q {{ spine_x + (is_left ? -30 : 30) }},{{ branch_y }} 
+             {{ branch_end_x }},{{ branch_y }}"
+        stroke="{{ branch_gradient }}"
         stroke-width="{{ branch_stroke_width }}"
+        fill="none"
         stroke-linecap="round"
-        opacity="0.8"
       />
-
+      
       <!-- End circle with glow -->
       <g filter="url(#softGlow)">
-        <circle
-          cx="{{ branch_end_x }}"
-          cy="{{ branch_y }}"
-          r="{{ branch_end_radius }}"
+        <circle 
+          cx="{{ branch_end_x }}" 
+          cy="{{ branch_y }}" 
+          r="{{ branch_end_radius }}" 
           fill="{{ accent2 }}"
           opacity="0.9"
         />
-        <circle
-          cx="{{ branch_end_x }}"
-          cy="{{ branch_y }}"
-          r="{{ branch_end_radius * 0.5 }}"
+        <circle 
+          cx="{{ branch_end_x }}" 
+          cy="{{ branch_y }}" 
+          r="{{ branch_end_radius * 0.5 }}" 
           fill="#0b1b3b"
           opacity="0.6"
         />
       </g>
-
-      <!-- Event text with wrapping -->
-      <foreignObject
-        x="{{ text_box_x }}"
-        y="{{ text_box_y }}"
-        width="{{ text_max_width }}"
-        height="{{ text_box_height }}"
-      >
-        <div xmlns="http://www.w3.org/1999/xhtml" style="
-          font: 500 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          color: #e2e8f0;
-          text-align: {{ text_align }};
-          word-wrap: break-word;
-          overflow-wrap: break-word;
-          line-height: 1.3;
-        ">{{ event.text }}</div>
-      </foreignObject>
-
+      
+      <!-- Event text -->
+      <text 
+        x="{{ text_x }}" 
+        y="{{ branch_y - 8 }}" 
+        text-anchor="{{ text_anchor }}"
+        class="branch-label"
+      >{{ event.text }}</text>
+      
       {{~ if event.description ~}}
-      <foreignObject
-        x="{{ text_box_x }}"
-        y="{{ text_box_y + 22 }}"
-        width="{{ text_max_width }}"
-        height="{{ text_box_height }}"
-      >
-        <div xmlns="http://www.w3.org/1999/xhtml" style="
-          font: 400 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          color: #94a3b8;
-          text-align: {{ text_align }};
-          word-wrap: break-word;
-          overflow-wrap: break-word;
-          line-height: 1.3;
-        ">{{ event.description }}</div>
-      </foreignObject>
+      <text 
+        x="{{ text_x }}" 
+        y="{{ branch_y + 10 }}" 
+        text-anchor="{{ text_anchor }}"
+        class="branch-desc"
+      >{{ event.description }}</text>
       {{~ end ~}}
     </g>
   {{~ end ~}}

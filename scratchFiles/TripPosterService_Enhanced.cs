@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Scriban;
 using Scriban.Runtime;
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 
 namespace Kg.Velocity.Api.Services;
@@ -9,12 +10,6 @@ namespace Kg.Velocity.Api.Services;
 public class TripPosterService
 {
     private const string TemplateResourceName = "Kg.Velocity.Api.Templates.trip-poster.svg.sbn";
-    private readonly PosterEventsCache _eventsCache;
-
-    public TripPosterService(PosterEventsCache eventsCache)
-    {
-        _eventsCache = eventsCache;
-    }
 
     private static string LoadTemplateText()
     {
@@ -48,13 +43,20 @@ public class TripPosterService
     private static readonly Lazy<Template> ParsedTemplate =
         new(LoadAndParseTemplate, isThreadSafe: true);
 
-    /// <summary>
-    /// Generates fallback journey events when AI events aren't available.
-    /// </summary>
-    private static List<JourneyEvent> GenerateFallbackEvents(string destination, int seed)
+    // Model for journey events (will eventually come from AI)
+    public class JourneyEvent
     {
-        var eventCount = (seed % 4) + 3; // 3-6 events
+        public string Text { get; set; } = string.Empty;
+        public string? Description { get; set; }
+    }
 
+    // TODO: Replace this with AI-generated events
+    private static List<JourneyEvent> GenerateMockEvents(string destination, int seed)
+    {
+        // For now, return mock events. Later this will call your AI service.
+        // Number of events varies based on seed to simulate dynamic AI responses
+        var eventCount = (seed % 4) + 3; // 3-6 events
+        
         var allEvents = new List<JourneyEvent>
         {
             new() { Text = "Gravity Well Bypass", Description = "Slingshot around Jupiter's moon Io" },
@@ -67,13 +69,16 @@ public class TripPosterService
             new() { Text = "Quantum Tunnel Transit", Description = "Probability waves align perfectly" }
         };
 
+        // Return a subset based on seed
         return allEvents.Take(eventCount).ToList();
     }
 
-    public byte[] GeneratePoster(HttpRequest httpRequest)
+    public static byte[] GeneratePoster(HttpRequest httpRequest)
     {
         try
         {
+            // This is an intentionally bogus poster generator to prove wiring:
+            // server generates bytes -> client displays/downloads.
             var destination = httpRequest.Query["destination"].ToString();
             var speed = httpRequest.Query["speed"].ToString();
             var nonce = httpRequest.Query["nonce"].ToString();
@@ -101,24 +106,29 @@ public class TripPosterService
             const int capOffset = 15;
             const int earthCx = 400;
 
-            var baselineCapHeight = earthRadius / 2;
-            var earthTopY = canvasHeight - baselineCapHeight;
+            // Keep the top of the visible Earth dome fixed (do not raise/lower it),
+            // but widen the visible base at the bottom edge by increasing the radius
+            // and moving the center down accordingly.
+            var baselineCapHeight = earthRadius / 2;           // 25% of baseline diameter
+            var earthTopY = canvasHeight - baselineCapHeight;  // fixed top dome Y
 
-            const double earthBaseWidenScale = 1.25;
+            const double earthBaseWidenScale = 1.25;           // widen base without moving the top dome
             earthRadius = (int)System.Math.Round(earthRadius * earthBaseWidenScale);
             var earthCy = earthTopY + earthRadius;
 
+            // Bar starts at the top of the visible Earth dome.
             var barBottomY = earthTopY;
             var barY = barBottomY - barHeight;
             var capTopCy = barY - capOffset;
 
-            // Try to get AI-generated events from cache, fall back to mock events
-            var events = _eventsCache.TryGet(nonce) ?? GenerateFallbackEvents(destination, seed);
+            // Generate journey events (mock for now, will be AI-generated later)
+            var events = GenerateMockEvents(destination, seed);
 
-            // Render via Scriban
+            // Render via Scriban (template is embedded as a resource and parsed once).
             var template = ParsedTemplate.Value;
 
             var globals = new ScriptObject();
+            // Pre-escape user-controlled text in C# (avoid custom function invocation in Scriban).
             globals.Add("destination_esc", Esc(destination));
             globals.Add("speed_esc", Esc(speed));
             globals.Add("nonce_esc", Esc(nonce));
@@ -131,8 +141,9 @@ public class TripPosterService
             globals.Add("earth_cx", earthCx);
             globals.Add("earth_cy", earthCy);
             globals.Add("earth_r", earthRadius);
-
-            // Convert events to ScriptArray for Scriban iteration
+            
+            // NEW: Add events collection
+            // Convert to ScriptArray so Scriban can iterate with {{ for event in events }}
             var scriptEvents = new ScriptArray();
             foreach (var evt in events)
             {
@@ -150,9 +161,10 @@ public class TripPosterService
             context.PushGlobal(globals);
             var svg = template.Render(context);
 
-            return Encoding.UTF8.GetBytes(svg);
+            var bytes = Encoding.UTF8.GetBytes(svg);
+            return bytes;
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
             string s = ex.ToString();
             throw;

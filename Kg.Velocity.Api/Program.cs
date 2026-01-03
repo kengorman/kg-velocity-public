@@ -60,6 +60,12 @@ builder.Services.AddSingleton<AiSummaryService>();
 builder.Services.AddSingleton<TripComputationService>();
 builder.Services.AddSingleton<TripCatalogService>();
 
+// Poster services
+builder.Services.AddSingleton<PosterEventsPromptBuilder>();
+builder.Services.AddSingleton<AiPosterEventsService>();
+builder.Services.AddSingleton<PosterEventsCache>();
+builder.Services.AddSingleton<TripPosterService>();
+
 var app = builder.Build();
 
 app.UseIpRateLimiting();
@@ -84,7 +90,9 @@ app.MapGet("/api/speed-presets", (TripCatalogService catalogs) =>
 app.MapPost("/api/evaluate-trip", async (
     TripEvaluateRequest request,
     TripComputationService tripComputationService,
-    AiSummaryService aiService) =>
+    AiSummaryService aiService,
+    AiPosterEventsService posterEventsService,
+    PosterEventsCache posterEventsCache) =>
 {
     // Input validation
     const int maxLength = 100;
@@ -100,24 +108,30 @@ app.MapPost("/api/evaluate-trip", async (
     if (request.StartTime == default)
         return Results.BadRequest("Invalid start time");
 
+    // 1. Compute physics
     var trip = tripComputationService.Compute(request);
+
+    // 2. AI Call #1: Generate persona-flavored summary
     var (summary, persona) = await aiService.GenerateSummaryAsync(request, trip);
 
-    // Option A: return a separate poster URL that the client can fetch as bytes.
-    // For now this is a stub SVG poster, keyed by a nonce so each trip visibly regenerates.
+    // 3. AI Call #2: Generate poster events (uses summary for tone)
     var nonce = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
+    var posterEvents = await posterEventsService.GenerateEventsAsync(trip, summary);
+
+    // 4. Cache events by nonce for poster endpoint to retrieve
+    posterEventsCache.Store(nonce, posterEvents);
+
     var posterUrl =
         $"/api/poster.svg?nonce={nonce}" +
         $"&destination={Uri.EscapeDataString(request.Destination)}" +
         $"&speed={Uri.EscapeDataString(request.SpeedName)}";
 
-    await Task.Delay(200);
     return Results.Ok(new TripEvaluateResponse(trip, summary, persona.Id, persona.Name, PosterUrl: posterUrl));
 });
 
-app.MapGet("/api/poster.svg", (HttpRequest httpRequest) =>
+app.MapGet("/api/poster.svg", (HttpRequest httpRequest, TripPosterService posterService) =>
 {
-    var bytes = TripPosterService.GeneratePoster(httpRequest);
+    var bytes = posterService.GeneratePoster(httpRequest);
     var nonce = httpRequest.Query["nonce"].ToString();
     return Results.File(bytes, "image/svg+xml; charset=utf-8", fileDownloadName: $"velocity-poster-{nonce}.svg");
 });
