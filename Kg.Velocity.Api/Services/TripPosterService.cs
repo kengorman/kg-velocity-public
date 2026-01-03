@@ -1,68 +1,125 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Scriban;
+using Scriban.Runtime;
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 
 namespace Kg.Velocity.Api.Services;
 
 public class TripPosterService
 {
+    private const string TemplateResourceName = "Kg.Velocity.Api.Templates.trip-poster.svg.sbn";
+
+    private static string LoadTemplateText()
+    {
+        var asm = typeof(TripPosterService).Assembly;
+        using var stream = asm.GetManifestResourceStream(TemplateResourceName);
+        if (stream is null)
+        {
+            var known = string.Join(", ", asm.GetManifestResourceNames().OrderBy(n => n));
+            throw new InvalidOperationException(
+                $"Embedded resource not found: {TemplateResourceName}. Known resources: {known}");
+        }
+
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, leaveOpen: false);
+        return reader.ReadToEnd();
+    }
+
+    private static Template LoadAndParseTemplate()
+    {
+        var templateText = LoadTemplateText();
+        var template = Template.Parse(templateText, TemplateResourceName);
+        if (template.HasErrors)
+        {
+            var errors = string.Join("; ", template.Messages.Select(m => m.ToString()));
+            throw new InvalidOperationException($"SVG template parse error(s): {errors}");
+        }
+
+        return template;
+    }
+
+    // Cache the compiled template (parse/compile once). Output is still rendered per request.
+    private static readonly Lazy<Template> ParsedTemplate =
+        new(LoadAndParseTemplate, isThreadSafe: true);
+
     public static byte[] GeneratePoster(HttpRequest httpRequest)
     {
-        // This is an intentionally bogus poster generator to prove wiring:
-        // server generates bytes -> client displays/downloads.
-        var destination = httpRequest.Query["destination"].ToString();
-        var speed = httpRequest.Query["speed"].ToString();
-        var nonce = httpRequest.Query["nonce"].ToString();
+        try
+        {
+            // This is an intentionally bogus poster generator to prove wiring:
+            // server generates bytes -> client displays/downloads.
+            var destination = httpRequest.Query["destination"].ToString();
+            var speed = httpRequest.Query["speed"].ToString();
+            var nonce = httpRequest.Query["nonce"].ToString();
 
-        var generatedAt = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss 'UTC'", CultureInfo.InvariantCulture);
+            var generatedAt = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss 'UTC'", CultureInfo.InvariantCulture);
 
-        // Simple, deterministic-ish color variation based on nonce.
-        var seed = 0;
-        _ = int.TryParse(new string(nonce.Where(char.IsDigit).TakeLast(6).ToArray()), out seed);
-        var accentHue = (seed % 40) + 15;
-        var accent = $"hsl({accentHue}, 90%, 55%)";
-        var accent2 = $"hsl({(accentHue + 180) % 360}, 80%, 60%)";
+            // Simple, deterministic-ish color variation based on nonce.
+            var seed = 0;
+            _ = int.TryParse(new string(nonce.Where(char.IsDigit).TakeLast(6).ToArray()), out seed);
+            var accentHue = (seed % 40) + 15;
+            var accent = $"hsl({accentHue}, 90%, 55%)";
+            var accent2 = $"hsl({(accentHue + 180) % 360}, 80%, 60%)";
 
-        static string Esc(string? s) =>
-            string.IsNullOrEmpty(s) ? "" :
-            s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
-             .Replace("\"", "&quot;").Replace("'", "&apos;");
+            static string Esc(string? s) =>
+                string.IsNullOrEmpty(s) ? "" :
+                s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
+                 .Replace("\"", "&quot;").Replace("'", "&apos;");
 
-        var svg = $@"<?xml version=""1.0"" encoding=""UTF-8""?>
-<svg xmlns=""http://www.w3.org/2000/svg"" width=""800"" height=""1200"" viewBox=""0 0 800 1200"">
-  <defs>
-    <linearGradient id=""spine"" x1=""0"" x2=""0"" y1=""0"" y2=""1"">
-      <stop offset=""0%"" stop-color=""{accent2}"" stop-opacity=""0.9""/>
-      <stop offset=""100%"" stop-color=""{accent}"" stop-opacity=""0.95""/>
-    </linearGradient>
-    <filter id=""shadow"" x=""-20%"" y=""-20%"" width=""140%"" height=""140%"">
-      <feDropShadow dx=""0"" dy=""8"" stdDeviation=""10"" flood-color=""#000"" flood-opacity=""0.35""/>
-    </filter>
-    <style>
-      .title {{ font: 800 54px -apple-system,BlinkMacSystemFont,""Segoe UI"",Roboto,sans-serif; fill: #fbbf24; }}
-      .subtitle {{ font: 500 26px -apple-system,BlinkMacSystemFont,""Segoe UI"",Roboto,sans-serif; fill: #cbd5e1; }}
-      .meta {{ font: 600 18px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,""Liberation Mono"",""Courier New"",monospace; fill: #94a3b8; }}
-    </style>
-  </defs>
+            // Geometry: bar starts at the top of a "rising Earth" semicircle at the bottom edge.
+            const int canvasHeight = 1200;
+            const int baseEarthRadius = (int)(canvasHeight * 0.05); // 5% of 1200 = 60
+            const int earthDiameterScale = 3; // baseline sizing
+            var earthRadius = baseEarthRadius * earthDiameterScale; // 180 (baseline)
+            const int barHeight = 700;
+            const int capOffset = 15;
+            const int earthCx = 400;
 
-  <rect x=""0"" y=""0"" width=""800"" height=""1200"" fill=""#0b1b3b""/>
+            // Keep the top of the visible Earth dome fixed (do not raise/lower it),
+            // but widen the visible base at the bottom edge by increasing the radius
+            // and moving the center down accordingly.
+            var baselineCapHeight = earthRadius / 2;           // 25% of baseline diameter
+            var earthTopY = canvasHeight - baselineCapHeight;  // fixed top dome Y
 
-  <text x=""70"" y=""130"" class=""title"">Absurd Travel Poster</text>
-  <text x=""70"" y=""175"" class=""subtitle"">{Esc(destination)} · {Esc(speed)}</text>
-  <text x=""70"" y=""215"" class=""meta"">Generated: {generatedAt} · nonce {Esc(nonce)}</text>
+            const double earthBaseWidenScale = 1.25;           // widen base without moving the top dome
+            earthRadius = (int)System.Math.Round(earthRadius * earthBaseWidenScale);
+            var earthCy = earthTopY + earthRadius;
 
-  <g filter=""url(#shadow)"">
-    <rect x=""370"" y=""440"" width=""60"" height=""700"" rx=""30"" fill=""url(#spine)""/>
-    <circle cx=""400"" cy=""425"" r=""46"" fill=""{accent2}""/>
-    <circle cx=""400"" cy=""425"" r=""30"" fill=""#0b1b3b"" opacity=""0.85""/>
-    <circle cx=""400"" cy=""1155"" r=""46"" fill=""{accent2}""/>
-    <circle cx=""400"" cy=""1155"" r=""30"" fill=""#0b1b3b"" opacity=""0.85""/>
-  </g>
+            // Bar starts at the top of the visible Earth dome.
+            var barBottomY = earthTopY;
+            var barY = barBottomY - barHeight;
+            var capTopCy = barY - capOffset;
 
-  <text x=""70"" y=""1150"" class=""meta"">Server-generated mock SVG (bytes) · kg-velocity</text>
-</svg>";
+            // Render via Scriban (template is embedded as a resource and parsed once).
+            var template = ParsedTemplate.Value;
 
-        var bytes = Encoding.UTF8.GetBytes(svg);
-        return bytes;
+            var globals = new ScriptObject();
+        // Pre-escape user-controlled text in C# (avoid custom function invocation in Scriban).
+        globals.Add("destination_esc", Esc(destination));
+        globals.Add("speed_esc", Esc(speed));
+        globals.Add("nonce_esc", Esc(nonce));
+            globals.Add("generated_at", generatedAt);
+            globals.Add("accent", accent);
+            globals.Add("accent2", accent2);
+            globals.Add("bar_y", barY);
+            globals.Add("bar_height", barHeight);
+            globals.Add("cap_top_cy", capTopCy);
+            globals.Add("earth_cx", earthCx);
+            globals.Add("earth_cy", earthCy);
+            globals.Add("earth_r", earthRadius);
+
+            var context = new TemplateContext();
+            context.PushGlobal(globals);
+            var svg = template.Render(context);
+
+            var bytes = Encoding.UTF8.GetBytes(svg);
+            return bytes;
+        }
+        catch(Exception ex)
+        {
+            string s = ex.ToString();
+            throw;
+        }
     }
 }

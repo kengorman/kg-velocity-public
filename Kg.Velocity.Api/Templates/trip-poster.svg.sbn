@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+  <defs>
+    <linearGradient id="spine" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="{{ accent2 }}" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="{{ accent }}" stop-opacity="0.95"/>
+    </linearGradient>
+    <radialGradient id="earthOcean" cx="35%" cy="25%" r="80%">
+      <stop offset="0%" stop-color="#60a5fa" stop-opacity="1"/>
+      <stop offset="55%" stop-color="#1d4ed8" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#0b2a6a" stop-opacity="1"/>
+    </radialGradient>
+    <clipPath id="earthClip">
+      <circle cx="{{ earth_cx }}" cy="{{ earth_cy }}" r="{{ earth_r }}"/>
+    </clipPath>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+    <style>
+      .title { font: 800 54px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; fill: #fbbf24; }
+      .subtitle { font: 500 26px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; fill: #cbd5e1; }
+      .meta { font: 600 18px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; fill: #94a3b8; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="800" height="1200" fill="#0b1b3b"/>
+
+  <text x="70" y="130" class="title">Absurd Travel Poster</text>
+  <text x="70" y="175" class="subtitle">{{ destination_esc }} · {{ speed_esc }}</text>
+  <text x="70" y="215" class="meta">Generated: {{ generated_at }} · nonce {{ nonce_esc }}</text>
+
+  <g filter="url(#shadow)">
+    <rect x="370" y="{{ bar_y }}" width="60" height="{{ bar_height }}" rx="30" fill="url(#spine)"/>
+
+    <circle cx="400" cy="{{ cap_top_cy }}" r="46" fill="{{ accent2 }}"/>
+    <circle cx="400" cy="{{ cap_top_cy }}" r="30" fill="#0b1b3b" opacity="0.85"/>
+  </g>
+
+  <!-- Rising Earth: a full circle centered on the bottom edge naturally renders as a top semicircle. -->
+  <g filter="url(#shadow)">
+    <circle cx="{{ earth_cx }}" cy="{{ earth_cy }}" r="{{ earth_r }}" fill="url(#earthOcean)"/>
+    <g clip-path="url(#earthClip)" opacity="0.95">
+      <!-- Simple "continents" -->
+      <path d="M {{ earth_cx - 35 }} {{ earth_cy - 35 }}
+               C {{ earth_cx - 50 }} {{ earth_cy - 50 }}, {{ earth_cx - 20 }} {{ earth_cy - 65 }}, {{ earth_cx - 5 }} {{ earth_cy - 50 }}
+               C {{ earth_cx + 10 }} {{ earth_cy - 35 }}, {{ earth_cx - 10 }} {{ earth_cy - 25 }}, {{ earth_cx - 25 }} {{ earth_cy - 20 }}
+               C {{ earth_cx - 35 }} {{ earth_cy - 18 }}, {{ earth_cx - 28 }} {{ earth_cy - 28 }}, {{ earth_cx - 35 }} {{ earth_cy - 35 }} Z"
+            fill="#22c55e" opacity="0.95"/>
+      <path d="M {{ earth_cx + 12 }} {{ earth_cy - 42 }}
+               C {{ earth_cx + 2 }} {{ earth_cy - 55 }}, {{ earth_cx + 30 }} {{ earth_cy - 62 }}, {{ earth_cx + 40 }} {{ earth_cy - 48 }}
+               C {{ earth_cx + 48 }} {{ earth_cy - 37 }}, {{ earth_cx + 30 }} {{ earth_cy - 28 }}, {{ earth_cx + 18 }} {{ earth_cy - 30 }}
+               C {{ earth_cx + 8 }} {{ earth_cy - 32 }}, {{ earth_cx + 16 }} {{ earth_cy - 36 }}, {{ earth_cx + 12 }} {{ earth_cy - 42 }} Z"
+            fill="#16a34a" opacity="0.95"/>
+      <!-- subtle ice cap highlight -->
+      <ellipse cx="{{ earth_cx }}" cy="{{ earth_cy - 58 }}" rx="18" ry="7" fill="#e2e8f0" opacity="0.7"/>
+    </g>
+    <!-- atmosphere stroke along the arc -->
+    <circle cx="{{ earth_cx }}" cy="{{ earth_cy }}" r="{{ earth_r }}" fill="none" stroke="#93c5fd" stroke-width="3" opacity="0.35"/>
+  </g>
+
+  <text x="70" y="1150" class="meta">Server-generated mock SVG (bytes) · kg-velocity</text>
+</svg>
+
+
+
+
