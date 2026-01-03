@@ -111,7 +111,7 @@ app.MapPost("/api/evaluate-trip", async (
         $"&destination={Uri.EscapeDataString(request.Destination)}" +
         $"&speed={Uri.EscapeDataString(request.SpeedName)}";
 
-    await Task.Delay(500);
+    await Task.Delay(200);
     return Results.Ok(new TripEvaluateResponse(trip, summary, persona.Id, persona.Name, PosterUrl: posterUrl));
 });
 

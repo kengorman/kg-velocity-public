@@ -72,7 +72,7 @@ public class TripPosterService
             const int baseEarthRadius = (int)(canvasHeight * 0.05); // 5% of 1200 = 60
             const int earthDiameterScale = 3; // baseline sizing
             var earthRadius = baseEarthRadius * earthDiameterScale; // 180 (baseline)
-            const int barHeight = 700;
+            const int barHeight = 850;
             const int capOffset = 15;
             const int earthCx = 400;
 

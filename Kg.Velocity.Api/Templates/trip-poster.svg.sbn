@@ -1,4 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+Coordinate system:
+- viewBox: 0 0 800 1200
+- origin (0,0) is top-left
+- y increases downward
+
+Header band:
+- header_band_y defines the top of the header block
+- offsets are relative to header_band_y
+
+
+-->
+
+<!--
+{{~
+  header_band_y = 70
+  header_title_offset = 0
+  header_subtitle_offset = 45
+  header_meta_offset = 85
+
+  # 
+  # EARTH (absolute anchor)
+  # 
+  earth_horizon_y = earth_cy - earth_r
+
+  # 
+  # BAR (bottom-anchored, adjustable)
+  # 
+  bar_launch_offset = 10
+  bar_launch_y = earth_horizon_y + bar_launch_offset
+
+  bar_top_y = bar_launch_y - bar_height
+  
+  bar_mid_y = bar_top_y + (bar_height / 2)
+
+
+  # 
+  # SMOKE / FIRE (decorative)
+  # 
+  smoke_offset_y = 322
+
+
+
+~}}
+-->
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
   <defs>
     <linearGradient id="spine" x1="0" x2="0" y1="0" y2="1">
@@ -52,24 +97,58 @@
 
   <rect x="0" y="0" width="800" height="1200" fill="#0b1b3b"/>
 
-  <text x="70" y="130" class="title">Absurd Travel Poster</text>
-  <text x="70" y="175" class="subtitle">{{ destination_esc }} · {{ speed_esc }}</text>
-  <text x="70" y="215" class="meta">Generated: {{ generated_at }} · nonce {{ nonce_esc }}</text>
-
-  <g filter="url(#shadow)">
-    <rect x="376" y="{{ bar_y }}" width="48" height="{{ bar_height }}" rx="24" fill="url(#spine)" mask="url(#barFadeMask)"/>
-
-    <circle cx="400" cy="{{ cap_top_cy }}" r="46" fill="{{ accent2 }}"/>
-    <circle cx="400" cy="{{ cap_top_cy }}" r="30" fill="#0b1b3b" opacity="0.85"/>
+  <g id="header_band">
+    <text x="70" y="{{ header_band_y }}" class="title">Absurd Travel Simulator</text>
+    <text x="70" y="{{ header_band_y + 45 }}" class="subtitle">
+      {{ destination_esc }} at {{ speed_esc }}
+    </text>
+    <text x="70" y="{{ header_band_y + 85 }}" class="meta">
+      Generated: {{ generated_at }} · nonce {{ nonce_esc }}
+    </text>
   </g>
+  <g filter="url(#shadow)">
+    <rect
+      x="376"
+      y="{{ bar_top_y }}"
+      width="48"
+      height="{{ bar_height }}"
+      rx="24"
+      fill="url(#spine)"
+      mask="url(#barFadeMask)"
+/>
 
+    <circle
+      cx="400"
+      cy="{{ bar_top_y }}"
+      r="46"
+      fill="{{ accent2 }}"
+/>
+    <circle
+      cx="400"
+      cy="{{ bar_top_y }}"
+      r="30"
+      fill="#0b1b3b"
+      opacity="0.85"
+/>
+
+  </g>
+  <text
+    x="400"
+    y="{{ bar_mid_y }}"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    class="meta"
+    style="font-size: 1.75em"
+    opacity="0.6"
+>
+    poster under construction…
+  </text>
   <!-- Rising Earth: a full circle centered on the bottom edge naturally renders as a top semicircle. -->
   <g filter="url(#shadow)">
     <circle cx="{{ earth_cx }}" cy="{{ earth_cy }}" r="{{ earth_r }}" fill="url(#earthOcean)"/>
     <g clip-path="url(#earthClip)" opacity="0.95">
       <!-- Continents (placed in the visible "cap" so they show up with the current lowered globe) -->
       <!-- Top highlight -->
-      <ellipse cx="{{ earth_cx }}" cy="{{ (earth_cy - earth_r) + 14 }}" rx="22" ry="8" fill="#e2e8f0" opacity="0.7"/>
 
       <!-- Larger continents that extend far below the visible cap (so they feel "cropped") -->
       <g transform="translate({{ earth_cx }}, {{ earth_cy }}) scale(1.12) translate(-{{ earth_cx }}, -{{ earth_cy }})">
@@ -81,11 +160,6 @@
                  C {{ earth_cx - 196 }} {{ (earth_cy - earth_r) + 260 }}, {{ earth_cx - 210 }} {{ (earth_cy - earth_r) + 220 }}, {{ earth_cx - 200 }} {{ (earth_cy - earth_r) + 172 }}
                  C {{ earth_cx - 192 }} {{ (earth_cy - earth_r) + 130 }}, {{ earth_cx - 214 }} {{ (earth_cy - earth_r) + 96 }}, {{ earth_cx - 165 }} {{ (earth_cy - earth_r) + 58 }} Z"
               fill="#22c55e" opacity="0.95"/>
-        <path d="M {{ earth_cx - 150 }} {{ (earth_cy - earth_r) + 112 }}
-                 C {{ earth_cx - 128 }} {{ (earth_cy - earth_r) + 104 }}, {{ earth_cx - 122 }} {{ (earth_cy - earth_r) + 126 }}, {{ earth_cx - 140 }} {{ (earth_cy - earth_r) + 138 }}
-                 C {{ earth_cx - 156 }} {{ (earth_cy - earth_r) + 148 }}, {{ earth_cx - 170 }} {{ (earth_cy - earth_r) + 132 }}, {{ earth_cx - 150 }} {{ (earth_cy - earth_r) + 112 }} Z"
-              fill="#16a34a" opacity="0.75"/>
-
         <path d="M {{ earth_cx + 60 }} {{ (earth_cy - earth_r) + 52 }}
                  C {{ earth_cx + 34 }} {{ (earth_cy - earth_r) + 26 }}, {{ earth_cx + 80 }} {{ (earth_cy - earth_r) + 10 }}, {{ earth_cx + 116 }} {{ (earth_cy - earth_r) + 30 }}
                  C {{ earth_cx + 150 }} {{ (earth_cy - earth_r) + 50 }}, {{ earth_cx + 144 }} {{ (earth_cy - earth_r) + 88 }}, {{ earth_cx + 112 }} {{ (earth_cy - earth_r) + 96 }}
@@ -104,31 +178,38 @@
   <g opacity="0.92" transform="translate(0, 8)">
     <!-- Dense base smoke to obscure the Earth edge + bar base so the bar appears to emerge -->
     <g filter="url(#smokeBlur)" opacity="0.95">
-      <ellipse cx="400" cy="{{ bar_y + bar_height + 6 }}" rx="130" ry="44" fill="#0f172a" opacity="0.55"/>
-      <ellipse cx="400" cy="{{ bar_y + bar_height - 4 }}" rx="110" ry="34" fill="#0f172a" opacity="0.50"/>
+      <ellipse cx="400" cy="{{ bar_launch_y + 6 }}" rx="130" ry="44" fill="#0f172a" opacity="0.55"/>
+      <ellipse cx="400" cy="{{ bar_launch_y - 4 }}" rx="110" ry="34" fill="#0f172a" opacity="0.50"/>
     </g>
 
     <!-- Flame + smoke plume to visually "hide" the join -->
     <g filter="url(#plume)">
       <!-- Outer glow -->
-      <ellipse cx="400" cy="{{ bar_y + bar_height - 8 }}" rx="88" ry="28" fill="url(#flameOuter)"/>
+      <ellipse cx="400" cy="{{ bar_launch_y - 8 }}" rx="88" ry="28" fill="url(#flameOuter)"/>
       <!-- Hot core -->
-      <ellipse cx="400" cy="{{ bar_y + bar_height - 16 }}" rx="58" ry="22" fill="url(#flameCore)"/>
+      <ellipse cx="400" cy="{{ bar_launch_y - 16 }}" rx="58" ry="22" fill="url(#flameCore)"/>
       <!-- Small flickers -->
-      <ellipse cx="378" cy="{{ bar_y + bar_height - 22 }}" rx="18" ry="10" fill="#fde047" opacity="0.55"/>
-      <ellipse cx="420" cy="{{ bar_y + bar_height - 20 }}" rx="22" ry="12" fill="#fb923c" opacity="0.55"/>
+      <ellipse cx="378" cy="{{ bar_launch_y - 22 }}" rx="18" ry="10" fill="#fde047" opacity="0.55"/>
+      <ellipse cx="420" cy="{{ bar_launch_y - 20 }}" rx="22" ry="12" fill="#fb923c" opacity="0.55"/>
     </g>
 
     <!-- Smoke cloud (drawn AFTER flame so it sits on top; SVG draw order is the "z-index") -->
     <g filter="url(#smokeBlur)" opacity="0.95">
-      <ellipse cx="400" cy="{{ bar_y + bar_height - 10 }}" rx="98" ry="26" fill="#cbd5e1" opacity="0.28"/>
-      <ellipse cx="360" cy="{{ bar_y + bar_height - 16 }}" rx="62" ry="22" fill="#94a3b8" opacity="0.22"/>
-      <ellipse cx="445" cy="{{ bar_y + bar_height - 17 }}" rx="70" ry="24" fill="#94a3b8" opacity="0.22"/>
-      <ellipse cx="400" cy="{{ bar_y + bar_height - 24 }}" rx="44" ry="18" fill="#e2e8f0" opacity="0.18"/>
+      <ellipse cx="400" cy="{{ bar_launch_y - 10 }}" rx="98" ry="26" fill="#cbd5e1" opacity="0.28"/>
+      <ellipse cx="360" cy="{{ bar_launch_y - 16 }}" rx="62" ry="22" fill="#94a3b8" opacity="0.22"/>
+      <ellipse cx="445" cy="{{ bar_launch_y - 17 }}" rx="70" ry="24" fill="#94a3b8" opacity="0.22"/>
+      <ellipse cx="400" cy="{{ bar_launch_y - 24 }}" rx="44" ry="18" fill="#e2e8f0" opacity="0.18"/>
     </g>
   </g>
 
-  <text x="70" y="1150" class="meta">Server-generated mock SVG (bytes) · kg-velocity</text>
+  <text
+    x="50%"
+    y="1180"
+    text-anchor="middle"
+    class="meta"
+  >
+    Absurd Travel Simulator · kg-velocity · 2026
+  </text>
 </svg>
 
 

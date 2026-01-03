@@ -291,7 +291,7 @@ public class MainViewModel
             // Delay only after non-whitespace tokens to approximate "100ms per word".
             if (!string.IsNullOrWhiteSpace(token))
             {
-                await Task.Delay(25);
+                await Task.Delay(15);
             }
         }
     }
