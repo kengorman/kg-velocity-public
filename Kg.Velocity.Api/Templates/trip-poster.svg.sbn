@@ -16,6 +16,33 @@
     <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
     </filter>
+    <filter id="smokeBlur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+    <radialGradient id="flameCore" cx="50%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#fef08a" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#fb923c" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0.0"/>
+    </radialGradient>
+    <radialGradient id="flameOuter" cx="50%" cy="45%" r="80%">
+      <stop offset="0%" stop-color="#fb923c" stop-opacity="0.55"/>
+      <stop offset="65%" stop-color="#f97316" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0.0"/>
+    </radialGradient>
+    <filter id="plume" x="-120%" y="-120%" width="340%" height="340%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="18" xChannelSelector="R" yChannelSelector="G" result="warp"/>
+      <feGaussianBlur in="warp" stdDeviation="3" result="blur"/>
+    </filter>
+    <!-- Fade out the bottom of the bar so it can "emerge" from the smoke -->
+    <linearGradient id="barFadeMaskGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="white" stop-opacity="1"/>
+      <stop offset="72%" stop-color="white" stop-opacity="1"/>
+      <stop offset="100%" stop-color="black" stop-opacity="1"/>
+    </linearGradient>
+    <mask id="barFadeMask" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">
+      <rect x="0" y="0" width="1" height="1" fill="url(#barFadeMaskGrad)"/>
+    </mask>
     <style>
       .title { font: 800 54px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; fill: #fbbf24; }
       .subtitle { font: 500 26px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; fill: #cbd5e1; }
@@ -30,7 +57,7 @@
   <text x="70" y="215" class="meta">Generated: {{ generated_at }} · nonce {{ nonce_esc }}</text>
 
   <g filter="url(#shadow)">
-    <rect x="370" y="{{ bar_y }}" width="60" height="{{ bar_height }}" rx="30" fill="url(#spine)"/>
+    <rect x="376" y="{{ bar_y }}" width="48" height="{{ bar_height }}" rx="24" fill="url(#spine)" mask="url(#barFadeMask)"/>
 
     <circle cx="400" cy="{{ cap_top_cy }}" r="46" fill="{{ accent2 }}"/>
     <circle cx="400" cy="{{ cap_top_cy }}" r="30" fill="#0b1b3b" opacity="0.85"/>
@@ -40,22 +67,65 @@
   <g filter="url(#shadow)">
     <circle cx="{{ earth_cx }}" cy="{{ earth_cy }}" r="{{ earth_r }}" fill="url(#earthOcean)"/>
     <g clip-path="url(#earthClip)" opacity="0.95">
-      <!-- Simple "continents" -->
-      <path d="M {{ earth_cx - 35 }} {{ earth_cy - 35 }}
-               C {{ earth_cx - 50 }} {{ earth_cy - 50 }}, {{ earth_cx - 20 }} {{ earth_cy - 65 }}, {{ earth_cx - 5 }} {{ earth_cy - 50 }}
-               C {{ earth_cx + 10 }} {{ earth_cy - 35 }}, {{ earth_cx - 10 }} {{ earth_cy - 25 }}, {{ earth_cx - 25 }} {{ earth_cy - 20 }}
-               C {{ earth_cx - 35 }} {{ earth_cy - 18 }}, {{ earth_cx - 28 }} {{ earth_cy - 28 }}, {{ earth_cx - 35 }} {{ earth_cy - 35 }} Z"
-            fill="#22c55e" opacity="0.95"/>
-      <path d="M {{ earth_cx + 12 }} {{ earth_cy - 42 }}
-               C {{ earth_cx + 2 }} {{ earth_cy - 55 }}, {{ earth_cx + 30 }} {{ earth_cy - 62 }}, {{ earth_cx + 40 }} {{ earth_cy - 48 }}
-               C {{ earth_cx + 48 }} {{ earth_cy - 37 }}, {{ earth_cx + 30 }} {{ earth_cy - 28 }}, {{ earth_cx + 18 }} {{ earth_cy - 30 }}
-               C {{ earth_cx + 8 }} {{ earth_cy - 32 }}, {{ earth_cx + 16 }} {{ earth_cy - 36 }}, {{ earth_cx + 12 }} {{ earth_cy - 42 }} Z"
-            fill="#16a34a" opacity="0.95"/>
-      <!-- subtle ice cap highlight -->
-      <ellipse cx="{{ earth_cx }}" cy="{{ earth_cy - 58 }}" rx="18" ry="7" fill="#e2e8f0" opacity="0.7"/>
+      <!-- Continents (placed in the visible "cap" so they show up with the current lowered globe) -->
+      <!-- Top highlight -->
+      <ellipse cx="{{ earth_cx }}" cy="{{ (earth_cy - earth_r) + 14 }}" rx="22" ry="8" fill="#e2e8f0" opacity="0.7"/>
+
+      <!-- Larger continents that extend far below the visible cap (so they feel "cropped") -->
+      <g transform="translate({{ earth_cx }}, {{ earth_cy }}) scale(1.12) translate(-{{ earth_cx }}, -{{ earth_cy }})">
+        <path d="M {{ earth_cx - 165 }} {{ (earth_cy - earth_r) + 58 }}
+                 C {{ earth_cx - 185 }} {{ (earth_cy - earth_r) + 30 }}, {{ earth_cx - 140 }} {{ (earth_cy - earth_r) + 12 }}, {{ earth_cx - 105 }} {{ (earth_cy - earth_r) + 30 }}
+                 C {{ earth_cx - 70 }} {{ (earth_cy - earth_r) + 48 }}, {{ earth_cx - 86 }} {{ (earth_cy - earth_r) + 86 }}, {{ earth_cx - 120 }} {{ (earth_cy - earth_r) + 92 }}
+                 C {{ earth_cx - 150 }} {{ (earth_cy - earth_r) + 98 }}, {{ earth_cx - 160 }} {{ (earth_cy - earth_r) + 140 }}, {{ earth_cx - 130 }} {{ (earth_cy - earth_r) + 162 }}
+                 C {{ earth_cx - 105 }} {{ (earth_cy - earth_r) + 182 }}, {{ earth_cx - 128 }} {{ (earth_cy - earth_r) + 232 }}, {{ earth_cx - 168 }} {{ (earth_cy - earth_r) + 248 }}
+                 C {{ earth_cx - 196 }} {{ (earth_cy - earth_r) + 260 }}, {{ earth_cx - 210 }} {{ (earth_cy - earth_r) + 220 }}, {{ earth_cx - 200 }} {{ (earth_cy - earth_r) + 172 }}
+                 C {{ earth_cx - 192 }} {{ (earth_cy - earth_r) + 130 }}, {{ earth_cx - 214 }} {{ (earth_cy - earth_r) + 96 }}, {{ earth_cx - 165 }} {{ (earth_cy - earth_r) + 58 }} Z"
+              fill="#22c55e" opacity="0.95"/>
+        <path d="M {{ earth_cx - 150 }} {{ (earth_cy - earth_r) + 112 }}
+                 C {{ earth_cx - 128 }} {{ (earth_cy - earth_r) + 104 }}, {{ earth_cx - 122 }} {{ (earth_cy - earth_r) + 126 }}, {{ earth_cx - 140 }} {{ (earth_cy - earth_r) + 138 }}
+                 C {{ earth_cx - 156 }} {{ (earth_cy - earth_r) + 148 }}, {{ earth_cx - 170 }} {{ (earth_cy - earth_r) + 132 }}, {{ earth_cx - 150 }} {{ (earth_cy - earth_r) + 112 }} Z"
+              fill="#16a34a" opacity="0.75"/>
+
+        <path d="M {{ earth_cx + 60 }} {{ (earth_cy - earth_r) + 52 }}
+                 C {{ earth_cx + 34 }} {{ (earth_cy - earth_r) + 26 }}, {{ earth_cx + 80 }} {{ (earth_cy - earth_r) + 10 }}, {{ earth_cx + 116 }} {{ (earth_cy - earth_r) + 30 }}
+                 C {{ earth_cx + 150 }} {{ (earth_cy - earth_r) + 50 }}, {{ earth_cx + 144 }} {{ (earth_cy - earth_r) + 88 }}, {{ earth_cx + 112 }} {{ (earth_cy - earth_r) + 96 }}
+                 C {{ earth_cx + 88 }} {{ (earth_cy - earth_r) + 102 }}, {{ earth_cx + 84 }} {{ (earth_cy - earth_r) + 140 }}, {{ earth_cx + 110 }} {{ (earth_cy - earth_r) + 168 }}
+                 C {{ earth_cx + 132 }} {{ (earth_cy - earth_r) + 192 }}, {{ earth_cx + 110 }} {{ (earth_cy - earth_r) + 230 }}, {{ earth_cx + 76 }} {{ (earth_cy - earth_r) + 246 }}
+                 C {{ earth_cx + 52 }} {{ (earth_cy - earth_r) + 258 }}, {{ earth_cx + 32 }} {{ (earth_cy - earth_r) + 220 }}, {{ earth_cx + 44 }} {{ (earth_cy - earth_r) + 178 }}
+                 C {{ earth_cx + 56 }} {{ (earth_cy - earth_r) + 136 }}, {{ earth_cx + 30 }} {{ (earth_cy - earth_r) + 98 }}, {{ earth_cx + 60 }} {{ (earth_cy - earth_r) + 52 }} Z"
+              fill="#16a34a" opacity="0.92"/>
+      </g>
     </g>
     <!-- atmosphere stroke along the arc -->
     <circle cx="{{ earth_cx }}" cy="{{ earth_cy }}" r="{{ earth_r }}" fill="none" stroke="#93c5fd" stroke-width="3" opacity="0.35"/>
+  </g>
+
+  <!-- Smoky launch effect around the start point -->
+  <g opacity="0.92" transform="translate(0, 8)">
+    <!-- Dense base smoke to obscure the Earth edge + bar base so the bar appears to emerge -->
+    <g filter="url(#smokeBlur)" opacity="0.95">
+      <ellipse cx="400" cy="{{ bar_y + bar_height + 6 }}" rx="130" ry="44" fill="#0f172a" opacity="0.55"/>
+      <ellipse cx="400" cy="{{ bar_y + bar_height - 4 }}" rx="110" ry="34" fill="#0f172a" opacity="0.50"/>
+    </g>
+
+    <!-- Flame + smoke plume to visually "hide" the join -->
+    <g filter="url(#plume)">
+      <!-- Outer glow -->
+      <ellipse cx="400" cy="{{ bar_y + bar_height - 8 }}" rx="88" ry="28" fill="url(#flameOuter)"/>
+      <!-- Hot core -->
+      <ellipse cx="400" cy="{{ bar_y + bar_height - 16 }}" rx="58" ry="22" fill="url(#flameCore)"/>
+      <!-- Small flickers -->
+      <ellipse cx="378" cy="{{ bar_y + bar_height - 22 }}" rx="18" ry="10" fill="#fde047" opacity="0.55"/>
+      <ellipse cx="420" cy="{{ bar_y + bar_height - 20 }}" rx="22" ry="12" fill="#fb923c" opacity="0.55"/>
+    </g>
+
+    <!-- Smoke cloud (drawn AFTER flame so it sits on top; SVG draw order is the "z-index") -->
+    <g filter="url(#smokeBlur)" opacity="0.95">
+      <ellipse cx="400" cy="{{ bar_y + bar_height - 10 }}" rx="98" ry="26" fill="#cbd5e1" opacity="0.28"/>
+      <ellipse cx="360" cy="{{ bar_y + bar_height - 16 }}" rx="62" ry="22" fill="#94a3b8" opacity="0.22"/>
+      <ellipse cx="445" cy="{{ bar_y + bar_height - 17 }}" rx="70" ry="24" fill="#94a3b8" opacity="0.22"/>
+      <ellipse cx="400" cy="{{ bar_y + bar_height - 24 }}" rx="44" ry="18" fill="#e2e8f0" opacity="0.18"/>
+    </g>
   </g>
 
   <text x="70" y="1150" class="meta">Server-generated mock SVG (bytes) · kg-velocity</text>
