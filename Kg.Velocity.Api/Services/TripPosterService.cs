@@ -10,10 +10,12 @@ public class TripPosterService
 {
     private const string TemplateResourceName = "Kg.Velocity.Api.Templates.trip-poster.svg.sbn";
     private readonly PosterEventsCache _eventsCache;
+    private readonly DestinationIconService _iconService;
 
-    public TripPosterService(PosterEventsCache eventsCache)
+    public TripPosterService(PosterEventsCache eventsCache, DestinationIconService iconService)
     {
         _eventsCache = eventsCache;
+        _iconService = iconService;
     }
 
     private static string LoadTemplateText()
@@ -131,6 +133,11 @@ public class TripPosterService
             globals.Add("earth_cx", earthCx);
             globals.Add("earth_cy", earthCy);
             globals.Add("earth_r", earthRadius);
+
+            // Load destination icon SVG content
+            var (iconContent, iconViewBox) = _iconService.GetIconSvgContent(destination);
+            globals.Add("destination_icon", iconContent);
+            globals.Add("destination_icon_viewbox", iconViewBox);
 
             // Convert events to ScriptArray for Scriban iteration
             var scriptEvents = new ScriptArray();

@@ -1,0 +1,5 @@
+<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bright north star with sparkle -->
+  <polygon points="30,5 33,25 55,30 33,35 30,55 27,35 5,30 27,25" fill="currentColor"/>
+  <circle cx="30" cy="30" r="6" fill="currentColor"/>
+</svg>

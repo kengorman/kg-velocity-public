@@ -64,6 +64,7 @@ builder.Services.AddSingleton<TripCatalogService>();
 builder.Services.AddSingleton<PosterEventsPromptBuilder>();
 builder.Services.AddSingleton<AiPosterEventsService>();
 builder.Services.AddSingleton<PosterEventsCache>();
+builder.Services.AddSingleton<DestinationIconService>();
 builder.Services.AddSingleton<TripPosterService>();
 
 var app = builder.Build();

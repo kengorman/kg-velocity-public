@@ -1,0 +1,6 @@
+<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Three pillars/columns -->
+  <path d="M12 55 L15 20 Q14 15 17 12 L20 15 Q18 18 19 25 L22 55 Z" fill="currentColor"/>
+  <path d="M25 55 L27 15 Q26 8 30 5 L34 10 Q32 14 33 20 L35 55 Z" fill="currentColor"/>
+  <path d="M40 55 L42 25 Q41 18 45 15 L47 18 Q46 22 46 30 L48 55 Z" fill="currentColor"/>
+</svg>

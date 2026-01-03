@@ -1,0 +1,14 @@
+<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sun with rays -->
+  <circle cx="30" cy="30" r="14" fill="currentColor"/>
+  <g stroke="currentColor" stroke-width="3" stroke-linecap="round">
+    <line x1="30" y1="5" x2="30" y2="12"/>
+    <line x1="30" y1="48" x2="30" y2="55"/>
+    <line x1="5" y1="30" x2="12" y2="30"/>
+    <line x1="48" y1="30" x2="55" y2="30"/>
+    <line x1="12" y1="12" x2="17" y2="17"/>
+    <line x1="43" y1="43" x2="48" y2="48"/>
+    <line x1="12" y1="48" x2="17" y2="43"/>
+    <line x1="43" y1="17" x2="48" y2="12"/>
+  </g>
+</svg>

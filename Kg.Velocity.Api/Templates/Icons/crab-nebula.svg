@@ -1,0 +1,14 @@
+<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Supernova remnant - explosion shape -->
+  <circle cx="30" cy="30" r="6" fill="currentColor"/>
+  <g stroke="currentColor" stroke-width="2" fill="none" opacity="0.7">
+    <path d="M30 30 Q25 15 30 8"/>
+    <path d="M30 30 Q42 18 48 15"/>
+    <path d="M30 30 Q45 35 52 30"/>
+    <path d="M30 30 Q40 45 45 50"/>
+    <path d="M30 30 Q25 45 30 52"/>
+    <path d="M30 30 Q15 42 10 48"/>
+    <path d="M30 30 Q12 28 6 30"/>
+    <path d="M30 30 Q18 15 12 10"/>
+  </g>
+</svg>

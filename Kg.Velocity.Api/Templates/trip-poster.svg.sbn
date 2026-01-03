@@ -173,20 +173,15 @@ Branch system:
       mask="url(#barFadeMask)"
     />
 
-    <!-- Top destination "eye" -->
-    <circle
-      cx="400"
-      cy="{{ bar_top_y }}"
-      r="46"
-      fill="{{ accent2 }}"
-    />
-    <circle
-      cx="400"
-      cy="{{ bar_top_y }}"
-      r="30"
-      fill="#0b1b3b"
-      opacity="0.85"
-    />
+    <!-- Top destination icon -->
+    <g transform="translate(400, {{ bar_top_y }})" color="{{ accent2 }}">
+      <!-- Outer glow circle -->
+      <circle cx="0" cy="0" r="46" fill="{{ accent2 }}" opacity="0.3"/>
+      <!-- Icon container - nested SVG for viewBox scaling -->
+      <svg x="-30" y="-30" width="60" height="60" viewBox="{{ destination_icon_viewbox }}">
+        {{ destination_icon }}
+      </svg>
+    </g>
   </g>
 
   <!-- DYNAMIC BRANCHES -->

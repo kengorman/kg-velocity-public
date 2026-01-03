@@ -1,0 +1,6 @@
+<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Pluto with heart (Tombaugh Regio) -->
+  <circle cx="30" cy="30" r="20" fill="currentColor"/>
+  <path d="M30 24 C26 20 20 22 20 28 C20 34 30 40 30 40 C30 40 40 34 40 28 C40 22 34 20 30 24"
+    fill="currentColor" opacity="0.5"/>
+</svg>

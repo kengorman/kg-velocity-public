@@ -1,0 +1,8 @@
+<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Spiral galaxy -->
+  <circle cx="30" cy="30" r="5" fill="currentColor"/>
+  <path d="M30 30 Q40 25 45 30 Q50 40 40 45 Q30 50 25 42 Q20 35 28 30"
+    fill="none" stroke="currentColor" stroke-width="3" opacity="0.8"/>
+  <path d="M30 30 Q20 35 15 30 Q10 20 20 15 Q30 10 35 18 Q40 25 32 30"
+    fill="none" stroke="currentColor" stroke-width="3" opacity="0.8"/>
+</svg>
