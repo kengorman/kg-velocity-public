@@ -1,11 +1,12 @@
 using System.Collections.Concurrent;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace Kg.Velocity.Api.Services;
 
 public partial class DestinationIconService
 {
-    private readonly IHostEnvironment _env;
+    private static readonly Assembly Assembly = typeof(DestinationIconService).Assembly;
     private readonly ConcurrentDictionary<string, (string innerContent, string viewBox)> _iconCache = new(StringComparer.OrdinalIgnoreCase);
 
     [GeneratedRegex(@"<svg[^>]*viewBox\s*=\s*""([^""]+)""[^>]*>(.*)</svg>", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
@@ -30,9 +31,8 @@ public partial class DestinationIconService
         ["Andromeda Galaxy"] = "andromeda.svg"
     };
 
-    public DestinationIconService(IHostEnvironment env)
+    public DestinationIconService()
     {
-        _env = env;
     }
 
     /// <summary>
@@ -47,21 +47,12 @@ public partial class DestinationIconService
     private (string innerContent, string viewBox) LoadIconContent(string destination)
     {
         var iconFile = DestinationToIconMap.GetValueOrDefault(destination, "default.svg");
-        var iconPath = Path.Combine(_env.ContentRootPath, "Templates", "Icons", iconFile);
+        var svgContent = ReadEmbeddedIcon(iconFile) ?? ReadEmbeddedIcon("default.svg");
 
-        if (!File.Exists(iconPath))
+        if (string.IsNullOrEmpty(svgContent))
         {
-            // Fall back to default if specific icon not found
-            iconPath = Path.Combine(_env.ContentRootPath, "Templates", "Icons", "default.svg");
-        }
-
-        if (!File.Exists(iconPath))
-        {
-            // Ultimate fallback - return empty
             return (string.Empty, "0 0 60 60");
         }
-
-        var svgContent = File.ReadAllText(iconPath);
 
         // Extract viewBox and inner content using regex
         var match = SvgWrapperRegex().Match(svgContent);
@@ -74,5 +65,14 @@ public partial class DestinationIconService
 
         // Fallback if regex doesn't match - return as-is with default viewBox
         return (svgContent, "0 0 60 60");
+    }
+
+    private static string? ReadEmbeddedIcon(string iconFile)
+    {
+        var resourceName = $"Kg.Velocity.Api.Templates.Icons.{iconFile}";
+        using var stream = Assembly.GetManifestResourceStream(resourceName);
+        if (stream is null) return null;
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 }

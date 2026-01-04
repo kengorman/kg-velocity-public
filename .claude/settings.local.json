@@ -4,7 +4,8 @@
       "Bash(curl:*)",
       "Bash(cat:*)",
       "Bash(netstat.exe:*)",
-      "Bash(ss:*)"
+      "Bash(ss:*)",
+      "Bash(dotnet build:*)"
     ]
   }
 }
