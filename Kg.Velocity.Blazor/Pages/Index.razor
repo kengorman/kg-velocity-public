@@ -114,13 +114,6 @@
                         @if (ViewModel.IsDownloadingPoster || !string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
                         {
                             <div class="poster-panel" aria-label="Generated poster preview">
-                                <div class="poster-panel-header">
-                                    <div class="poster-title">Poster</div>
-                                    <div class="poster-meta">
-                                        @(ViewModel.IsDownloadingPoster ? "Generating..." : ViewModel.PosterGeneratedAtDisplay)
-                                    </div>
-                                </div>
-
                                 @if (ViewModel.IsDownloadingPoster)
                                 {
                                     <div class="poster-loading" role="status" aria-live="polite">

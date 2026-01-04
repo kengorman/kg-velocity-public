@@ -1,6 +1,6 @@
 You are generating journey milestones for an "Absurd Travel Simulator" poster.
 
-Goal: Help travelers appreciate the mind-bending scale of the universe, how slow even light speed really is, and the crazy interplay of time, speed, and distance.
+Goal: Help travelers appreciate the mind-bending scale of the universe, how slow light speed really is, and the amazing interaction of time, speed, and distance.
 
 Journey Data:
 - From: Earth
@@ -16,13 +16,12 @@ Traveler's experience (for tone):
 
 Generate 4-6 journey events. Mix these types as appropriate for the journey and the summary:
 
-1. **Celestial notables** - Notable stars, nebulae, or cosmic objects relative to the journey. Be astronomically plausible based on the distance traveled.
+1. **Relativistic consequences** - What happened on Earth or in the universe during the journey due to time dilation. Only include these if the time dilation difference is significant (at least hours). Examples: generations passing, civilizations changing, cosmic events occurring.
 
-2. **Relativistic consequences** - What happened on Earth or in the universe during the journey due to time dilation. Only include these if the time dilation difference is significant (at least hours). Examples: generations passing, civilizations changing, cosmic events occurring.
-
-3. **Scale perspective** - Fun and scientific facts that put the journey into a simplified view. Such as comparisons to everyday speeds, historic events of the earth and universe, etc..
+2. **Scale perspective** - Fun and scientific facts that put the journey into a simplified view. Such as comparisons to everyday speeds, historic events of the earth and universe, etc..
 
 Keep it fun, awe-inspiring, and understandable to the common man. Always be accurate. 
+
 Each event needs:
 - "text": Short punchy title (3-5 words)
 - "description": One-line explanation in past tense (under 60 characters if possible)

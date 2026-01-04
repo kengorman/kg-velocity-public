@@ -220,53 +220,32 @@ html, body {
     color: #374151;
 }
 
-/* Poster panel (mock SVG workflow) */
+/* Poster panel - breaks out of parent padding for full-width display */
 .poster-panel {
     margin-top: 10px;
-    padding: 14px;
+    margin-left: -30px;
+    margin-right: -30px;
+    padding: 14px 0;
     background-color: var(--bg-primary);
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-}
-
-.poster-panel-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 10px;
-}
-
-.poster-title {
-    font-size: 12px;
-    font-weight: 800;
-    color: var(--text-primary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.poster-meta {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    border-radius: 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .poster-preview {
     width: 100%;
     height: auto;
     display: block;
-    border-radius: 10px;
+    border-radius: 0;
     background: #0b1b3b;
-    border: 1px solid rgba(17, 24, 39, 0.08);
 }
 
 .poster-loading {
     width: 100%;
-    border-radius: 10px;
+    border-radius: 0;
     background: #0b1b3b;
     color: #e5e7eb;
-    border: 1px solid rgba(17, 24, 39, 0.08);
-    padding: 24px 14px;
+    padding: 24px 16px;
     text-align: center;
     font-size: 13px;
 }
@@ -275,6 +254,7 @@ html, body {
     display: flex;
     justify-content: flex-end;
     margin-top: 10px;
+    padding: 0 16px;
 }
 
 .poster-download {

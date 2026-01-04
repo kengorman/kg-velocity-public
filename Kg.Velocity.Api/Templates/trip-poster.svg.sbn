@@ -18,6 +18,16 @@ Branch system:
 <!--
 {{~
   #
+  # FONTS (proportional sizing - change font_base to scale everything)
+  #
+  font_base = 50
+  font_title = font_base
+  font_subtitle = font_base * 0.55
+  font_meta = font_base * 0.41
+  font_event = font_base * 0.40
+  font_event_desc = font_base * 0.35
+
+  #
   # COLORS (computed from accent_hue passed by C#)
   #
   bar_color_origin = "hsl(" + accent_hue + ", 90%, 55%)"
@@ -122,7 +132,7 @@ Branch system:
   left_margin = 20
   right_margin = 780
   text_max_width = 200
-  text_box_height = 50
+  text_box_height = 100
 
 ~}}
 -->
@@ -189,15 +199,15 @@ Branch system:
       <rect x="0" y="0" width="1" height="1" fill="url(#barFadeMaskGrad)"/>
     </mask>
     <style>
-      .title { font: 800 54px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; fill: #fbbf24; }
-      .subtitle { font: 500 26px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; fill: #cbd5e1; }
-      .meta { font: 600 18px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; fill: #94a3b8; }
+      .title { font: 800 {{ font_title }}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; fill: #fbbf24; }
+      .subtitle { font: 500 {{ font_subtitle }}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; fill: #cbd5e1; }
+      .meta { font: 600 {{ font_meta }}px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; fill: #94a3b8; }
       .branch-label {
-        font: 500 16px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+        font: 500 {{ font_event }}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
         fill: #e2e8f0;
       }
       .branch-desc {
-        font: 400 13px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+        font: 400 {{ font_event_desc }}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
         fill: #94a3b8;
       }
     </style>
@@ -314,40 +324,33 @@ Branch system:
         />
       </g>
 
-      <!-- Event text with wrapping -->
+      <!-- Event text and description in single container for natural flow -->
       <foreignObject
         x="{{ text_box_x }}"
         y="{{ text_box_y }}"
         width="{{ text_max_width }}"
         height="{{ text_box_height }}"
       >
-        <div xmlns="http://www.w3.org/1999/xhtml" style="
-          font: 500 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          color: #e2e8f0;
-          text-align: {{ text_align }};
-          word-wrap: break-word;
-          overflow-wrap: break-word;
-          line-height: 1.3;
-        ">{{ event.text }}</div>
+        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align: {{ text_align }};">
+          <div style="
+            font: 500 {{ font_event }}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #e2e8f0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.3;
+          ">{{ event.text }}</div>
+          {{~ if event.description ~}}
+          <div style="
+            font: 400 {{ font_event_desc }}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #94a3b8;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.3;
+            margin-top: 4px;
+          ">{{ event.description }}</div>
+          {{~ end ~}}
+        </div>
       </foreignObject>
-
-      {{~ if event.description ~}}
-      <foreignObject
-        x="{{ text_box_x }}"
-        y="{{ text_box_y + 22 }}"
-        width="{{ text_max_width }}"
-        height="{{ text_box_height }}"
-      >
-        <div xmlns="http://www.w3.org/1999/xhtml" style="
-          font: 400 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          color: #94a3b8;
-          text-align: {{ text_align }};
-          word-wrap: break-word;
-          overflow-wrap: break-word;
-          line-height: 1.3;
-        ">{{ event.description }}</div>
-      </foreignObject>
-      {{~ end ~}}
     </g>
   {{~ end ~}}
 
