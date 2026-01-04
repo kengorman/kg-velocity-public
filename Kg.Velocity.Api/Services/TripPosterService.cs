@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Scriban;
 using Scriban.Runtime;
 using System.Globalization;
@@ -7,19 +6,13 @@ using System.Text;
 namespace Kg.Velocity.Api.Services;
 
 /// <summary>
-/// todo - continue to remove all global var declarations in the c# into the svg template.
+/// 
 /// </summary>
-public class TripPosterService
+public class TripPosterService(PosterEventsCache eventsCache, DestinationIconService iconService)
 {
     private const string TemplateResourceName = "Kg.Velocity.Api.Templates.trip-poster.svg.sbn";
-    private readonly PosterEventsCache _eventsCache;
-    private readonly DestinationIconService _iconService;
-
-    public TripPosterService(PosterEventsCache eventsCache, DestinationIconService iconService)
-    {
-        _eventsCache = eventsCache;
-        _iconService = iconService;
-    }
+    private readonly PosterEventsCache _eventsCache = eventsCache;
+    private readonly DestinationIconService _iconService = iconService;
 
     private static string LoadTemplateText()
     {
@@ -86,36 +79,13 @@ public class TripPosterService
             var generatedAt = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss 'UTC'", CultureInfo.InvariantCulture);
 
             // Simple, deterministic-ish color variation based on nonce.
-            var seed = 0;
-            _ = int.TryParse(new string(nonce.Where(char.IsDigit).TakeLast(6).ToArray()), out seed);
+            _ = int.TryParse(new string(nonce.Where(char.IsDigit).TakeLast(6).ToArray()), out int seed);
             var accentHue = (seed % 40) + 15;
-            var accent = $"hsl({accentHue}, 90%, 55%)";
-            var accent2 = $"hsl({(accentHue + 180) % 360}, 80%, 60%)";
 
             static string Esc(string? s) =>
                 string.IsNullOrEmpty(s) ? "" :
                 s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
                  .Replace("\"", "&quot;").Replace("'", "&apos;");
-
-            // Geometry: bar starts at the top of a "rising Earth" semicircle at the bottom edge.
-            const int canvasHeight = 1200;
-            const int baseEarthRadius = (int)(canvasHeight * 0.05); // 5% of 1200 = 60
-            const int earthDiameterScale = 3; // baseline sizing
-            var earthRadius = baseEarthRadius * earthDiameterScale; // 180 (baseline)
-            const int barHeight = 850;
-            const int capOffset = 15;
-            const int earthCx = 400;
-
-            var baselineCapHeight = earthRadius / 2;
-            var earthTopY = canvasHeight - baselineCapHeight;
-
-            const double earthBaseWidenScale = 1.25;
-            earthRadius = (int)System.Math.Round(earthRadius * earthBaseWidenScale);
-            var earthCy = earthTopY + earthRadius;
-
-            var barBottomY = earthTopY;
-            var barY = barBottomY - barHeight;
-            var capTopCy = barY - capOffset;
 
             // Try to get AI-generated events from cache, fall back to mock events
             var events = _eventsCache.TryGet(nonce) ?? GenerateFallbackEvents(destination, seed);
@@ -123,20 +93,16 @@ public class TripPosterService
             // Render via Scriban
             var template = ParsedTemplate.Value;
 
-            var globals = new ScriptObject();
-            globals.Add("destination_esc", Esc(destination));
-            globals.Add("speed_esc", Esc(speed));
-            globals.Add("nonce_esc", Esc(nonce));
-            globals.Add("generated_at", generatedAt);
-            globals.Add("accent", accent);
-            globals.Add("accent2", accent2);
-            globals.Add("bar_y", barY);
-            globals.Add("bar_height", barHeight);
-            globals.Add("cap_top_cy", capTopCy);
-            globals.Add("earth_cx", earthCx);
-            globals.Add("earth_cy", earthCy);
-            globals.Add("earth_r", earthRadius);
-
+            var globals = new ScriptObject
+            {
+                { "destination_esc", Esc(destination) },
+                { "speed_esc", Esc(speed) },
+                { "nonce_esc", Esc(nonce) },
+                { "generated_at", generatedAt },
+                // Each unique nonce gets a different but reproducible color pair. Same nonce = same colors every time.
+                { "accent_hue", accentHue }
+            };
+ 
             // Load destination icon SVG content
             var (iconContent, iconViewBox) = _iconService.GetIconSvgContent(destination);
             globals.Add("destination_icon", iconContent);
@@ -146,8 +112,10 @@ public class TripPosterService
             var scriptEvents = new ScriptArray();
             foreach (var evt in events)
             {
-                var scriptEvent = new ScriptObject();
-                scriptEvent.Add("text", Esc(evt.Text));
+                var scriptEvent = new ScriptObject
+                {
+                    { "text", Esc(evt.Text) }
+                };
                 if (!string.IsNullOrEmpty(evt.Description))
                 {
                     scriptEvent.Add("description", Esc(evt.Description));

@@ -17,6 +17,12 @@ Branch system:
 
 <!--
 {{~
+  #
+  # COLORS (computed from accent_hue passed by C#)
+  #
+  bar_color_origin = "hsl(" + accent_hue + ", 90%, 55%)"
+  bar_color_destination = "hsl(" + ((accent_hue + 180) % 360) + ", 80%, 60%)"
+
   header_band_y = 70
   header_title_offset = 0
   header_subtitle_offset = 45
@@ -25,11 +31,17 @@ Branch system:
   #
   # EARTH (absolute anchor)
   #
-  earth_horizon_y = earth_cy - earth_r
+  canvas_height = 1200
+  earth_cx = 400
+  earth_r = 225
+  earth_visible_cap = 90
+  earth_horizon_y = canvas_height - earth_visible_cap
+  earth_cy = earth_horizon_y + earth_r
 
   #
   # BAR (bottom-anchored, adjustable, centered horizontally)
   #
+  bar_height = 900
   bar_center_x = 400
   bar_width = 32
   bar_rx = bar_width / 2
@@ -117,18 +129,18 @@ Branch system:
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
   <defs>
     <linearGradient id="spine" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0%" stop-color="{{ accent2 }}" stop-opacity="0.9"/>
-      <stop offset="100%" stop-color="{{ accent }}" stop-opacity="0.95"/>
+      <stop offset="0%" stop-color="{{ bar_color_destination }}" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="{{ bar_color_origin }}" stop-opacity="0.95"/>
     </linearGradient>
 
     <!-- Branch gradients -->
     <linearGradient id="branchGradientLeft" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0%" stop-color="{{ accent }}" stop-opacity="0.7"/>
-      <stop offset="100%" stop-color="{{ accent2 }}" stop-opacity="0.9"/>
+      <stop offset="0%" stop-color="{{ bar_color_origin }}" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="{{ bar_color_destination }}" stop-opacity="0.9"/>
     </linearGradient>
     <linearGradient id="branchGradientRight" x1="1" x2="0" y1="0" y2="0">
-      <stop offset="0%" stop-color="{{ accent }}" stop-opacity="0.7"/>
-      <stop offset="100%" stop-color="{{ accent2 }}" stop-opacity="0.9"/>
+      <stop offset="0%" stop-color="{{ bar_color_origin }}" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="{{ bar_color_destination }}" stop-opacity="0.9"/>
     </linearGradient>
 
     <radialGradient id="earthOcean" cx="35%" cy="25%" r="80%">
@@ -215,9 +227,9 @@ Branch system:
   />
 
     <!-- Top destination icon -->
-    <g transform="translate(400, {{ bar_top_y }})" color="{{ accent2 }}">
+    <g transform="translate(400, {{ bar_top_y }})" color="{{ bar_color_destination }}">
       <!-- Outer glow circle -->
-      <circle id="destination-icon-glow" cx="0" cy="0" r="46" fill="{{ accent2 }}" opacity="0.10"/>
+      <circle id="destination-icon-glow" cx="0" cy="0" r="46" fill="{{ bar_color_destination }}" opacity="0.10"/>
       <!-- Icon container - nested SVG for viewBox scaling -->
       <svg x="-30" y="-30" width="60" height="60" viewBox="{{ destination_icon_viewbox }}" opacity="0.85">
         {{ destination_icon }}
@@ -278,7 +290,7 @@ Branch system:
         y1="{{ branch_y }}"
         x2="{{ branch_end_x }}"
         y2="{{ branch_y }}"
-        stroke="{{ accent2 }}"
+        stroke="{{ bar_color_destination }}"
         stroke-width="{{ branch_stroke_width }}"
         stroke-linecap="round"
         opacity="0.8"
@@ -290,7 +302,7 @@ Branch system:
           cx="{{ branch_end_x }}"
           cy="{{ branch_y }}"
           r="{{ branch_end_radius }}"
-          fill="{{ accent2 }}"
+          fill="{{ bar_color_destination }}"
           opacity="0.9"
         />
         <circle
