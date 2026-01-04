@@ -1,11 +1,10 @@
-using Kg.Velocity.Contracts.Trips;
-using Kg.Velocity.Contracts.Catalogs;
-using Kg.Velocity.Api.Services;
-using Microsoft.AspNetCore.ResponseCompression;
 using AspNetCoreRateLimit;
+using Kg.Velocity.Api.Services;
+using Kg.Velocity.Contracts.Catalogs;
+using Kg.Velocity.Contracts.Trips;
+using Microsoft.AspNetCore.ResponseCompression;
 using OpenAI.Chat;
 using System.Globalization;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,18 +75,21 @@ app.UseResponseCompression();
 // Routing must be established before static files
 app.UseRouting();
 
+// Get the destinations
 app.MapGet("/api/destinations", (TripCatalogService catalogs) =>
 {
     IReadOnlyList<DestinationDto> destinations = catalogs.GetDestinations();
     return Results.Ok(destinations);
 });
 
+// Get the speed presets
 app.MapGet("/api/speed-presets", (TripCatalogService catalogs) =>
 {
     IReadOnlyList<SpeedPresetDto> presets = catalogs.GetSpeedPresets();
     return Results.Ok(presets);
 });
 
+// Evaluate the trip including generating a summary and a poster svg
 app.MapPost("/api/evaluate-trip", async (
     TripEvaluateRequest request,
     TripComputationService tripComputationService,
@@ -130,6 +132,7 @@ app.MapPost("/api/evaluate-trip", async (
     return Results.Ok(new TripEvaluateResponse(trip, summary, persona.Id, persona.Name, PosterUrl: posterUrl));
 });
 
+// Get the poster svg using the nonce created for the summary
 app.MapGet("/api/poster.svg", (HttpRequest httpRequest, TripPosterService posterService) =>
 {
     var bytes = posterService.GeneratePoster(httpRequest);

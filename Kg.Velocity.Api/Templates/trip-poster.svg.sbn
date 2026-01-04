@@ -28,19 +28,61 @@ Branch system:
   earth_horizon_y = earth_cy - earth_r
 
   #
-  # BAR (bottom-anchored, adjustable)
+  # BAR (bottom-anchored, adjustable, centered horizontally)
   #
+  bar_center_x = 400
+  bar_width = 32
+  bar_rx = bar_width / 2
+  bar_x = bar_center_x - (bar_width / 2)
   bar_launch_offset = 10
   bar_launch_y = earth_horizon_y + bar_launch_offset
-
   bar_top_y = bar_launch_y - bar_height
-
   bar_mid_y = bar_top_y + (bar_height / 2)
 
+ #
+  # SMOKE / FIRE (geometry)
   #
-  # SMOKE / FIRE (decorative)
+  smoke_center_x = bar_center_x
+
+  smoke_y_offset = 10          # tweak THIS to move smoke up/down relative to launch
+
+  # Widths (horizontal radii)
+  smoke_base_width        = 50
+  smoke_secondary_width   = 20
+  smoke_cloud_width       = 98
+  smoke_flame_outer_width = 88
+  smoke_flame_core_width  = 58
+
+  # Derived anchor
+  smoke_base_y = bar_launch_y + smoke_y_offset
+
   #
-  smoke_offset_y = 322
+  # SMOKE / FIRE (volumetric launch plume)
+  #
+  smoke_center_x = bar_center_x
+  smoke_y_offset = 0
+  smoke_base_y   = bar_launch_y + smoke_y_offset
+
+  # Horizontal spread
+  smoke_core_width    = 60
+  smoke_mid_width     = 70
+  smoke_outer_width   = 80
+
+  # Vertical spread
+  smoke_core_height   = 22
+  smoke_mid_height    = 36
+  smoke_outer_height  = 55
+
+  # Vertical layering
+  smoke_core_offset_y  = -10
+  smoke_mid_offset_y   = 0
+  smoke_outer_offset_y = 14
+
+  # Density
+  smoke_core_opacity  = 0.75
+  smoke_mid_opacity   = 0.75
+  smoke_outer_opacity = 0.75
+
 
   #
   # BRANCHES (dynamic positioning)
@@ -59,7 +101,7 @@ Branch system:
   end
 
   # Branch geometry
-  branch_length = 140
+  branch_length = 120
   branch_end_radius = 18
   branch_stroke_width = 3.5
 
@@ -154,7 +196,7 @@ Branch system:
   <g id="header_band">
     <text x="70" y="{{ header_band_y }}" class="title">Absurd Travel Simulator</text>
     <text x="70" y="{{ header_band_y + 45 }}" class="subtitle">
-      {{ destination_esc }} at {{ speed_esc }}
+      Earth to {{ destination_esc }} at {{ speed_esc }}
     </text>
     <text x="70" y="{{ header_band_y + 85 }}" class="meta">
       Generated: {{ generated_at }} · nonce {{ nonce_esc }}
@@ -162,27 +204,25 @@ Branch system:
   </g>
 
   <!-- MAIN SPINE BAR -->
-  <g filter="url(#shadow)">
-    <rect
-      x="376"
-      y="{{ bar_top_y }}"
-      width="48"
-      height="{{ bar_height }}"
-      rx="24"
-      fill="url(#spine)"
-      mask="url(#barFadeMask)"
-    />
+  <rect
+    x="{{ bar_x }}"
+    y="{{ bar_top_y }}"
+    width="{{ bar_width }}"
+    height="{{ bar_height }}"
+    rx="{{ bar_rx }}"
+    fill="url(#spine)"
+    mask="url(#barFadeMask)"
+  />
 
     <!-- Top destination icon -->
     <g transform="translate(400, {{ bar_top_y }})" color="{{ accent2 }}">
       <!-- Outer glow circle -->
-      <circle cx="0" cy="0" r="46" fill="{{ accent2 }}" opacity="0.3"/>
+      <circle id="destination-icon-glow" cx="0" cy="0" r="46" fill="{{ accent2 }}" opacity="0.10"/>
       <!-- Icon container - nested SVG for viewBox scaling -->
-      <svg x="-30" y="-30" width="60" height="60" viewBox="{{ destination_icon_viewbox }}">
+      <svg x="-30" y="-30" width="60" height="60" viewBox="{{ destination_icon_viewbox }}" opacity="0.85">
         {{ destination_icon }}
       </svg>
     </g>
-  </g>
 
   <!-- DYNAMIC BRANCHES -->
   {{~ for event in events ~}}
@@ -299,6 +339,54 @@ Branch system:
     </g>
   {{~ end ~}}
 
+  <!-- SMOKE/FIRE LAUNCH EFFECT (refactored: single anchored plume) -->
+  <g filter="url(#smokeBlur)" opacity="0.75">
+
+    <!-- Core / dense base -->
+    <ellipse
+      cx="{{ smoke_center_x }}"
+      cy="{{ smoke_base_y - 8 }}"
+      rx="{{ smoke_core_width }}"
+      ry="{{ smoke_core_height }}"
+      fill="#0f172a"
+      opacity="{{ smoke_core_opacity }}"
+  />
+
+    <!-- Main body -->
+    <ellipse
+      cx="{{ smoke_center_x }}"
+      cy="{{ smoke_base_y + 2 }}"
+      rx="{{ smoke_mid_width }}"
+      ry="{{ smoke_mid_height }}"
+      fill="#0f172a"
+      opacity="{{ smoke_mid_opacity }}"
+  />
+
+    <!-- Outer diffusion -->
+    <ellipse
+      cx="{{ smoke_center_x }}"
+      cy="{{ smoke_base_y + 14 }}"
+      rx="{{ smoke_outer_width }}"
+      ry="{{ smoke_outer_height }}"
+      fill="#cbd5e1"
+      opacity="{{ smoke_outer_opacity }}"
+  />
+
+  </g>
+
+  <!-- Optional: tiny heat core (kept separate so it stays punchy) -->
+  <g filter="url(#plume)" opacity="0.55">
+    <ellipse
+      cx="{{ smoke_center_x }}"
+      cy="{{ smoke_base_y - 16 }}"
+      rx="42"
+      ry="16"
+      fill="url(#flameCore)"
+      opacity="0.55"
+  />
+  </g>
+
+
   <!-- EARTH -->
   <g filter="url(#shadow)">
     <circle cx="{{ earth_cx }}" cy="{{ earth_cy }}" r="{{ earth_r }}" fill="url(#earthOcean)"/>
@@ -327,30 +415,8 @@ Branch system:
     <circle cx="{{ earth_cx }}" cy="{{ earth_cy }}" r="{{ earth_r }}" fill="none" stroke="#93c5fd" stroke-width="3" opacity="0.35"/>
   </g>
 
-  <!-- SMOKE/FIRE LAUNCH EFFECT -->
-  <g opacity="0.92" transform="translate(0, 8)">
-    <!-- Dense base smoke -->
-    <g filter="url(#smokeBlur)" opacity="0.95">
-      <ellipse cx="400" cy="{{ bar_launch_y + 6 }}" rx="130" ry="44" fill="#0f172a" opacity="0.55"/>
-      <ellipse cx="400" cy="{{ bar_launch_y - 4 }}" rx="110" ry="34" fill="#0f172a" opacity="0.50"/>
-    </g>
 
-    <!-- Flame + smoke plume -->
-    <g filter="url(#plume)">
-      <ellipse cx="400" cy="{{ bar_launch_y - 8 }}" rx="88" ry="28" fill="url(#flameOuter)"/>
-      <ellipse cx="400" cy="{{ bar_launch_y - 16 }}" rx="58" ry="22" fill="url(#flameCore)"/>
-      <ellipse cx="378" cy="{{ bar_launch_y - 22 }}" rx="18" ry="10" fill="#fde047" opacity="0.55"/>
-      <ellipse cx="420" cy="{{ bar_launch_y - 20 }}" rx="22" ry="12" fill="#fb923c" opacity="0.55"/>
-    </g>
 
-    <!-- Smoke cloud -->
-    <g filter="url(#smokeBlur)" opacity="0.95">
-      <ellipse cx="400" cy="{{ bar_launch_y - 10 }}" rx="98" ry="26" fill="#cbd5e1" opacity="0.28"/>
-      <ellipse cx="360" cy="{{ bar_launch_y - 16 }}" rx="62" ry="22" fill="#94a3b8" opacity="0.22"/>
-      <ellipse cx="445" cy="{{ bar_launch_y - 17 }}" rx="70" ry="24" fill="#94a3b8" opacity="0.22"/>
-      <ellipse cx="400" cy="{{ bar_launch_y - 24 }}" rx="44" ry="18" fill="#e2e8f0" opacity="0.18"/>
-    </g>
-  </g>
 
   <text
     x="50%"
