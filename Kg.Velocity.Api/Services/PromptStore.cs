@@ -1,9 +1,11 @@
 using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace Kg.Velocity.Api.Services;
 
-public class PromptStore(IHostEnvironment env)
+public class PromptStore
 {
+    private static readonly Assembly Assembly = typeof(PromptStore).Assembly;
     private readonly ConcurrentDictionary<string, string> _cache = new(StringComparer.OrdinalIgnoreCase);
 
     public string GetPrompt(string relativePath)
@@ -11,28 +13,13 @@ public class PromptStore(IHostEnvironment env)
         return _cache.GetOrAdd(relativePath, LoadPrompt);
     }
 
-    private string LoadPrompt(string relativePath)
+    private static string LoadPrompt(string relativePath)
     {
-        var fullPath = Path.Combine(env.ContentRootPath, relativePath);
-        if (!File.Exists(fullPath))
-            throw new FileNotFoundException($"Prompt file not found: {relativePath}", fullPath);
-
-        return File.ReadAllText(fullPath);
+        // Convert path like "Prompts/poster-events.md" to "Kg.Velocity.Api.Prompts.poster-events.md"
+        var resourceName = "Kg.Velocity.Api." + relativePath.Replace('/', '.').Replace('\\', '.');
+        using var stream = Assembly.GetManifestResourceStream(resourceName)
+            ?? throw new FileNotFoundException($"Embedded prompt not found: {relativePath}", resourceName);
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

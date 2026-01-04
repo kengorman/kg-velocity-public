@@ -20,10 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Prompts\**\*.*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
+    <EmbeddedResource Include="Prompts\*.md" />
   </ItemGroup>
 
   <ItemGroup>
