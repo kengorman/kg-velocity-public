@@ -6,6 +6,9 @@ using System.Text;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// todo - continue to remove all global var declarations in the c# into the svg template.
+/// </summary>
 public class TripPosterService
 {
     private const string TemplateResourceName = "Kg.Velocity.Api.Templates.trip-poster.svg.sbn";
