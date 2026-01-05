@@ -21,6 +21,7 @@ public class TripCatalogService
             new() { Name = "Mercury", DistanceMiles = 56_000_000, Category = "Space" },
             new() { Name = "The Sun", DistanceMiles = 93_000_000, Category = "Space" },
             new() { Name = "Mars", DistanceMiles = 140_000_000, Category = "Space" },
+            new() { Name = "Jupiter", DistanceMiles = 484_000_000, Category = "Space" },
             new() { Name = "Saturn", DistanceMiles = 886_000_000, Category = "Space" },
             new() { Name = "Uranus", DistanceMiles = 1_800_000_000, Category = "Space" },
             new() { Name = "Pluto", DistanceMiles = 3_700_000_000, Category = "Space" },

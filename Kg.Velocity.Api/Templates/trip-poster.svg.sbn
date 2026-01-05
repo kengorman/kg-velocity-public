@@ -134,6 +134,14 @@ Branch system:
   text_max_width = 200
   text_box_height = 100
 
+  #
+  # DESTINATION ICON
+  #
+  icon_size = 80
+  icon_glow_r = icon_size * 0.77
+  icon_center_x = bar_center_x
+  icon_center_y = bar_top_y
+
 ~}}
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
@@ -237,11 +245,11 @@ Branch system:
   />
 
     <!-- Top destination icon -->
-    <g transform="translate(400, {{ bar_top_y }})" color="{{ bar_color_destination }}">
+    <g transform="translate({{ icon_center_x }}, {{ icon_center_y }})" color="{{ bar_color_destination }}">
       <!-- Outer glow circle -->
-      <circle id="destination-icon-glow" cx="0" cy="0" r="46" fill="{{ bar_color_destination }}" opacity="0.10"/>
+      <circle id="destination-icon-glow" cx="0" cy="0" r="{{ icon_glow_r }}" fill="{{ bar_color_destination }}" opacity="0.10"/>
       <!-- Icon container - nested SVG for viewBox scaling -->
-      <svg x="-30" y="-30" width="60" height="60" viewBox="{{ destination_icon_viewbox }}" opacity="0.85">
+      <svg x="{{ icon_size / -2 }}" y="{{ icon_size / -2 }}" width="{{ icon_size }}" height="{{ icon_size }}" viewBox="{{ destination_icon_viewbox }}" opacity="0.85">
         {{ destination_icon }}
       </svg>
     </g>

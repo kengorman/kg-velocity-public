@@ -18,6 +18,7 @@ public partial class DestinationIconService
         ["Mercury"] = "mercury.svg",
         ["The Sun"] = "sun.svg",
         ["Mars"] = "mars.svg",
+        ["Jupiter"] = "jupiter.svg",
         ["Saturn"] = "saturn.svg",
         ["Uranus"] = "uranus.svg",
         ["Pluto"] = "pluto.svg",
