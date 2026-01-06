@@ -20,7 +20,7 @@ public class PosterEventsPromptBuilder(PromptStore prompts)
             ["EarthTimeFormatted"] = trip.EarthTimeFormatted,
             ["ShipTimeFormatted"] = trip.ShipTimeFormatted,
             ["TimeDifference"] = trip.TimeDifferenceFormatted,
-            ["Summary"] = summary,
+//            ["Summary"] = summary,
         });
     }
 }

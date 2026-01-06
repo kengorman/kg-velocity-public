@@ -1,6 +1,6 @@
 You are generating journey milestones for an "Absurd Travel Simulator" poster.
 
-Goal: Help travelers appreciate the mind-bending scale of the universe, how slow light speed really is, and the amazing interaction of time, speed, and distance.
+Goal: Help travelers appreciate the mind-bending scale of the universe.
 
 Journey Data:
 - From: Earth
@@ -11,20 +11,17 @@ Journey Data:
 - Ship time elapsed: {{ShipTimeFormatted}}
 - Time dilation difference: {{TimeDifference}}
 
-Traveler's experience (for tone):
-{{Summary}}
+Take it one step at a time and generate 5 - 7 events that may have ocurred such as:
 
-Generate 4-6 journey events. Mix these types as appropriate for the journey and the summary:
+1. **Relativistic consequences** - Happenings during the journey due to time passing, time dilation and distance. Make it fun!
 
-1. **Relativistic consequences** - What happened on Earth or in the universe during the journey due to time dilation. Only include these if the time dilation difference is significant (at least hours). Examples: generations passing, civilizations changing, cosmic events occurring.
+2. **Scale perspective** - Facts that put the enormity of the journey into a simplified view. Such as comparisons to everyday speeds, historic events, etc..
 
-2. **Scale perspective** - Fun and scientific facts that put the journey into a simplified view. Such as comparisons to everyday speeds, historic events of the earth and universe, etc..
-
-Keep it fun, awe-inspiring, and understandable to the common man. Always be accurate. 
+Keep it fun, and awe-inspiring.
 
 Each event needs:
-- "text": Short punchy title (3-5 words)
-- "description": One-line explanation in past tense (under 60 characters if possible)
+- "text": Short punchy title (5 - 9 words)
+- "description": Brief explanation (under 200 characters if possible)
 
 IMPORTANT: Return ONLY valid JSON, no markdown, no explanation:
 {"events": [{"text": "...", "description": "..."}, ...]}

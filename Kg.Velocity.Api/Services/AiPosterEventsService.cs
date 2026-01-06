@@ -35,7 +35,7 @@ public class AiPosterEventsService
 
             var chatOptions = new ChatCompletionOptions
             {
-                Temperature = 0.9f // Slightly lower than summary for more consistent JSON
+                Temperature = 1.2f // Slightly lower than summary for more consistent JSON
             };
 
             var completion = await _chatClient.CompleteChatAsync(messages, chatOptions);
