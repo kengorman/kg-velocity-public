@@ -75,6 +75,8 @@ public class TripPosterService(PosterEventsCache eventsCache, DestinationIconSer
             var destination = httpRequest.Query["destination"].ToString();
             var speed = httpRequest.Query["speed"].ToString();
             var nonce = httpRequest.Query["nonce"].ToString();
+            var earthTime = httpRequest.Query["earthTime"].ToString();
+            var shipTime = httpRequest.Query["shipTime"].ToString();
 
             var generatedAt = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss 'UTC'", CultureInfo.InvariantCulture);
 
@@ -99,6 +101,8 @@ public class TripPosterService(PosterEventsCache eventsCache, DestinationIconSer
                 { "speed_esc", Esc(speed) },
                 { "nonce_esc", Esc(nonce) },
                 { "generated_at", generatedAt },
+                { "earth_time", Esc(earthTime) },
+                { "ship_time", Esc(shipTime) },
                 // Each unique nonce gets a different but reproducible color pair. Same nonce = same colors every time.
                 { "accent_hue", accentHue }
             };

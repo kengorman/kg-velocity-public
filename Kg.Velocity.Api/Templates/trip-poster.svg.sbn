@@ -24,8 +24,8 @@ Branch system:
   font_title = font_base
   font_subtitle = font_base * 0.55
   font_meta = font_base * 0.41
-  font_event = font_base * 0.40
-  font_event_desc = font_base * 0.35
+  font_event = font_base * 0.41
+  font_event_desc = font_base * 0.40
 
   #
   # COLORS (computed from accent_hue passed by C#)
@@ -228,8 +228,8 @@ Branch system:
     <text x="70" y="{{ header_band_y + 45 }}" class="subtitle">
       Earth to {{ destination_esc }} at {{ speed_esc }}
     </text>
-    <text x="70" y="{{ header_band_y + 85 }}" class="meta">
-      Generated: {{ generated_at }} · nonce {{ nonce_esc }}
+    <text x="70" y="{{ header_band_y + 80 }}" class="meta">
+        {{ earth_time }} (Earth) · {{ ship_time }} (Ship)
     </text>
   </g>
 

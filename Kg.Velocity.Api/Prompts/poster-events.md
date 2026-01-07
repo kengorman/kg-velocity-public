@@ -22,8 +22,8 @@ Generate 5-7 events. Examples of the voice we want:
 Each event must be factually derivable from the journey data above.
 
 Each event needs:
-- "text": Short punchy title (5-9 words)
-- "description": Brief explanation (under 200 characters)
+- "text": Short punchy title (5 - 8 words)
+- "description": Brief explanation (under 100 characters)
 
 Return ONLY valid JSON:
 {"events": [{"text": "...", "description": "..."}, ...]}

@@ -129,7 +129,9 @@ app.MapPost("/api/evaluate-trip", async (
     var posterUrl =
         $"/api/poster.svg?nonce={nonce}" +
         $"&destination={Uri.EscapeDataString(request.Destination)}" +
-        $"&speed={Uri.EscapeDataString(request.SpeedName)}";
+        $"&speed={Uri.EscapeDataString(request.SpeedName)}" +
+        $"&earthTime={Uri.EscapeDataString(trip.EarthTimeFormatted)}" +
+        $"&shipTime={Uri.EscapeDataString(trip.ShipTimeFormatted)}";
 
     return Results.Ok(new TripEvaluateResponse(trip, summary, persona.Id, persona.Name, PosterUrl: posterUrl));
 });
