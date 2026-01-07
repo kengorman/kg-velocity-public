@@ -162,6 +162,14 @@ public class MainViewModel
         HasCalculated = true;
         IsCalculatingTrip = true;
         IsDownloadingPoster = false;
+
+        // Reset display values while calculating
+        EarthTimeElapsed = "—";
+        ShipTimeElapsed = "—";
+        TimeDifference = "—";
+        ArrivalDateString = "—";
+        ArrivalShipDateString = "—";
+
         JourneySummary = "Calculating trip...";
         DisplayedJourneySummary = JourneySummary;
         PersonaName = "";

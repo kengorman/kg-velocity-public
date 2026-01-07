@@ -111,7 +111,7 @@ Branch system:
   #
   # Safe zone for branches: between smoke top and eye bottom
   branch_zone_top = bar_top_y + 80
-  branch_zone_bottom = bar_launch_y - 60
+  branch_zone_bottom = bar_launch_y - 180
   branch_zone_height = branch_zone_bottom - branch_zone_top
 
   # Calculate spacing based on number of events
@@ -132,7 +132,7 @@ Branch system:
   left_margin = 20
   right_margin = 780
   text_max_width = 210
-  text_box_height = 130
+  text_box_height = 210
 
   #
   # DESTINATION ICON
