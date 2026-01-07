@@ -13,6 +13,7 @@ public class PosterEventsPromptBuilder(PromptStore prompts)
         return PromptRenderer.Render(template, new Dictionary<string, string>
         {
             ["Destination"] = trip.Destination,
+            ["DepartedTime"] = trip.DepartedEarthTime,
             ["DistanceLightYears"] = trip.DistanceLightYears.ToString("N4"),
             ["DistanceMiles"] = trip.DistanceMiles.ToString("N0"),
             ["SpeedName"] = trip.SpeedName,

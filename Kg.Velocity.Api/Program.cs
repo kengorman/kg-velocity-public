@@ -49,9 +49,11 @@ builder.Services.AddResponseCompression(options =>
 });
 
 builder.Services.AddSingleton<GroqChatClientFactory>();
+builder.Services.AddSingleton<OpenAIChatClientFactory>();
+builder.Services.AddSingleton<AzureOpenAIChatClientFactory>();
 builder.Services.AddSingleton<ChatClient>(sp =>
-    sp.GetRequiredService<GroqChatClientFactory>()
-      .CreateChatClient("meta-llama/llama-4-scout-17b-16e-instruct"));
+    sp.GetRequiredService<AzureOpenAIChatClientFactory>()
+      .CreateChatClient("gpt-4.1"));
 builder.Services.AddSingleton<PromptStore>();
 builder.Services.AddSingleton<IPersonaSelector, RandomPersonaSelector>();
 builder.Services.AddSingleton<TripSummaryPromptBuilder>();

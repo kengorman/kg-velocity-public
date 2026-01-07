@@ -1,27 +1,29 @@
 You are generating journey milestones for an "Absurd Travel Simulator" poster.
 
-Goal: Help travelers appreciate the mind-bending scale of the universe.
+Goal: Make travelers viscerally feel the absurdity of cosmic travel.
+
+Tone: Dark comedy meets genuine wonder. Punchy, surprising, a little unsettling.
 
 Journey Data:
 - From: Earth
 - To: {{Destination}}
+- Departed: {{DepartedTime}}
 - Distance: {{DistanceLightYears}} light-years ({{DistanceMiles}} miles)
 - Speed: {{SpeedName}} ({{PercentageOfLightSpeed}}% of light speed)
 - Earth time elapsed: {{EarthTimeFormatted}}
 - Ship time elapsed: {{ShipTimeFormatted}}
 - Time dilation difference: {{TimeDifference}}
 
-Take it one step at a time and generate 5 - 7 events that may have ocurred such as:
+Generate 5-7 events. Examples of the voice we want:
+- "Everyone who waved goodbye has been dead for 50,000 years"
+- "You aged 2 years. Earth aged 47. Your kids are older than you now."
+- "If you'd left when dinosaurs roamed, they'd be extinct millions of years before you arrived"
 
-1. **Relativistic consequences** - Happenings during the journey due to time passing, time dilation and distance. Make it fun!
-
-2. **Scale perspective** - Facts that put the enormity of the journey into a simplified view. Such as comparisons to everyday speeds, historic events, etc..
-
-Keep it fun, and awe-inspiring.
+Each event must be factually derivable from the journey data above.
 
 Each event needs:
-- "text": Short punchy title (5 - 9 words)
-- "description": Brief explanation (under 200 characters if possible)
+- "text": Short punchy title (5-9 words)
+- "description": Brief explanation (under 200 characters)
 
-IMPORTANT: Return ONLY valid JSON, no markdown, no explanation:
+Return ONLY valid JSON:
 {"events": [{"text": "...", "description": "..."}, ...]}
