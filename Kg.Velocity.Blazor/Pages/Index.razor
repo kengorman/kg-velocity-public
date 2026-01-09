@@ -3,6 +3,7 @@
 @using System.Linq
 @using System.Reflection
 @inject MainViewModel ViewModel
+@inject IJSRuntime JS
 @implements IDisposable
 
 <PageTitle>Absurd Travel Simulator</PageTitle>
@@ -20,8 +21,9 @@
         <div class="journey-card">
             <!-- Inputs -->
             <div class="inputs-section">
-                <select class="journey-select" 
-                        value="@(ViewModel.SelectedDestination?.Name ?? "")" 
+                <select id="destination-select"
+                        class="journey-select"
+                        value="@(ViewModel.SelectedDestination?.Name ?? "")"
                         @onchange="OnDestinationChanged">
                     <option value="">Select destination...</option>
                     @foreach (var dest in ViewModel.Destinations)
@@ -30,8 +32,10 @@
                     }
                 </select>
                 
-                <select class="journey-select" 
-                        @bind="ViewModel.SelectedPresetSpeed"
+                <select id="speed-select"
+                        class="journey-select"
+                        value="@(ViewModel.SelectedPresetSpeed?.ToString() ?? "")"
+                        @onchange="OnSpeedChanged"
                         disabled="@(ViewModel.SelectedDestination == null)">
                     <option value="">Select speed...</option>
                     @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
@@ -90,7 +94,7 @@
                         
                         <div class="result-item secondary">
                             <span class="result-label">Distance Travelled</span>
-                            <span class="result-value">@FormatDistance(ViewModel.DistanceMiles)</span>
+                            <span class="result-value">@(ViewModel.IsCalculatingTrip ? "—" : FormatDistance(ViewModel.DistanceMiles))</span>
                         </div>
                         
                         <div class="journey-summary">
@@ -189,7 +193,7 @@ else
         }
     }
 
-    private void OnDestinationChanged(ChangeEventArgs e)
+    private async Task OnDestinationChanged(ChangeEventArgs e)
     {
         var selectedName = e.Value?.ToString();
         if (string.IsNullOrEmpty(selectedName))
@@ -200,6 +204,20 @@ else
         {
             ViewModel.SelectedDestination = ViewModel.Destinations
                 .FirstOrDefault(d => d.Name == selectedName);
+            await JS.InvokeVoidAsync("eval", "document.getElementById('destination-select')?.blur()");
+        }
+    }
+
+    private async Task OnSpeedChanged(ChangeEventArgs e)
+    {
+        if (double.TryParse(e.Value?.ToString(), out var speed) && speed > 0)
+        {
+            ViewModel.SelectedPresetSpeed = speed;
+            await JS.InvokeVoidAsync("eval", "document.getElementById('speed-select')?.blur()");
+        }
+        else
+        {
+            ViewModel.SelectedPresetSpeed = null;
         }
     }
 

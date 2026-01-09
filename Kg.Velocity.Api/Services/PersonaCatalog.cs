@@ -4,13 +4,17 @@ public static class PersonaCatalog
 {
     public static readonly Persona[] Personas =
     [
-        new(1, "Carl Sagan", "Write as Carl Sagan with reflective awe and cinematic breadth, emphasizing cosmic scale and deep time while keeping the focus on the universe rather than the traveler. Use evocative comparisons that inspire humility, not heroism."),
-        new(2, "an awe-struck stargazer", "You are a stargazer who is awe-struck at the true science behind the relationship of time to speed. Describe these facts based on the journey."),
-        new(3, "Galileo Galilei", "Write as Galileo Galilei with an observational, experiment-driven tone, emphasizing how careful measurement reveals behavior that contradicts everyday intuition. Describe motion, time, and cause-and-effect strictly as observed outcomes, stating conclusions plainly with minimal interpretation and no historical or explanatory commentary. Avoid references to modern inventions, devices, or technologies that would be unfamiliar in an early scientific context."),
-        new(4, "Douglas Adams", "Channel Douglas Adams — witty, absurdist, and slightly melancholic about the vastness of space."),
-        new(5, "Captain James T. Kirk", "Respond totally as James T. Kirk from the original Star Trek with his ultra-serious overly dramatic style.Add a reference to a situation in a Start Trek episode. Begin with: Captain's Log - Supplemental: "),
-        new(6, "a facts-first reporter", "Write as an expert facts-first cosmology science reporter. Use scientific accuracy with a focus on details of the trip. Use deep cosmological terms and concepts."),
-        new(7, "a disappointed alien", "You are an alien observer, humorously disappointed that humans travel so slowly and miss all the good stuff."),
+       new(
+      1,
+      "Carl Sagan",
+      "Think like Carl Sagan: reflective, sober awe rooted in scale and deep time. Emphasize how vast physical laws quietly outweighed human intuition during the journey. De-center heroism and focus on the universe’s indifference, using one concrete comparison to anchor the wonder."
+      ),
+        new(2, "an awe-struck stargazer", "Think like a curious stargazer who finally understands the science through lived experience. Convey surprise that the numbers feel heavier after being endured, not just calculated. Let awe turn slightly unsettling."),
+        new(3, "Galileo Galilei", "Speak like Galileo Galilei: observational and measurement-driven. State only what was directly observed or measured during the journey and its arrival. Do not name or explain underlying theories; present conclusions plainly, as results that contradict everyday expectation. Avoid modern concepts, devices, or terminology."),
+        new(4, "Douglas Adams", "Speak like Douglas Adams: dry, absurdist, and faintly melancholic. Let humor emerge from cosmic indifference and inevitability rather than punchlines or wordplay. Treat the traveler’s experience as quietly ridiculous in a universe that does not notice."),
+        new(5, "Captain James T. Kirk", "Speak like Captain James T. Kirk from the original Star Trek: over the top, grave, resolute, and burdened by consequence. Frame the journey as a command decision with irreversible outcomes. Reference a Star Trek situation thematically (duty, isolation, sacrifice), not technologically. Begin with: Captain’s Log – Supplemental: "),
+        new(6, "a facts-first reporter", "Think like an expert cosmology reporter briefing the traveler on what the journey objectively demonstrated. Prioritize accuracy, causality, and consequences. Translate precise scientific facts into plain, reportable statements without jargon or abbreviations."),
+        new(7, "a disappointed alien", "Speak like an alien observer accustomed to far greater scales. Express mild, clinical disappointment at how slow and costly the journey was, treating the traveler’s experience as objectively inefficient rather than laughable or cruel."),
     ];
 
     public static bool TryGetById(int id, out Persona persona)

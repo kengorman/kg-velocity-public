@@ -14,7 +14,8 @@
       "Bash(powershell.exe -Command \"Get-Command magick, ffmpeg -ErrorAction SilentlyContinue | Select-Object Name, Source\")",
       "Bash(powershell.exe -Command '\nAdd-Type -AssemblyName System.Drawing\n$srcPath = \"\"C:\\\\Users\\\\gorma\\\\github\\\\kg-velocity\\\\Kg.Velocity.Api\\\\Templates\\\\Icons\\\\crabAsJpg.jpg\"\"\n$dstPath = \"\"C:\\\\Users\\\\gorma\\\\github\\\\kg-velocity\\\\Kg.Velocity.Api\\\\Templates\\\\Icons\\\\crab-optimized.jpg\"\"\n\n$src = [System.Drawing.Image]::FromFile\\($srcPath\\)\n$dst = New-Object System.Drawing.Bitmap\\(256, 256\\)\n$graphics = [System.Drawing.Graphics]::FromImage\\($dst\\)\n$graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic\n$graphics.DrawImage\\($src, 0, 0, 256, 256\\)\n\n$encoder = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders\\(\\) | Where-Object { $_.MimeType -eq \"\"image/jpeg\"\" }\n$encoderParams = New-Object System.Drawing.Imaging.EncoderParameters\\(1\\)\n$encoderParams.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter\\([System.Drawing.Imaging.Encoder]::Quality, 65L\\)\n$dst.Save\\($dstPath, $encoder, $encoderParams\\)\n\n$graphics.Dispose\\(\\)\n$dst.Dispose\\(\\)\n$src.Dispose\\(\\)\nWrite-Host \"\"Created optimized JPG\"\"\n')",
       "Bash(python3:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(dotnet user-secrets:*)"
     ]
   }
 }

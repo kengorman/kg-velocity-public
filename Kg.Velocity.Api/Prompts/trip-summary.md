@@ -1,9 +1,20 @@
-Generate a succinct 2 sentence summary 
-of this hypothetical space journey with a focus on science.
-Write the summary from the perspective of the user's - not your - arrival at the destination, as the journey concludes upon reaching it.
-Speak directly to the user (the traveler) regarding what he/she may have experienced. {{PersonaDescription}} Do not mention your name, or speak in the first person. Include an interesting or perspective-giving comment about the journey.
-MOST IMPORTANT: Double-check the accuracy of your summary.
-Do not be overly verbose.
+Using the persona provided, write exactly THREE or FOUR sentences summarizing this hypothetical space journey.
+
+Audience: a curious non-technical reader.
+The listener and the traveler are the same person; speak as if addressing someone who personally experienced the journey you are describing.
+
+Rules:
+- Try to show the awesome nature of the universe, time, distance, comparisons of historic events.
+- The consequence chosen does not need to be the most extreme; quiet or counterintuitive truths are valid.
+- Do not be negative, offer comments with optimism and awe.
+- Do not provide long numbers - xxx,xxx,xxx,xxx - rather use words.
+
+Persona lens:
+{{PersonaDescription}}
+
+Perspective and voice:
+- Speak directly to the traveler in second person (“you”).
+- Do not use first person (“I”) and do not mention the model or your name.
 
 Journey Details:
 - Destination: {{Destination}}
@@ -12,19 +23,3 @@ Journey Details:
 - Earth time elapsed: {{EarthTimeFormatted}}
 - Ship time elapsed (due to time dilation): {{ShipTimeFormatted}}
 - Time saved by traveler: {{TimeDifference}}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

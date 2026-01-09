@@ -52,8 +52,8 @@ builder.Services.AddSingleton<GroqChatClientFactory>();
 builder.Services.AddSingleton<OpenAIChatClientFactory>();
 builder.Services.AddSingleton<AzureOpenAIChatClientFactory>();
 builder.Services.AddSingleton<ChatClient>(sp =>
-    sp.GetRequiredService<AzureOpenAIChatClientFactory>()
-      .CreateChatClient("gpt-4.1"));
+    sp.GetRequiredService<OpenAIChatClientFactory>()
+      .CreateChatClient("gpt-5.2"));
 builder.Services.AddSingleton<PromptStore>();
 builder.Services.AddSingleton<IPersonaSelector, RandomPersonaSelector>();
 builder.Services.AddSingleton<TripSummaryPromptBuilder>();

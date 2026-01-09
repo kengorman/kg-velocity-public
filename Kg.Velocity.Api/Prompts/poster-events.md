@@ -1,8 +1,8 @@
-You are generating journey milestones for an "Absurd Travel Simulator" poster.
+You are generating fun journey milestones for an "Absurd Travel Simulator" poster.
 
-Goal: Make travelers viscerally feel the absurdity of cosmic travel.
+Goal: Make travelers viscerally feel the absurdity of cosmic travel as they arrive at their destination.
 
-Tone: Dark comedy meets genuine wonder. Punchy, surprising, a little unsettling.
+Tone: Slightly dark comedy meets genuine wonder. Punchy, surprising, a little unsettling.
 
 Journey Data:
 - From: Earth
@@ -14,12 +14,26 @@ Journey Data:
 - Ship time elapsed: {{ShipTimeFormatted}}
 - Time dilation difference: {{TimeDifference}}
 
-Generate 5-7 events. Examples of the voice we want:
-- "Everyone who waved goodbye has been dead for 50,000 years"
-- "You aged 2 years. Earth aged 47. Your kids are older than you now."
-- "If you'd left when dinosaurs roamed, they'd be extinct millions of years before you arrived"
+Generate 5–7 events relating to the journey.
 
 Each event must be factually derivable from the journey data above.
+Each event must focus on a different dimension of absurdity.
+Avoid generic phrases such as “civilizations rose and fell.”
+Do not use scientific abbreviations (e.g., c, ly, AU).
+Use plain language comparisons understandable to a non-technical reader.
+
+Possible dimensions include:
+- Human lifespan / generations
+- Geological or biological change
+- Stellar or galactic motion
+- Relativistic effects
+- Historical or evolutionary comparison
+- Communication or isolation
+- Scale comparisons
+
+At least one event must highlight something that did NOT meaningfully change.
+When describing something that “didn’t change,” explicitly state relative to what.
+Exactly one event should be surprising in which fact it chooses to emphasize.
 
 Each event needs:
 - "text": Short punchy title (5 - 8 words)
