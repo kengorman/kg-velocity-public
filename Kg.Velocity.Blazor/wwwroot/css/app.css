@@ -232,7 +232,6 @@ html, body {
     padding: 14px 0 6px 0;
     background-color: var(--bg-primary);
     border-radius: 0;
-    border-top: 1px solid var(--border-color);
 }
 
 .poster-preview {
