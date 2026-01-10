@@ -20,7 +20,6 @@ public partial class DestinationIconService
         ["Mars"] = "mars.svg",
         ["Jupiter"] = "jupiter.svg",
         ["Saturn"] = "saturn.svg",
-        ["Uranus"] = "uranus.svg",
         ["Pluto"] = "pluto.svg",
         ["Proxima Centauri"] = "proxima-centauri.svg",
         ["Polaris (North Star)"] = "polaris.svg",
