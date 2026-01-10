@@ -115,16 +115,10 @@
                                 <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
                             }
                         </div>
-                        @if (ViewModel.IsDownloadingPoster || !string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
+                        @if (ViewModel.IsCalculatingTrip || ViewModel.IsDownloadingPoster || !string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
                         {
                             <div class="poster-panel" aria-label="Generated poster preview">
-                                @if (ViewModel.IsDownloadingPoster)
-                                {
-                                    <div class="poster-loading" role="status" aria-live="polite">
-                                        Generating poster…
-                                    </div>
-                                }
-                                else
+                                @if (!string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
                                 {
                                     <img class="poster-preview"
                                          src="@ViewModel.PosterDataUrl"
@@ -138,6 +132,12 @@
                                             Download SVG
                                         </a>
                                     </div>
+                                }
+                                else
+                                {
+                                    <img class="poster-preview"
+                                         src="images/poster-placeholder.svg"
+                                         alt="Poster generation in progress" />
                                 }
                             </div>
                         }
