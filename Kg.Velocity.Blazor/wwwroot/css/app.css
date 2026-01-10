@@ -285,6 +285,7 @@ html, body {
 .empty-state-icon {
     font-size: 48px;
     margin-bottom: 12px;
+    margin-top:0px;
 }
 
 .empty-state-text {

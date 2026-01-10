@@ -56,16 +56,38 @@
                 {
                     <div class="empty-state">
                         <div class="empty-state-icon">🚀</div>
-                        <div class="empty-state-text">Where will you go?</div>
-                        <div class="empty-state-subtext">How long will it take?<br/>How much will you age?</div>
+
+                        <div class="empty-state-text">
+                            Journey across the universe.
+                        </div>
+
+                        <div class="empty-state-subtext">
+                            Choose a destination and speed — from walking to absurd.
+                            <br /><br />
+
+                            See:
+                            <br />
+                            • How long the trip takes<br />
+                            • A one-of-a-kind narrative<br />
+                            • A one-of-a-kind poster
+                            <br /><br />
+
+                            The results are unique — never repeated.
+                            <br /><br />
+
+                            Enjoy your journeys across the cosmos!
+                        </div>
                     </div>
+
+
+
                 }
                 else
                 {
                     <div class="results-grid">
                         @if (ViewModel.IsCalculatingTrip)
                         {
-                            <div class="calculating-trip-status" role="status" aria-live="polite"><em>Generating journey details...</em></div>
+                            <div class="calculating-trip-status" role="status" aria-live="polite"><em>Generating details...</em></div>
                         }
                         <div class="result-item secondary">
                             <span class="result-label">Distance Travelled</span>
