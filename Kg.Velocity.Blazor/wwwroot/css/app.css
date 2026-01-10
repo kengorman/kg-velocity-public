@@ -220,6 +220,10 @@ html, body {
     color: #374151;
 }
 
+.journey-summary .summary-text.calculating {
+    font-style: italic;
+}
+
 /* Poster panel - breaks out of parent padding for full-width display */
 .poster-panel {
     margin-top: 10px;

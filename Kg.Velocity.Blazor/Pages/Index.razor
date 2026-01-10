@@ -106,7 +106,14 @@
                                     </button>
                                 }
                             </div>
-                            <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
+                            @if (ViewModel.IsCalculatingTrip)
+                            {
+                                <div class="summary-text"><em>@ViewModel.DisplayedJourneySummary</em></div>
+                            }
+                            else
+                            {
+                                <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
+                            }
                         </div>
                         @if (ViewModel.IsDownloadingPoster || !string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
                         {
