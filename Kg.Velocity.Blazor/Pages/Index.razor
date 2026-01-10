@@ -67,6 +67,10 @@
                         {
                             <div class="calculating-trip-status" role="status" aria-live="polite"><em>Calculating trip details...</em></div>
                         }
+                        <div class="result-item secondary">
+                            <span class="result-label">Distance Travelled</span>
+                            <span class="result-value">@(ViewModel.IsCalculatingTrip ? "—" : FormatDistance(ViewModel.DistanceMiles))</span>
+                        </div>
                         <div class="result-item primary">
                             <span class="result-label">Arrival date (Earth Calendar)</span>
                             <span class="result-value">@ViewModel.ArrivalDateString</span>
@@ -86,10 +90,6 @@
                         <div class="result-item secondary">
                             <span class="result-label">Earth/Ship Time Difference</span>
                             <span class="result-value highlight">@ViewModel.TimeDifference</span>
-                        </div>
-                        <div class="result-item secondary">
-                            <span class="result-label">Distance Travelled</span>
-                            <span class="result-value">@(ViewModel.IsCalculatingTrip ? "—" : FormatDistance(ViewModel.DistanceMiles))</span>
                         </div>
                         <div class="journey-summary">
                             <div class="summary-header">

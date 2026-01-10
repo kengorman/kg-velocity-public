@@ -229,11 +229,11 @@ html, body {
     margin-top: 10px;
     margin-left: -30px;
     margin-right: -30px;
+    margin-bottom: -16px;
     padding: 14px 0;
     background-color: var(--bg-primary);
     border-radius: 0;
     border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
 }
 
 .poster-preview {
