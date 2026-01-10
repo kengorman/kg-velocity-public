@@ -44,11 +44,11 @@ public class MainViewModel
         PercentageOfLightSpeed = 0;
         DistanceMiles = 0;
         DistanceLightYears = 0;
-        EarthTimeElapsed = "—";
-        ShipTimeElapsed = "—";
-        TimeDifference = "—";
-        ArrivalDateString = "—";
-        ArrivalShipDateString = "—";
+        EarthTimeElapsed = "00:00:00";
+        ShipTimeElapsed = "00:00:00";
+        TimeDifference = "0s";
+        ArrivalDateString = "N/A";
+        ArrivalShipDateString = "N/A";
     }
 
     public async Task InitializeAsync()
@@ -70,11 +70,11 @@ public class MainViewModel
     public double PercentageOfLightSpeed { get; set; }
     public double DistanceMiles { get; set; }
     public double DistanceLightYears { get; set; }
-    public string EarthTimeElapsed { get; set; } = "—";
-    public string ShipTimeElapsed { get; set; } = "—";
-    public string ArrivalDateString { get; set; } = "—";
-    public string ArrivalShipDateString { get; set; } = "—";
-    public string TimeDifference { get; set; } = "—";
+    public string EarthTimeElapsed { get; set; } = "00:00:00";
+    public string ShipTimeElapsed { get; set; } = "00:00:00";
+    public string ArrivalDateString { get; set; } = "N/A";
+    public string ArrivalShipDateString { get; set; } = "N/A";
+    public string TimeDifference { get; set; } = "0s";
     public string JourneySummary { get; set; } = "";
     public string DisplayedJourneySummary { get; set; } = "";
     public string PersonaName { get; set; } = "";
