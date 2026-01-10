@@ -65,7 +65,7 @@
                     <div class="results-grid">
                         @if (ViewModel.IsCalculatingTrip)
                         {
-                            <div class="calculating-trip-status" role="status" aria-live="polite"><em>Calculating trip details...</em></div>
+                            <div class="calculating-trip-status" role="status" aria-live="polite"><em>Generating journey details...</em></div>
                         }
                         <div class="result-item secondary">
                             <span class="result-label">Distance Travelled</span>
@@ -124,14 +124,6 @@
                                          src="@ViewModel.PosterDataUrl"
                                          alt="Generated trip poster (server SVG)"
                                          loading="lazy" />
-
-                                    <div class="poster-actions">
-                                        <a class="poster-download"
-                                           href="@ViewModel.PosterDataUrl"
-                                           download="@ViewModel.PosterFileName">
-                                            Download SVG
-                                        </a>
-                                    </div>
                                 }
                                 else
                                 {

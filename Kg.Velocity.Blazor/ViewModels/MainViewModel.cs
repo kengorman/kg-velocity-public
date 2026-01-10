@@ -170,7 +170,7 @@ public class MainViewModel
         ArrivalDateString = "—";
         ArrivalShipDateString = "—";
 
-        JourneySummary = "Calculating trip summary...";
+        JourneySummary = "Generating journey summary...";
         DisplayedJourneySummary = JourneySummary;
         PersonaName = "";
         PosterDataUrl = "";
