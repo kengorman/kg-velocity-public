@@ -48,9 +48,7 @@ builder.Services.AddResponseCompression(options =>
         ["application/octet-stream", "application/wasm"]);
 });
 
-builder.Services.AddSingleton<GroqChatClientFactory>();
 builder.Services.AddSingleton<OpenAIChatClientFactory>();
-builder.Services.AddSingleton<AzureOpenAIChatClientFactory>();
 builder.Services.AddSingleton<ChatClient>(sp =>
     sp.GetRequiredService<OpenAIChatClientFactory>()
       .CreateChatClient("gpt-5.2"));
@@ -116,12 +114,15 @@ app.MapPost("/api/evaluate-trip", async (
     // 1. Compute physics
     var trip = tripComputationService.Compute(request);
 
-    // 2. AI Call #1: Generate persona-flavored summary
-    var (summary, persona) = await aiService.GenerateSummaryAsync(request, trip);
+    // 2. AI calls: Generate summary and poster events concurrently
+    var summaryTask = aiService.GenerateSummaryAsync(request, trip);
+    var posterEventsTask = posterEventsService.GenerateEventsAsync(trip);
+    await Task.WhenAll(summaryTask, posterEventsTask);
 
-    // 3. AI Call #2: Generate poster events (uses summary for tone)
+    var (summary, persona) = summaryTask.Result;
+    var posterEvents = posterEventsTask.Result;
+
     var nonce = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
-    var posterEvents = await posterEventsService.GenerateEventsAsync(trip, summary);
 
     // 4. Cache events by nonce for poster endpoint to retrieve
     posterEventsCache.Store(nonce, posterEvents);

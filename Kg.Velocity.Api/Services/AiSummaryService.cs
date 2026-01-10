@@ -37,7 +37,7 @@ public class AiSummaryService
 
             var chatOptions = new ChatCompletionOptions
             {
-                Temperature = 1.0f
+                Temperature = 1.1f
             };
 
             var completion = await _chatClient.CompleteChatAsync(messages, chatOptions);

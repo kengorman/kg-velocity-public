@@ -6,7 +6,7 @@ public class PosterEventsPromptBuilder(PromptStore prompts)
 {
     private const string PosterEventsPromptPath = "Prompts/poster-events.md";
 
-    public string BuildPrompt(TripComputationResult trip, string summary)
+    public string BuildPrompt(TripComputationResult trip)
     {
         var template = prompts.GetPrompt(PosterEventsPromptPath);
 
@@ -21,7 +21,6 @@ public class PosterEventsPromptBuilder(PromptStore prompts)
             ["EarthTimeFormatted"] = trip.EarthTimeFormatted,
             ["ShipTimeFormatted"] = trip.ShipTimeFormatted,
             ["TimeDifference"] = trip.TimeDifferenceFormatted,
-//            ["Summary"] = summary,
         });
     }
 }

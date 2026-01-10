@@ -21,10 +21,9 @@ public class AiPosterEventsService
     }
 
     public async Task<List<JourneyEvent>> GenerateEventsAsync(
-        TripComputationResult trip,
-        string summary)
+        TripComputationResult trip)
     {
-        var prompt = _promptBuilder.BuildPrompt(trip, summary);
+        var prompt = _promptBuilder.BuildPrompt(trip);
 
         try
         {
@@ -35,7 +34,7 @@ public class AiPosterEventsService
 
             var chatOptions = new ChatCompletionOptions
             {
-                Temperature = 0.8f // Balanced creativity with factual accuracy
+                Temperature = 0.9f // Balanced creativity with factual accuracy
             };
 
             var completion = await _chatClient.CompleteChatAsync(messages, chatOptions);
