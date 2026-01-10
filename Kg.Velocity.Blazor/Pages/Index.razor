@@ -52,25 +52,15 @@
             
             <!-- Results -->
             <div class="results-section">
-                @if (!ViewModel.HasCalculated)
-                {
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🚀</div>
-                        <div class="empty-state-text">Where will you go?</div>
-                        <div class="empty-state-subtext">How long will it take?<br/>How much will you age?</div>
+                <div class="results-grid">
+                    @if (ViewModel.IsCalculatingTrip)
+                    {
+                        <div class="calculating-trip-status" role="status" aria-live="polite"><em>Generating journey details...</em></div>
+                    }
+                    <div class="result-item secondary">
+                        <span class="result-label">Distance Travelled</span>
+                        <span class="result-value">@((!ViewModel.HasCalculated || ViewModel.IsCalculatingTrip) ? "—" : FormatDistance(ViewModel.DistanceMiles))</span>
                     </div>
-                }
-                else
-                {
-                    <div class="results-grid">
-                        @if (ViewModel.IsCalculatingTrip)
-                        {
-                            <div class="calculating-trip-status" role="status" aria-live="polite"><em>Generating journey details...</em></div>
-                        }
-                        <div class="result-item secondary">
-                            <span class="result-label">Distance Travelled</span>
-                            <span class="result-value">@(ViewModel.IsCalculatingTrip ? "—" : FormatDistance(ViewModel.DistanceMiles))</span>
-                        </div>
                         <div class="result-item primary">
                             <span class="result-label">Arrival date (Earth Calendar)</span>
                             <span class="result-value">@ViewModel.ArrivalDateString</span>
@@ -91,30 +81,33 @@
                             <span class="result-label">Earth/Ship Time Difference</span>
                             <span class="result-value highlight">@ViewModel.TimeDifference</span>
                         </div>
-                        <div class="journey-summary">
-                            <div class="summary-header">
-                                @if (!string.IsNullOrEmpty(ViewModel.PersonaName))
+                        @if (ViewModel.HasCalculated)
+                        {
+                            <div class="journey-summary">
+                                <div class="summary-header">
+                                    @if (!string.IsNullOrEmpty(ViewModel.PersonaName))
+                                    {
+                                        <div class="persona-name">...as @ViewModel.PersonaName</div>
+                                    }
+                                    @if (!ViewModel.IsCalculatingTrip)
+                                    {
+                                        <button type="button"
+                                                class="regenerate-summary"
+                                                @onclick="ViewModel.RegenerateSummaryAsync">
+                                            new summary
+                                        </button>
+                                    }
+                                </div>
+                                @if (ViewModel.IsCalculatingTrip)
                                 {
-                                    <div class="persona-name">...as @ViewModel.PersonaName</div>
+                                    <div class="summary-text"><em>@ViewModel.DisplayedJourneySummary</em></div>
                                 }
-                                @if (!ViewModel.IsCalculatingTrip)
+                                else
                                 {
-                                    <button type="button"
-                                            class="regenerate-summary"
-                                            @onclick="ViewModel.RegenerateSummaryAsync">
-                                        new summary
-                                    </button>
+                                    <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
                                 }
                             </div>
-                            @if (ViewModel.IsCalculatingTrip)
-                            {
-                                <div class="summary-text"><em>@ViewModel.DisplayedJourneySummary</em></div>
-                            }
-                            else
-                            {
-                                <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
-                            }
-                        </div>
+                        }
                         @if (ViewModel.IsCalculatingTrip || ViewModel.IsDownloadingPoster || !string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
                         {
                             <div class="poster-panel" aria-label="Generated poster preview">
@@ -134,7 +127,6 @@
                             </div>
                         }
                     </div>
-                }
             </div>
         </div>
         <div class="build-info">
