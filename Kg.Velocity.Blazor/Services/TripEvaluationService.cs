@@ -12,19 +12,34 @@ public class TripEvaluationService
         _httpClient = httpClient;
     }
 
-    public async Task<TripEvaluateResponse> EvaluateTripAsync(TripEvaluateRequest request)
+    public async Task<TripComputationResult> ComputeTripAsync(TripEvaluateRequest request)
     {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync("/api/evaluate-trip", request);
+            var response = await _httpClient.PostAsJsonAsync("/api/compute-trip", request);
             response.EnsureSuccessStatusCode();
-            
-            return (await response.Content.ReadFromJsonAsync<TripEvaluateResponse>())
+
+            return (await response.Content.ReadFromJsonAsync<TripComputationResult>())
                    ?? throw new InvalidOperationException("Empty response from API.");
         }
         catch (Exception ex)
         {
-            // Keep a consistent error surface for callers.
+            throw new InvalidOperationException($"Error connecting to API: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<TripContentResponse> GenerateContentAsync(TripEvaluateRequest request)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("/api/generate-content", request);
+            response.EnsureSuccessStatusCode();
+
+            return (await response.Content.ReadFromJsonAsync<TripContentResponse>())
+                   ?? throw new InvalidOperationException("Empty response from API.");
+        }
+        catch (Exception ex)
+        {
             throw new InvalidOperationException($"Error connecting to API: {ex.Message}", ex);
         }
     }

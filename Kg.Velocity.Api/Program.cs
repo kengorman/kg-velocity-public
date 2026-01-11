@@ -89,6 +89,70 @@ app.MapGet("/api/speed-presets", (TripCatalogService catalogs) =>
     return Results.Ok(presets);
 });
 
+// Compute trip physics only (instant, no AI)
+app.MapPost("/api/compute-trip", async (
+    TripEvaluateRequest request,
+    TripComputationService tripComputationService) =>
+{
+    const int maxLength = 100;
+    if (string.IsNullOrWhiteSpace(request.Destination) || request.Destination.Length > maxLength)
+        return Results.BadRequest("Invalid destination");
+    if (string.IsNullOrWhiteSpace(request.SpeedName) || request.SpeedName.Length > maxLength)
+        return Results.BadRequest("Invalid speed name");
+    if (request.SpeedMph <= 0 || double.IsNaN(request.SpeedMph) || double.IsInfinity(request.SpeedMph))
+        return Results.BadRequest("Invalid speed");
+    if (request.DistanceMiles <= 0 || double.IsNaN(request.DistanceMiles) || double.IsInfinity(request.DistanceMiles))
+        return Results.BadRequest("Invalid distance");
+    if (request.StartTime == default)
+        return Results.BadRequest("Invalid start time");
+
+    var trip = tripComputationService.Compute(request);
+    await Task.Delay(2000);
+    return Results.Ok(trip);
+});
+
+// Generate AI content (summary + poster)
+app.MapPost("/api/generate-content", async (
+    TripEvaluateRequest request,
+    TripComputationService tripComputationService,
+    AiSummaryService aiService,
+    AiPosterEventsService posterEventsService,
+    PosterEventsCache posterEventsCache) =>
+{
+    const int maxLength = 100;
+    if (string.IsNullOrWhiteSpace(request.Destination) || request.Destination.Length > maxLength)
+        return Results.BadRequest("Invalid destination");
+    if (string.IsNullOrWhiteSpace(request.SpeedName) || request.SpeedName.Length > maxLength)
+        return Results.BadRequest("Invalid speed name");
+    if (request.SpeedMph <= 0 || double.IsNaN(request.SpeedMph) || double.IsInfinity(request.SpeedMph))
+        return Results.BadRequest("Invalid speed");
+    if (request.DistanceMiles <= 0 || double.IsNaN(request.DistanceMiles) || double.IsInfinity(request.DistanceMiles))
+        return Results.BadRequest("Invalid distance");
+    if (request.StartTime == default)
+        return Results.BadRequest("Invalid start time");
+
+    var trip = tripComputationService.Compute(request);
+
+    var summaryTask = aiService.GenerateSummaryAsync(request, trip);
+    var posterEventsTask = posterEventsService.GenerateEventsAsync(trip);
+    await Task.WhenAll(summaryTask, posterEventsTask);
+
+    var (summary, persona) = summaryTask.Result;
+    var posterEvents = posterEventsTask.Result;
+
+    var nonce = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
+    posterEventsCache.Store(nonce, posterEvents);
+
+    var posterUrl =
+        $"/api/poster.svg?nonce={nonce}" +
+        $"&destination={Uri.EscapeDataString(request.Destination)}" +
+        $"&speed={Uri.EscapeDataString(request.SpeedName)}" +
+        $"&earthTime={Uri.EscapeDataString(trip.EarthTimeFormatted)}" +
+        $"&shipTime={Uri.EscapeDataString(trip.ShipTimeFormatted)}";
+
+    return Results.Ok(new TripContentResponse(summary, persona.Id, persona.Name, posterUrl));
+});
+
 // Evaluate the trip including generating a summary and a poster svg
 app.MapPost("/api/evaluate-trip", async (
     TripEvaluateRequest request,

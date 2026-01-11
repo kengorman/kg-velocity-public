@@ -39,3 +39,10 @@ public sealed record TripEvaluateResponse(
     string PersonaName,
     string? PosterUrl = null
 );
+
+public sealed record TripContentResponse(
+    string Summary,
+    int PersonaId,
+    string PersonaName,
+    string? PosterUrl = null
+);

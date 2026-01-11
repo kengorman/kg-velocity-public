@@ -66,6 +66,7 @@ public class MainViewModel
     // Properties
     public bool HasCalculated { get; set; }
     public bool IsCalculatingTrip { get; set; }
+    public bool IsGeneratingContent { get; set; }
     public double SpeedMph { get; set; }
     public double PercentageOfLightSpeed { get; set; }
     public double DistanceMiles { get; set; }
@@ -81,7 +82,7 @@ public class MainViewModel
     public string PosterDataUrl { get; set; } = "";
     public string PosterFileName { get; set; } = "velocity-poster.svg";
     public string PosterGeneratedAtDisplay { get; set; } = "";
-    public bool IsDownloadingPoster { get; set; }
+    public bool IsFetchingPosterBytes { get; set; }
     public ObservableCollection<DestinationDto> Destinations { get; set; } = new();
     public List<SpeedPresetDto> SpeedPresets { get; set; } = [];
     
@@ -138,14 +139,92 @@ public class MainViewModel
 
     private void NotifyStateChanged() => StateChanged?.Invoke();
 
-    public Task RegenerateSummaryAsync()
+    public async Task RegenerateSummaryAsync()
     {
-        // Regenerate by re-evaluating with the current inputs.
-        // The API advances persona deterministically when PersonaId is provided.
-        if (SelectedDestination == null) return Task.CompletedTask;
-        if (_selectedSpeedMph <= 0) return Task.CompletedTask;
+        if (SelectedDestination == null) return;
+        if (_selectedSpeedMph <= 0) return;
 
-        return EvaluateTripAsync();
+        var requestVersion = ++_evaluationRequestVersion;
+        _summaryAnimationVersion++;
+
+        var speedPreset = SpeedPresets.FirstOrDefault(p => System.Math.Abs(p.SpeedMph - _selectedSpeedMph) < 0.001);
+        string speedName = speedPreset?.Name ?? $"{_selectedSpeedMph:N0} mph";
+
+        // Only reset content fields - calculations stay visible
+        IsGeneratingContent = true;
+        IsFetchingPosterBytes = true;
+        JourneySummary = "Generating summary...";
+        DisplayedJourneySummary = JourneySummary;
+        PersonaName = "";
+        PosterDataUrl = "";
+        PosterGeneratedAtDisplay = "";
+        NotifyStateChanged();
+
+        try
+        {
+            var request = new TripEvaluateRequest(
+                Destination: SelectedDestination.Name,
+                SpeedName: speedName,
+                SpeedMph: _selectedSpeedMph,
+                DistanceMiles: SelectedDestination.DistanceMiles,
+                StartTime: _startTime,
+                PersonaId: _currentPersonaId
+            );
+
+            var content = await _tripEvaluationService.GenerateContentAsync(request);
+            if (requestVersion != _evaluationRequestVersion) return;
+
+            IsGeneratingContent = false;
+            _currentPersonaId = content.PersonaId;
+            await _personaIdStore.TrySetAsync(content.PersonaId);
+
+            JourneySummary = content.Summary;
+            PersonaName = content.PersonaName;
+
+            if (!string.IsNullOrWhiteSpace(content.PosterUrl))
+            {
+                IsFetchingPosterBytes = true;
+                NotifyStateChanged();
+
+                try
+                {
+                    var posterBytes = await _tripEvaluationService.GetPosterBytesAsync(content.PosterUrl);
+                    if (requestVersion != _evaluationRequestVersion) return;
+
+                    PosterDataUrl = "data:image/svg+xml;base64," + Convert.ToBase64String(posterBytes);
+
+                    var nowLocal = DateTimeOffset.Now.ToLocalTime();
+                    PosterGeneratedAtDisplay = nowLocal.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    PosterFileName = $"velocity-poster-{nowLocal:yyyyMMdd-HHmmss}.svg";
+                }
+                catch
+                {
+                    PosterDataUrl = "";
+                    PosterGeneratedAtDisplay = "";
+                }
+                finally
+                {
+                    IsFetchingPosterBytes = false;
+                }
+            }
+
+            NotifyStateChanged();
+
+            _ = AnimateSummaryAsync(
+                summary: JourneySummary,
+                requestVersion: requestVersion,
+                animationVersion: _summaryAnimationVersion);
+        }
+        catch (Exception ex)
+        {
+            if (requestVersion != _evaluationRequestVersion) return;
+
+            IsCalculatingTrip = false;
+            JourneySummary = ex.Message;
+            DisplayedJourneySummary = JourneySummary;
+            PersonaName = "System";
+            NotifyStateChanged();
+        }
     }
 
     private async Task EvaluateTripAsync()
@@ -161,9 +240,10 @@ public class MainViewModel
 
         HasCalculated = true;
         IsCalculatingTrip = true;
-        IsDownloadingPoster = false;
+        IsFetchingPosterBytes = true;
 
         // Reset display values while calculating
+        DistanceMiles = 0;
         EarthTimeElapsed = "—";
         ShipTimeElapsed = "—";
         TimeDifference = "—";
@@ -179,8 +259,6 @@ public class MainViewModel
 
         try
         {
-            // Prefer in-memory persona id for consistent rotation even if localStorage is unavailable.
-            // Fall back to localStorage on first run (or after reload) to preserve continuity across sessions.
             _currentPersonaId ??= await _personaIdStore.TryGetAsync();
             _startTime = DateTimeOffset.Now;
 
@@ -193,40 +271,48 @@ public class MainViewModel
                 PersonaId: _currentPersonaId
             );
 
-            var response = await _tripEvaluationService.EvaluateTripAsync(request);
+            // 1. Get calculations instantly
+            var trip = await _tripEvaluationService.ComputeTripAsync(request);
             if (requestVersion != _evaluationRequestVersion) return;
 
-            _currentPersonaId = response.PersonaId;
-            await _personaIdStore.TrySetAsync(response.PersonaId);
+            SpeedMph = trip.SpeedMph;
+            PercentageOfLightSpeed = trip.PercentageOfLightSpeed;
+            DistanceMiles = trip.DistanceMiles;
+            DistanceLightYears = trip.DistanceLightYears;
+            EarthTimeElapsed = trip.EarthTimeFormatted;
+            ShipTimeElapsed = trip.ShipTimeFormatted;
+            TimeDifference = trip.TimeDifferenceFormatted;
+            ArrivalDateString = trip.ArrivedEarthTime;
+            ArrivalShipDateString = trip.ArrivedShipTime;
+            IsCalculatingTrip = false;
+            NotifyStateChanged();
 
-            // Render authoritative server-computed values
-            SpeedMph = response.Trip.SpeedMph;
-            PercentageOfLightSpeed = response.Trip.PercentageOfLightSpeed;
-            DistanceMiles = response.Trip.DistanceMiles;
-            DistanceLightYears = response.Trip.DistanceLightYears;
-            EarthTimeElapsed = response.Trip.EarthTimeFormatted;
-            ShipTimeElapsed = response.Trip.ShipTimeFormatted;
-            TimeDifference = response.Trip.TimeDifferenceFormatted;
-            ArrivalDateString = response.Trip.ArrivedEarthTime;
-            ArrivalShipDateString = response.Trip.ArrivedShipTime;
+            // 2. Get AI content (slower)
+            IsGeneratingContent = true;
+            NotifyStateChanged();
 
-            JourneySummary = response.Summary;
-            PersonaName = response.PersonaName;
+            var content = await _tripEvaluationService.GenerateContentAsync(request);
+            if (requestVersion != _evaluationRequestVersion) return;
+
+            IsGeneratingContent = false;
+            _currentPersonaId = content.PersonaId;
+            await _personaIdStore.TrySetAsync(content.PersonaId);
+
+            JourneySummary = content.Summary;
+            PersonaName = content.PersonaName;
             HasCalculated = true;
             IsCalculatingTrip = false;
 
-            // Option A: API returns a PosterUrl. Download bytes and display them.
-            if (!string.IsNullOrWhiteSpace(response.PosterUrl))
+            if (!string.IsNullOrWhiteSpace(content.PosterUrl))
             {
-                IsDownloadingPoster = true;
+                IsFetchingPosterBytes = true;
                 NotifyStateChanged();
 
                 try
                 {
-                    var posterBytes = await _tripEvaluationService.GetPosterBytesAsync(response.PosterUrl);
+                    var posterBytes = await _tripEvaluationService.GetPosterBytesAsync(content.PosterUrl);
                     if (requestVersion != _evaluationRequestVersion) return;
 
-                    // For now the server returns SVG bytes. Encode as a data URL for display + download.
                     PosterDataUrl = "data:image/svg+xml;base64," + Convert.ToBase64String(posterBytes);
 
                     var nowLocal = DateTimeOffset.Now.ToLocalTime();
@@ -235,13 +321,12 @@ public class MainViewModel
                 }
                 catch
                 {
-                    // Trip results should still render even if the poster can't be fetched.
                     PosterDataUrl = "";
                     PosterGeneratedAtDisplay = "";
                 }
                 finally
                 {
-                    IsDownloadingPoster = false;
+                    IsFetchingPosterBytes = false;
                 }
             }
 
@@ -311,7 +396,7 @@ public class MainViewModel
     {
         HasCalculated = false;
         IsCalculatingTrip = false;
-        IsDownloadingPoster = false;
+        IsFetchingPosterBytes = false;
         _startTime = DateTimeOffset.Now;
         _summaryAnimationVersion++;
         _currentPersonaId = null;

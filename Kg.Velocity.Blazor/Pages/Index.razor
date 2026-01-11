@@ -24,7 +24,8 @@
                 <select id="destination-select"
                         class="journey-select"
                         value="@(ViewModel.SelectedDestination?.Name ?? "")"
-                        @onchange="OnDestinationChanged">
+                        @onchange="OnDestinationChanged"
+                        disabled="@(ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes)">
                     <option value="">Select destination...</option>
                     @foreach (var dest in ViewModel.Destinations)
                     {
@@ -36,7 +37,7 @@
                         class="journey-select"
                         value="@(ViewModel.SelectedPresetSpeed?.ToString() ?? "")"
                         @onchange="OnSpeedChanged"
-                        disabled="@(ViewModel.SelectedDestination == null)">
+                        disabled="@(ViewModel.SelectedDestination == null || ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes)">
                     <option value="">Select speed...</option>
                     @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
                     {
@@ -88,7 +89,7 @@
                         }
                         <div class="result-item secondary">
                             <span class="result-label">Distance Travelled</span>
-                            <span class="result-value">@(ViewModel.IsCalculatingTrip ? "—" : FormatDistance(ViewModel.DistanceMiles))</span>
+                            <span class="result-value">@FormatDistance(ViewModel.DistanceMiles)</span>
                         </div>
                         <div class="result-item primary">
                             <span class="result-label">Arrival date (Earth Calendar)</span>
@@ -116,7 +117,8 @@
                                 {
                                     <div class="persona-name">...as @ViewModel.PersonaName</div>
                                 }
-                                @if (!ViewModel.IsCalculatingTrip)
+                                @* Only show when not generating AND a summary exists *@
+                                @if (!ViewModel.IsGeneratingContent && !string.IsNullOrEmpty(ViewModel.PersonaName))
                                 {
                                     <button type="button"
                                             class="regenerate-summary"
@@ -134,7 +136,7 @@
                                 <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
                             }
                         </div>
-                        @if (ViewModel.IsCalculatingTrip || ViewModel.IsDownloadingPoster || !string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
+                        @if (ViewModel.IsCalculatingTrip || ViewModel.IsFetchingPosterBytes || !string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
                         {
                             <div class="poster-panel" aria-label="Generated poster preview">
                                 @if (!string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
@@ -233,6 +235,8 @@ else
 
     private string FormatDistance(double miles)
     {
+        if (miles <= 0)
+            return "—";
         if (miles < 1_000)
             return $"{miles:N0} miles";
         else if (miles < 1_000_000)
