@@ -47,6 +47,41 @@ public class TripPosterService(PosterEventsCache eventsCache, DestinationIconSer
         new(LoadAndParseTemplate, isThreadSafe: true);
 
     /// <summary>
+    /// Generates subtle background stars with seeded randomness.
+    /// Avoids header (y &lt; 150), Earth zone (y &gt; 950), and center spine (x 350-450).
+    /// </summary>
+    private static List<(double X, double Y, double R, double Opacity)> GenerateStars(int seed, int starCount)
+    {
+        var rng = new Random(seed);
+        var stars = new List<(double X, double Y, double R, double Opacity)>();
+
+        for (int i = 0; i < starCount; i++)
+        {
+            double x, y;
+            int attempts = 0;
+            do
+            {
+                x = rng.NextDouble() * 800;
+                y = rng.NextDouble() * 1200;
+                attempts++;
+            }
+            while (attempts < 20 && (
+                y < 150 ||           // avoid header
+                y > 950 ||           // avoid Earth
+                (x > 320 && x < 480) // avoid center spine
+            ));
+
+            // Tiny radius, low opacity
+            var r = 0.8 + rng.NextDouble() * 1.5;  // 0.8 - 2.3px
+            var opacity = 0.15 + rng.NextDouble() * 0.25;  // 0.15 - 0.4
+
+            stars.Add((x, y, r, opacity));
+        }
+
+        return stars;
+    }
+
+    /// <summary>
     /// Generates fallback journey events when AI events aren't available.
     /// </summary>
     private static List<JourneyEvent> GenerateFallbackEvents(string destination, int seed)
@@ -83,6 +118,9 @@ public class TripPosterService(PosterEventsCache eventsCache, DestinationIconSer
             // Simple, deterministic-ish color variation based on nonce.
             _ = int.TryParse(new string(nonce.Where(char.IsDigit).TakeLast(6).ToArray()), out int seed);
             var accentHue = (seed % 40) + 15;
+
+            // Generate subtle background stars (seeded for reproducibility)
+            var stars = GenerateStars(seed, starCount: 30);
 
             static string Esc(string? s) =>
                 string.IsNullOrEmpty(s) ? "" :
@@ -127,6 +165,21 @@ public class TripPosterService(PosterEventsCache eventsCache, DestinationIconSer
                 scriptEvents.Add(scriptEvent);
             }
             globals.Add("events", scriptEvents);
+
+            // Convert stars to ScriptArray for Scriban iteration
+            var scriptStars = new ScriptArray();
+            foreach (var star in stars)
+            {
+                var scriptStar = new ScriptObject
+                {
+                    { "x", star.X },
+                    { "y", star.Y },
+                    { "r", star.R },
+                    { "opacity", star.Opacity }
+                };
+                scriptStars.Add(scriptStar);
+            }
+            globals.Add("stars", scriptStars);
 
             var context = new TemplateContext();
             context.PushGlobal(globals);

@@ -223,6 +223,11 @@ Branch system:
 
   <rect x="0" y="0" width="800" height="1200" fill="#0b1b3b"/>
 
+  <!-- Background stars -->
+  {{~ for star in stars ~}}
+  <circle cx="{{ star.x }}" cy="{{ star.y }}" r="{{ star.r }}" fill="#fff" opacity="{{ star.opacity }}"/>
+  {{~ end ~}}
+
   <g id="header_band">
     <text x="70" y="{{ header_band_y }}" class="title">Absurd Travel Simulator</text>
     <text x="70" y="{{ header_band_y + 45 }}" class="subtitle">
