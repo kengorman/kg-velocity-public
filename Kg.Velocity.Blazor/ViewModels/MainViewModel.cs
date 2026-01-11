@@ -1,5 +1,6 @@
 using Kg.Velocity.Blazor.Services;
 using Kg.Velocity.Contracts.Catalogs;
+using Kg.Velocity.Contracts.Nasa;
 using Kg.Velocity.Contracts.Trips;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -85,6 +86,11 @@ public class MainViewModel
     public bool IsFetchingPosterBytes { get; set; }
     public ObservableCollection<DestinationDto> Destinations { get; set; } = new();
     public List<SpeedPresetDto> SpeedPresets { get; set; } = [];
+
+    // NASA Images bottom sheet state
+    public bool IsImageSheetOpen { get; set; }
+    public bool IsLoadingNasaImages { get; set; }
+    public List<NasaImageDto> NasaImages { get; set; } = [];
     
     private DestinationDto? _selectedDestination;
     public DestinationDto? SelectedDestination
@@ -401,7 +407,7 @@ public class MainViewModel
         _startTime = DateTimeOffset.Now;
         _summaryAnimationVersion++;
         _currentPersonaId = null;
-        
+
         // Update display properties to reflect cleared state
         UpdatePropertiesWithoutNotification();
         JourneySummary = "";
@@ -409,7 +415,29 @@ public class MainViewModel
         PosterDataUrl = "";
         PosterFileName = "velocity-poster.svg";
         PosterGeneratedAtDisplay = "";
-        
+        NasaImages = [];
+
+        NotifyStateChanged();
+    }
+
+    /// <summary>
+    /// Opens the destination images bottom sheet.
+    /// </summary>
+    public void OpenImageSheet()
+    {
+        if (SelectedDestination == null) return;
+
+        IsImageSheetOpen = true;
+        // TODO: Load embedded images for destination
+        NotifyStateChanged();
+    }
+
+    /// <summary>
+    /// Closes the destination images bottom sheet.
+    /// </summary>
+    public void CloseImageSheet()
+    {
+        IsImageSheetOpen = false;
         NotifyStateChanged();
     }
 }
