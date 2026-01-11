@@ -280,12 +280,8 @@ html, body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-}
-
-.empty-state-icon {
-    font-size: 48px;
-    margin-bottom: 12px;
-    margin-top:0px;
+    max-width: 360px;
+    margin: 0 auto;
 }
 
 .empty-state-text {
@@ -297,7 +293,7 @@ html, body {
 .empty-state-subtext {
     font-size: 14px;
     color: var(--text-secondary);
-    margin-top: 8px;
+    margin-top: 16px;
     line-height: 1.6;
 }
 

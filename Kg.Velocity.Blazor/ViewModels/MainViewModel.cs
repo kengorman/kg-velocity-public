@@ -153,7 +153,7 @@ public class MainViewModel
         // Only reset content fields - calculations stay visible
         IsGeneratingContent = true;
         IsFetchingPosterBytes = true;
-        JourneySummary = "Generating summary...";
+        JourneySummary = "generating summary...";
         DisplayedJourneySummary = JourneySummary;
         PersonaName = "";
         PosterDataUrl = "";
@@ -240,6 +240,7 @@ public class MainViewModel
 
         HasCalculated = true;
         IsCalculatingTrip = true;
+        IsGeneratingContent = true;
         IsFetchingPosterBytes = true;
 
         // Reset display values while calculating
@@ -250,7 +251,7 @@ public class MainViewModel
         ArrivalDateString = "—";
         ArrivalShipDateString = "—";
 
-        JourneySummary = "Generating summary...";
+        JourneySummary = "generating summary...";
         DisplayedJourneySummary = JourneySummary;
         PersonaName = "";
         PosterDataUrl = "";
@@ -271,8 +272,12 @@ public class MainViewModel
                 PersonaId: _currentPersonaId
             );
 
-            // 1. Get calculations instantly
-            var trip = await _tripEvaluationService.ComputeTripAsync(request);
+            // Start both calls in parallel
+            var computeTask = _tripEvaluationService.ComputeTripAsync(request);
+            var contentTask = _tripEvaluationService.GenerateContentAsync(request);
+
+            // Update UI as soon as calculations arrive
+            var trip = await computeTask;
             if (requestVersion != _evaluationRequestVersion) return;
 
             SpeedMph = trip.SpeedMph;
@@ -287,11 +292,8 @@ public class MainViewModel
             IsCalculatingTrip = false;
             NotifyStateChanged();
 
-            // 2. Get AI content (slower)
-            IsGeneratingContent = true;
-            NotifyStateChanged();
-
-            var content = await _tripEvaluationService.GenerateContentAsync(request);
+            // Update UI when content arrives
+            var content = await contentTask;
             if (requestVersion != _evaluationRequestVersion) return;
 
             IsGeneratingContent = false;
@@ -301,7 +303,6 @@ public class MainViewModel
             JourneySummary = content.Summary;
             PersonaName = content.PersonaName;
             HasCalculated = true;
-            IsCalculatingTrip = false;
 
             if (!string.IsNullOrWhiteSpace(content.PosterUrl))
             {

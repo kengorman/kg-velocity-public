@@ -56,27 +56,14 @@
                 @if (!ViewModel.HasCalculated)
                 {
                     <div class="empty-state">
-                        <div class="empty-state-icon">🚀</div>
-
                         <div class="empty-state-text">
-                            Journey across the universe.
+                            The universe is vast. Light is slow.
                         </div>
 
                         <div class="empty-state-subtext">
-                            Choose a destination and speed — from walking to absurd.
+                            Pick a destination and speed. See how long it takes—and how you and those you left on Earth change over time.
                             <br /><br />
-
-                            See:
-                            <br />
-                            • How long the trip takes<br />
-                            • A one-of-a-kind narrative<br />
-                            • A one-of-a-kind poster
-                            <br /><br />
-
-                            The results are unique — never repeated.
-                            <br /><br />
-
-                            Enjoy your journey across the cosmos!
+                            Every summary is one of a kind.
                         </div>
                     </div>
                 }
@@ -85,7 +72,7 @@
                     <div class="results-grid">
                         @if (ViewModel.IsCalculatingTrip)
                         {
-                            <div class="calculating-trip-status" role="status" aria-live="polite"><em>Generating details...</em></div>
+                            <div class="calculating-trip-status" role="status" aria-live="polite"><em>generating details...</em></div>
                         }
                         <div class="result-item secondary">
                             <span class="result-label">Distance Travelled</span>
@@ -127,7 +114,7 @@
                                     </button>
                                 }
                             </div>
-                            @if (ViewModel.IsCalculatingTrip)
+                            @if (ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent)
                             {
                                 <div class="summary-text"><em>@ViewModel.DisplayedJourneySummary</em></div>
                             }
