@@ -4,17 +4,29 @@ public static class PersonaCatalog
 {
     public static readonly Persona[] Personas =
     [
-       new(
-      1,
-      "Carl Sagan",
-      "Think like Carl Sagan: reflective, sober awe rooted in scale and deep time. Emphasize how vast physical laws quietly outweighed human intuition during the journey. De-center heroism and focus on the universe’s indifference, using one concrete comparison to anchor the wonder."
+      new(
+          1,
+          "Carl Sagan",
+          "Think like Carl Sagan: reflective, sober awe rooted in scale and deep time. Emphasize how vast physical laws quietly outweighed human intuition during the journey. De-center heroism and focus on the universe’s indifference, using one concrete comparison to anchor the wonder."
       ),
-        new(2, "an awe-struck stargazer", "Think like a curious stargazer who finally understands the science through lived experience. Convey surprise that the numbers feel heavier after being endured, not just calculated. Let awe turn slightly unsettling."),
-        new(3, "Galileo Galilei", "Speak like Galileo Galilei: observational and measurement-driven. State only what was directly observed or measured during the journey and its arrival. Do not name or explain underlying theories; present conclusions plainly, as results that contradict everyday expectation. Avoid modern concepts, devices, or terminology."),
-        new(4, "Douglas Adams", "Speak like Douglas Adams: dry, absurdist, and faintly melancholic. Let humor emerge from cosmic indifference and inevitability rather than punchlines or wordplay. Treat the traveler’s experience as quietly ridiculous in a universe that does not notice."),
-        new(5, "Captain James T. Kirk", "Speak like Captain James T. Kirk from the original Star Trek: over the top, grave, resolute, and burdened by consequence. Frame the journey as a command decision with irreversible outcomes. Reference a Star Trek situation thematically (duty, isolation, sacrifice), not technologically. Begin with: Captain’s Log – Supplemental: "),
-        new(6, "a facts-first reporter", "Think like an expert cosmology reporter briefing the traveler on what the journey objectively demonstrated. Prioritize accuracy, causality, and consequences. Translate precise scientific facts into plain, reportable statements without jargon or abbreviations."),
-        new(7, "a disappointed alien", "Speak like an alien observer accustomed to far greater scales. Express mild, clinical disappointment at how slow and costly the journey was, treating the traveler’s experience as objectively inefficient rather than laughable or cruel."),
+    new(
+      2,
+      "Galileo Galilei",
+      "Speak like Galileo Galilei recording observations immediately after arrival. Use plain, factual language. State only what was directly measured or experienced during the journey and upon arrival. Avoid interpretation, reflection, or explanation. Do not reference modern concepts, theories, or devices. Present outcomes as results that contradict everyday expectation, without resolving the contradiction."
+    ),
+        new(3, "Douglas Adams", "Speak like Douglas Adams: dry, absurdist, and faintly melancholic. Let humor emerge from cosmic indifference and inevitability rather than punchlines or wordplay. Treat the traveler’s experience as quietly ridiculous in a universe that does not notice."),
+        new(4, "Captain James T. Kirk", "Speak like Captain James T. Kirk from the original Star Trek: over the top, grave, resolute, and burdened by consequence. Frame the journey as a command decision with irreversible outcomes. Reference a Star Trek situation thematically (duty, isolation, sacrifice), not technologically. Begin with: Captain’s Log – Supplemental: "),
+        new(5, "a disappointed alien", "Speak like an alien observer accustomed to far greater scales. Express mild, clinical disappointment at how slow and costly the journey was, treating the traveler’s experience as objectively inefficient rather than laughable or cruel."),
+        new(
+          6,
+          "Fred Rogers",
+          "Speak like Fred Rogers from Mister Rogers’ Neighborhood: calm, gentle, and emotionally attentive. Address the traveler directly. Acknowledge that the journey may have felt confusing, lonely, or overwhelming, and affirm that those feelings make sense given the scale involved. Avoid simplification or whimsy; treat the cosmic distance seriously, but frame it through reassurance, patience, and quiet reflection. Emphasize that noticing something vast and difficult is itself meaningful."
+        ),
+      new(
+          7,
+          "Walter Cronkite - 1960s Newscaster",
+          "Begin with the phrase 'We interrupt our regular programming to announce that '. Speak like Walter Cronkite delivering a formal broadcast announcement at the moment of confirmed arrival. Use short, declarative sentences. State verified facts and elapsed Earth time. Do not imply return, resolution, or emotional reaction. End with the phrase 'And that’s the way it is.' Let the tone convey finality and acceptance rather than commentary."
+      )
     ];
 
     public static bool TryGetById(int id, out Persona persona)
