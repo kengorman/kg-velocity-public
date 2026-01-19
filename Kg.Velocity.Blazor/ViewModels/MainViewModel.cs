@@ -64,10 +64,23 @@ public class MainViewModel
         NotifyStateChanged();
     }
 
+    // Phase messages for the three-beat ritual
+    private const string Phase1Message = "Establishing distance...";
+    private const string Phase2Message = "Reflecting on your journey...";
+    private const string Phase3Message = "Marking the passage...";
+
+    private const int Phase1MinMs = 600;
+    private const int Phase2MinMs = 1000;
+    private const int Phase3MinMs = 2000;
+
     // Properties
     public bool HasCalculated { get; set; }
     public bool IsCalculatingTrip { get; set; }
     public bool IsGeneratingContent { get; set; }
+    public string PhaseMessage { get; set; } = "";
+    public bool ShowResults { get; set; }
+    public bool ShowSummary { get; set; }
+    public bool ShowPoster { get; set; }
     public double SpeedMph { get; set; }
     public double PercentageOfLightSpeed { get; set; }
     public double DistanceMiles { get; set; }
@@ -99,22 +112,15 @@ public class MainViewModel
         set
         {
             _selectedDestination = value;
-            if (value != null)
-            {
-                // Re-evaluate if speed is already set
-                if (_selectedSpeedMph > 0)
-                    _ = EvaluateTripAsync();
-                else
-                    ClearCalculations();
-            }
-            else
-            {
-                // Blank destination selected - clear calculations
-                ClearCalculations();
-            }
             NotifyStateChanged();
         }
     }
+
+    public bool CanStart => SelectedDestination != null
+        && _selectedSpeedMph > 0
+        && !IsCalculatingTrip
+        && !IsGeneratingContent
+        && !IsFetchingPosterBytes;
 
     public double? SelectedPresetSpeed
     {
@@ -128,18 +134,12 @@ public class MainViewModel
             if (value.HasValue && value.Value > 0)
             {
                 _selectedSpeedMph = value.Value;
-
-                // Evaluate journey when speed is selected and destination exists
-                if (SelectedDestination != null)
-                    _ = EvaluateTripAsync();
-                NotifyStateChanged();
             }
             else
             {
-                // Blank speed selected - clear speed and calculations
                 _selectedSpeedMph = 0;
-                ClearCalculations();
             }
+            NotifyStateChanged();
         }
     }
 
@@ -233,7 +233,7 @@ public class MainViewModel
         }
     }
 
-    private async Task EvaluateTripAsync()
+    public async Task EvaluateTripAsync()
     {
         if (SelectedDestination == null) return;
         if (_selectedSpeedMph <= 0) return;
@@ -244,25 +244,32 @@ public class MainViewModel
         var speedPreset = SpeedPresets.FirstOrDefault(p => System.Math.Abs(p.SpeedMph - _selectedSpeedMph) < 0.001);
         string speedName = speedPreset?.Name ?? $"{_selectedSpeedMph:N0} mph";
 
+        // Reset all visibility and state
         HasCalculated = true;
         IsCalculatingTrip = true;
         IsGeneratingContent = true;
         IsFetchingPosterBytes = true;
+        ShowResults = false;
+        ShowSummary = false;
+        ShowPoster = false;
 
-        // Reset display values while calculating
+        // Reset display values
         DistanceMiles = 0;
         EarthTimeElapsed = "—";
         ShipTimeElapsed = "—";
         TimeDifference = "—";
         ArrivalDateString = "—";
         ArrivalShipDateString = "—";
-
-        JourneySummary = "generating summary...";
-        DisplayedJourneySummary = JourneySummary;
+        JourneySummary = "";
+        DisplayedJourneySummary = "";
         PersonaName = "";
         PosterDataUrl = "";
         PosterGeneratedAtDisplay = "";
+
+        // Phase 1: Establishing distance...
+        PhaseMessage = Phase1Message;
         NotifyStateChanged();
+        var phase1Start = DateTime.UtcNow;
 
         try
         {
@@ -282,10 +289,11 @@ public class MainViewModel
             var computeTask = _tripEvaluationService.ComputeTripAsync(request);
             var contentTask = _tripEvaluationService.GenerateContentAsync(request);
 
-            // Update UI as soon as calculations arrive
+            // Wait for calculations
             var trip = await computeTask;
             if (requestVersion != _evaluationRequestVersion) return;
 
+            // Store results but don't show yet
             SpeedMph = trip.SpeedMph;
             PercentageOfLightSpeed = trip.PercentageOfLightSpeed;
             DistanceMiles = trip.DistanceMiles;
@@ -296,9 +304,20 @@ public class MainViewModel
             ArrivalDateString = trip.ArrivedEarthTime;
             ArrivalShipDateString = trip.ArrivedShipTime;
             IsCalculatingTrip = false;
-            NotifyStateChanged();
 
-            // Update UI when content arrives
+            // Ensure minimum Phase 1 display time
+            var phase1Elapsed = (DateTime.UtcNow - phase1Start).TotalMilliseconds;
+            if (phase1Elapsed < Phase1MinMs)
+                await Task.Delay(Phase1MinMs - (int)phase1Elapsed);
+            if (requestVersion != _evaluationRequestVersion) return;
+
+            // Transition: Show results, start Phase 2
+            ShowResults = true;
+            PhaseMessage = Phase2Message;
+            NotifyStateChanged();
+            var phase2Start = DateTime.UtcNow;
+
+            // Wait for content (summary + poster URL)
             var content = await contentTask;
             if (requestVersion != _evaluationRequestVersion) return;
 
@@ -306,15 +325,26 @@ public class MainViewModel
             _currentPersonaId = content.PersonaId;
             await _personaIdStore.TrySetAsync(content.PersonaId);
 
+            // Store summary but don't show yet
             JourneySummary = content.Summary;
             PersonaName = content.PersonaName;
-            HasCalculated = true;
 
+            // Ensure minimum Phase 2 display time
+            var phase2Elapsed = (DateTime.UtcNow - phase2Start).TotalMilliseconds;
+            if (phase2Elapsed < Phase2MinMs)
+                await Task.Delay(Phase2MinMs - (int)phase2Elapsed);
+            if (requestVersion != _evaluationRequestVersion) return;
+
+            // Transition: Show summary, start Phase 3
+            ShowSummary = true;
+            DisplayedJourneySummary = JourneySummary;
+            PhaseMessage = Phase3Message;
+            NotifyStateChanged();
+            var phase3Start = DateTime.UtcNow;
+
+            // Fetch poster bytes
             if (!string.IsNullOrWhiteSpace(content.PosterUrl))
             {
-                IsFetchingPosterBytes = true;
-                NotifyStateChanged();
-
                 try
                 {
                     var posterBytes = await _tripEvaluationService.GetPosterBytesAsync(content.PosterUrl);
@@ -331,28 +361,33 @@ public class MainViewModel
                     PosterDataUrl = "";
                     PosterGeneratedAtDisplay = "";
                 }
-                finally
-                {
-                    IsFetchingPosterBytes = false;
-                }
             }
 
-            NotifyStateChanged();
+            // Ensure minimum Phase 3 display time
+            var phase3Elapsed = (DateTime.UtcNow - phase3Start).TotalMilliseconds;
+            if (phase3Elapsed < Phase3MinMs)
+                await Task.Delay(Phase3MinMs - (int)phase3Elapsed);
+            if (requestVersion != _evaluationRequestVersion) return;
 
-            _ = AnimateSummaryAsync(
-                summary: JourneySummary,
-                requestVersion: requestVersion,
-                animationVersion: _summaryAnimationVersion);
+            // Transition: Show poster, clear phase message
+            IsFetchingPosterBytes = false;
+            ShowPoster = true;
+            PhaseMessage = "";
+            NotifyStateChanged();
         }
         catch (Exception ex)
         {
             if (requestVersion != _evaluationRequestVersion) return;
 
             IsCalculatingTrip = false;
+            IsGeneratingContent = false;
+            IsFetchingPosterBytes = false;
+            PhaseMessage = "";
+            ShowResults = true;
+            ShowSummary = true;
             JourneySummary = ex.Message;
             DisplayedJourneySummary = JourneySummary;
             PersonaName = "System";
-            HasCalculated = true;
             NotifyStateChanged();
         }
     }

@@ -96,6 +96,38 @@ html, body {
     cursor: not-allowed;
 }
 
+/* Start Button */
+.start-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 4px;
+}
+
+.start-button {
+    padding: 12px 40px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: var(--accent-blue);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.start-button:hover:not(:disabled) {
+    background-color: #1d4ed8;
+}
+
+.start-button:active:not(:disabled) {
+    background-color: #1e40af;
+}
+
+.start-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 /* Results Section */
 .results-section {
     flex: 1;
@@ -110,12 +142,63 @@ html, body {
     gap: 10px;
 }
 
-/* Temporary status shown only while the API is computing */
-.calculating-trip-status {
-    font-size: 14px;
-    color: var(--text-secondary);
-    font-style: italic !important;
-    margin-bottom: 2px;
+/* Phase message - the three-beat ritual */
+.phase-message {
+    font-size: 15px;
+    font-style: italic;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 24px 16px;
+}
+
+/* Results data container - staggered fade-in */
+.results-data {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.results-data .result-item {
+    opacity: 0;
+    animation: fadeQuick 0.2s ease-out forwards;
+}
+
+.results-data .result-item:nth-child(1) { animation-delay: 0ms; }
+.results-data .result-item:nth-child(2) { animation-delay: 40ms; }
+.results-data .result-item:nth-child(3) { animation-delay: 80ms; }
+.results-data .result-item:nth-child(4) { animation-delay: 120ms; }
+.results-data .result-item:nth-child(5) { animation-delay: 160ms; }
+.results-data .result-item:nth-child(6) { animation-delay: 200ms; }
+
+@keyframes fadeQuick {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Summary - blur to sharp */
+.journey-summary.fade-in {
+    animation: blurToSharp 0.25s ease-out;
+}
+
+@keyframes blurToSharp {
+    from {
+        opacity: 0;
+        filter: blur(4px);
+    }
+    to {
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+/* Poster - clean fade */
+.poster-panel.slide-in {
+    animation: fadeClean 0.3s ease-out;
+}
+
+@keyframes fadeClean {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 /* Unified label styling for all result items */
