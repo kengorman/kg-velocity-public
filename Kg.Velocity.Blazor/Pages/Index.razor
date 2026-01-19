@@ -109,6 +109,25 @@
                                     <span class="result-value highlight">@ViewModel.TimeDifference</span>
                                 </div>
                             </div>
+
+                            <!-- Time Comparison Chart -->
+                            <div class="time-chart">
+                                <div class="time-chart-title">The Passage of Time</div>
+                                <div class="time-chart-row">
+                                    <span class="time-chart-label">Ship</span>
+                                    <div class="time-chart-bar-container">
+                                        <div class="time-chart-bar ship" style="width: @(GetShipTimePercentage())%"></div>
+                                    </div>
+                                    <span class="time-chart-value ship-time">@ViewModel.ShipTimeElapsed</span>
+                                </div>
+                                <div class="time-chart-row">
+                                    <span class="time-chart-label">Earth</span>
+                                    <div class="time-chart-bar-container">
+                                        <div class="time-chart-bar earth" style="width: 100%"></div>
+                                    </div>
+                                    <span class="time-chart-value">@ViewModel.EarthTimeElapsed</span>
+                                </div>
+                            </div>
                         }
                         @if (ViewModel.ShowSummary)
                         {
@@ -267,6 +286,13 @@ else
     private async Task OnStartClicked()
     {
         await ViewModel.EvaluateTripAsync();
+    }
+
+    private double GetShipTimePercentage()
+    {
+        if (ViewModel.EarthTimeSeconds <= 0) return 0;
+        var percentage = (ViewModel.ShipTimeSeconds / ViewModel.EarthTimeSeconds) * 100;
+        return Math.Max(1, Math.Min(100, percentage)); // Clamp between 1-100 for visibility
     }
 
     private string FormatDistance(double miles)

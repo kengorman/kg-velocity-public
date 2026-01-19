@@ -201,6 +201,77 @@ html, body {
     to { opacity: 1; }
 }
 
+/* Time Comparison Chart */
+.time-chart {
+    margin-top: 16px;
+    padding: 14px;
+    background-color: #fafafa;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.time-chart-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.time-chart-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.time-chart-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: 36px;
+    flex-shrink: 0;
+}
+
+.time-chart-bar-container {
+    flex: 1;
+    height: 8px;
+    background-color: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.time-chart-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease-out;
+}
+
+.time-chart-bar.ship {
+    background-color: var(--accent-amber);
+}
+
+.time-chart-bar.earth {
+    background-color: var(--text-secondary);
+}
+
+.time-chart-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 70px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.time-chart-value.ship-time {
+    color: var(--accent-amber);
+}
+
 /* Unified label styling for all result items */
 .result-item {
     display: flex;

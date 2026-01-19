@@ -85,6 +85,8 @@ public class MainViewModel
     public double PercentageOfLightSpeed { get; set; }
     public double DistanceMiles { get; set; }
     public double DistanceLightYears { get; set; }
+    public double EarthTimeSeconds { get; set; }
+    public double ShipTimeSeconds { get; set; }
     public string EarthTimeElapsed { get; set; } = "00:00:00";
     public string ShipTimeElapsed { get; set; } = "00:00:00";
     public string ArrivalDateString { get; set; } = "N/A";
@@ -298,6 +300,8 @@ public class MainViewModel
             PercentageOfLightSpeed = trip.PercentageOfLightSpeed;
             DistanceMiles = trip.DistanceMiles;
             DistanceLightYears = trip.DistanceLightYears;
+            EarthTimeSeconds = trip.EarthTimeSeconds;
+            ShipTimeSeconds = trip.ShipTimeSeconds;
             EarthTimeElapsed = trip.EarthTimeFormatted;
             ShipTimeElapsed = trip.ShipTimeFormatted;
             TimeDifference = trip.TimeDifferenceFormatted;
