@@ -26,7 +26,7 @@
                         value="@(ViewModel.SelectedDestination?.Name ?? "")"
                         @onchange="OnDestinationChanged"
                         disabled="@(ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes)">
-                    <option value="">Select destination...</option>
+                    <option value="">Destination...</option>
                     @foreach (var dest in ViewModel.Destinations)
                     {
                         <option value="@dest.Name">@dest.DisplayName</option>
@@ -38,7 +38,7 @@
                         value="@(ViewModel.SelectedPresetSpeed?.ToString() ?? "")"
                         @onchange="OnSpeedChanged"
                         disabled="@(ViewModel.SelectedDestination == null || ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes)">
-                    <option value="">Select speed...</option>
+                    <option value="">Speed...</option>
                     @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
                     {
                         <optgroup label="@group.Key">
@@ -62,8 +62,6 @@
 
                         <div class="empty-state-subtext">
                             Pick a destination and speed. See how long it takes—and how you and those you left on Earth change over time.
-                            <br /><br />
-                            Every summary is one of a kind.
                         </div>
                     </div>
                 }
@@ -103,15 +101,6 @@
                                 @if (!string.IsNullOrEmpty(ViewModel.PersonaName))
                                 {
                                     <div class="persona-name">...as @ViewModel.PersonaName</div>
-                                }
-                                @* Only show when not generating AND a summary exists *@
-                                @if (!ViewModel.IsGeneratingContent && !string.IsNullOrEmpty(ViewModel.PersonaName))
-                                {
-                                    <button type="button"
-                                            class="regenerate-summary"
-                                            @onclick="ViewModel.RegenerateSummaryAsync">
-                                        new summary
-                                    </button>
                                 }
                             </div>
                             @if (ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent)
