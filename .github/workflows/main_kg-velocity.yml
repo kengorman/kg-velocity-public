@@ -18,6 +18,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Cache-bust CSS with commit SHA
+        shell: pwsh
+        run: |
+          $file = "Kg.Velocity.Blazor/wwwroot/index.html"
+          $sha = "${{ github.sha }}".Substring(0, 8)
+          (Get-Content $file) -replace 'app\.css', "app.css?v=$sha" -replace 'Kg\.Velocity\.Blazor\.styles\.css', "Kg.Velocity.Blazor.styles.css?v=$sha" | Set-Content $file
+
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
