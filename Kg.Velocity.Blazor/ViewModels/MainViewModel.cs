@@ -4,8 +4,6 @@ using Kg.Velocity.Contracts.Nasa;
 using Kg.Velocity.Contracts.Trips;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace Kg.Velocity.Blazor.ViewModels;
 
@@ -17,7 +15,6 @@ public class MainViewModel
     private DateTimeOffset _startTime;
     private double _selectedSpeedMph;
     private int _evaluationRequestVersion;
-    private int _summaryAnimationVersion;
     private int? _currentPersonaId;
 
     // Event to notify UI of state changes
@@ -147,101 +144,12 @@ public class MainViewModel
 
     private void NotifyStateChanged() => StateChanged?.Invoke();
 
-    public async Task RegenerateSummaryAsync()
-    {
-        if (SelectedDestination == null) return;
-        if (_selectedSpeedMph <= 0) return;
-
-        var requestVersion = ++_evaluationRequestVersion;
-        _summaryAnimationVersion++;
-
-        var speedPreset = SpeedPresets.FirstOrDefault(p => System.Math.Abs(p.SpeedMph - _selectedSpeedMph) < 0.001);
-        string speedName = speedPreset?.Name ?? $"{_selectedSpeedMph:N0} mph";
-
-        // Only reset content fields - calculations stay visible
-        IsGeneratingContent = true;
-        IsFetchingPosterBytes = true;
-        JourneySummary = "generating summary...";
-        DisplayedJourneySummary = JourneySummary;
-        PersonaName = "";
-        PosterDataUrl = "";
-        PosterGeneratedAtDisplay = "";
-        NotifyStateChanged();
-
-        try
-        {
-            var request = new TripEvaluateRequest(
-                Destination: SelectedDestination.Name,
-                SpeedName: speedName,
-                SpeedMph: _selectedSpeedMph,
-                DistanceMiles: SelectedDestination.DistanceMiles,
-                StartTime: _startTime,
-                PersonaId: _currentPersonaId
-            );
-
-            var content = await _tripEvaluationService.GenerateContentAsync(request);
-            if (requestVersion != _evaluationRequestVersion) return;
-
-            IsGeneratingContent = false;
-            _currentPersonaId = content.PersonaId;
-            await _personaIdStore.TrySetAsync(content.PersonaId);
-
-            JourneySummary = content.Summary;
-            PersonaName = content.PersonaName;
-
-            if (!string.IsNullOrWhiteSpace(content.PosterUrl))
-            {
-                IsFetchingPosterBytes = true;
-                NotifyStateChanged();
-
-                try
-                {
-                    var posterBytes = await _tripEvaluationService.GetPosterBytesAsync(content.PosterUrl);
-                    if (requestVersion != _evaluationRequestVersion) return;
-
-                    PosterDataUrl = "data:image/svg+xml;base64," + Convert.ToBase64String(posterBytes);
-
-                    var nowLocal = DateTimeOffset.Now.ToLocalTime();
-                    PosterGeneratedAtDisplay = nowLocal.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-                    PosterFileName = $"velocity-poster-{nowLocal:yyyyMMdd-HHmmss}.svg";
-                }
-                catch
-                {
-                    PosterDataUrl = "";
-                    PosterGeneratedAtDisplay = "";
-                }
-                finally
-                {
-                    IsFetchingPosterBytes = false;
-                }
-            }
-
-            NotifyStateChanged();
-
-            _ = AnimateSummaryAsync(
-                summary: JourneySummary,
-                requestVersion: requestVersion,
-                animationVersion: _summaryAnimationVersion);
-        }
-        catch (Exception ex)
-        {
-            if (requestVersion != _evaluationRequestVersion) return;
-
-            IsCalculatingTrip = false;
-            JourneySummary = ex.Message;
-            DisplayedJourneySummary = JourneySummary;
-            PersonaName = "System";
-            NotifyStateChanged();
-        }
-    }
-
     public async Task EvaluateTripAsync()
     {
         if (SelectedDestination == null) return;
         if (_selectedSpeedMph <= 0) return;
 
         var requestVersion = ++_evaluationRequestVersion;
-        _summaryAnimationVersion++;
 
         var speedPreset = SpeedPresets.FirstOrDefault(p => System.Math.Abs(p.SpeedMph - _selectedSpeedMph) < 0.001);
         string speedName = speedPreset?.Name ?? $"{_selectedSpeedMph:N0} mph";
@@ -394,69 +302,6 @@ public class MainViewModel
             PersonaName = "System";
             NotifyStateChanged();
         }
-    }
-
-    private async Task AnimateSummaryAsync(string summary, int requestVersion, int animationVersion)
-    {
-        // If summary is empty, just mirror it.
-        if (string.IsNullOrEmpty(summary))
-        {
-            DisplayedJourneySummary = "";
-            NotifyStateChanged();
-            return;
-        }
-
-        // Reveal summary word-by-word while preserving whitespace/punctuation.
-        // Tokenization returns alternating word/punctuation and whitespace tokens.
-        var tokens = Regex.Matches(summary, @"(\s+|\S+)")
-            .Select(m => m.Value)
-            .ToArray();
-
-        DisplayedJourneySummary = "";
-        NotifyStateChanged();
-
-        var sb = new StringBuilder(summary.Length);
-
-        foreach (var token in tokens)
-        {
-            // Cancel if a new trip evaluation started, or a newer animation began.
-            if (requestVersion != _evaluationRequestVersion) return;
-            if (animationVersion != _summaryAnimationVersion) return;
-
-            sb.Append(token);
-            DisplayedJourneySummary = sb.ToString();
-            NotifyStateChanged();
-
-            // Delay only after non-whitespace tokens to approximate "100ms per word".
-            if (!string.IsNullOrWhiteSpace(token))
-            {
-                await Task.Delay(15);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Clears all calculation results without changing dropdown selections.
-    /// </summary>
-    private void ClearCalculations()
-    {
-        HasCalculated = false;
-        IsCalculatingTrip = false;
-        IsFetchingPosterBytes = false;
-        _startTime = DateTimeOffset.Now;
-        _summaryAnimationVersion++;
-        _currentPersonaId = null;
-
-        // Update display properties to reflect cleared state
-        UpdatePropertiesWithoutNotification();
-        JourneySummary = "";
-        DisplayedJourneySummary = "";
-        PosterDataUrl = "";
-        PosterFileName = "velocity-poster.svg";
-        PosterGeneratedAtDisplay = "";
-        NasaImages = [];
-
-        NotifyStateChanged();
     }
 
     /// <summary>
