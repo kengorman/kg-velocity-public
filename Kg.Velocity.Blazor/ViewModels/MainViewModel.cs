@@ -76,6 +76,7 @@ public class MainViewModel
     public bool IsGeneratingContent { get; set; }
     public string PhaseMessage { get; set; } = "";
     public bool ShowResults { get; set; }
+    public bool ShowTimeChart { get; set; }
     public bool ShowSummary { get; set; }
     public bool ShowPoster { get; set; }
     public double SpeedMph { get; set; }
@@ -111,6 +112,8 @@ public class MainViewModel
         set
         {
             _selectedDestination = value;
+            if (HasCalculated)
+                ClearResults();
             NotifyStateChanged();
         }
     }
@@ -131,18 +134,38 @@ public class MainViewModel
         set
         {
             if (value.HasValue && value.Value > 0)
-            {
                 _selectedSpeedMph = value.Value;
-            }
             else
-            {
                 _selectedSpeedMph = 0;
-            }
+
+            if (HasCalculated)
+                ClearResults();
             NotifyStateChanged();
         }
     }
 
     private void NotifyStateChanged() => StateChanged?.Invoke();
+
+    private void ClearResults()
+    {
+        // Reset result values to placeholder
+        DistanceMiles = 0;
+        EarthTimeElapsed = "---";
+        ShipTimeElapsed = "---";
+        TimeDifference = "---";
+        ArrivalDateString = "---";
+        ArrivalShipDateString = "---";
+
+        // Hide time chart, persona, and poster panels
+        ShowTimeChart = false;
+        ShowSummary = false;
+        ShowPoster = false;
+
+        // Clear their content
+        DisplayedJourneySummary = "";
+        PersonaName = "";
+        PosterDataUrl = "";
+    }
 
     public async Task EvaluateTripAsync()
     {
@@ -160,6 +183,7 @@ public class MainViewModel
         IsGeneratingContent = true;
         IsFetchingPosterBytes = true;
         ShowResults = false;
+        ShowTimeChart = false;
         ShowSummary = false;
         ShowPoster = false;
 
@@ -225,6 +249,7 @@ public class MainViewModel
 
             // Transition: Show results, start Phase 2
             ShowResults = true;
+            ShowTimeChart = true;
             PhaseMessage = Phase2Message;
             NotifyStateChanged();
             var phase2Start = DateTime.UtcNow;

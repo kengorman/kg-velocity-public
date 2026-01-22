@@ -110,24 +110,27 @@
                                 </div>
                             </div>
 
-                            <!-- Time Comparison Chart -->
-                            <div class="time-chart">
-                                <div class="time-chart-title">The Passage of Time</div>
-                                <div class="time-chart-row">
-                                    <span class="time-chart-label">Ship</span>
-                                    <div class="time-chart-bar-container">
-                                        <div class="time-chart-bar ship" style="width: @(GetShipTimePercentage())%"></div>
+                            @if (ViewModel.ShowTimeChart)
+                            {
+                                <!-- Time Comparison Chart -->
+                                <div class="time-chart">
+                                    <div class="time-chart-title">The Passage of Time</div>
+                                    <div class="time-chart-row">
+                                        <span class="time-chart-label">Ship</span>
+                                        <div class="time-chart-bar-container">
+                                            <div class="time-chart-bar ship" style="width: @(GetShipTimePercentage())%"></div>
+                                        </div>
+                                        <span class="time-chart-value ship-time">@ViewModel.ShipTimeElapsed</span>
                                     </div>
-                                    <span class="time-chart-value ship-time">@ViewModel.ShipTimeElapsed</span>
-                                </div>
-                                <div class="time-chart-row">
-                                    <span class="time-chart-label">Earth</span>
-                                    <div class="time-chart-bar-container">
-                                        <div class="time-chart-bar earth" style="width: 100%"></div>
+                                    <div class="time-chart-row">
+                                        <span class="time-chart-label">Earth</span>
+                                        <div class="time-chart-bar-container">
+                                            <div class="time-chart-bar earth" style="width: 100%"></div>
+                                        </div>
+                                        <span class="time-chart-value">@ViewModel.EarthTimeElapsed</span>
                                     </div>
-                                    <span class="time-chart-value">@ViewModel.EarthTimeElapsed</span>
                                 </div>
-                            </div>
+                            }
                         }
                         @if (ViewModel.ShowSummary)
                         {
