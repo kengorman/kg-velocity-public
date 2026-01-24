@@ -24,8 +24,7 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        // TODO: Configure with actual API base URL
-        var apiBaseUrl = "https://kg-velocity.azurewebsites.net";
+        var apiBaseUrl = "https://www.absurdtravelsimulator.com";
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 
         builder.Services.AddScoped<TripEvaluationService>();
