@@ -81,6 +81,27 @@
                         {
                             <div class="phase-message" role="status" aria-live="polite">@ViewModel.PhaseMessage</div>
                         }
+                        @if (ViewModel.ShowSummary)
+                        {
+                            <div id="journey-summary" class="journey-summary fade-in">
+                                <div class="summary-header">
+                                    @if (!string.IsNullOrEmpty(ViewModel.PersonaName))
+                                    {
+                                        <div class="persona-name">...as @ViewModel.PersonaName</div>
+                                    }
+                                </div>
+                                <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
+                            </div>
+                        }
+                        @if (ViewModel.ShowPoster && !string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
+                        {
+                            <div class="poster-panel slide-in" aria-label="Generated poster preview">
+                                <img class="poster-preview"
+                                     src="@ViewModel.PosterDataUrl"
+                                     alt="Generated trip poster (server SVG)"
+                                     loading="lazy" />
+                            </div>
+                        }
                         @if (ViewModel.ShowResults)
                         {
                             <div class="results-data">
@@ -132,35 +153,17 @@
                                 </div>
                             }
                         }
-                        @if (ViewModel.ShowSummary)
-                        {
-                            <div id="journey-summary" class="journey-summary fade-in">
-                                <div class="summary-header">
-                                    @if (!string.IsNullOrEmpty(ViewModel.PersonaName))
-                                    {
-                                        <div class="persona-name">...as @ViewModel.PersonaName</div>
-                                    }
-                                </div>
-                                <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
-                            </div>
-                        }
-                        @if (ViewModel.ShowPoster && !string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
-                        {
-                            <div class="poster-panel slide-in" aria-label="Generated poster preview">
-                                <img class="poster-preview"
-                                     src="@ViewModel.PosterDataUrl"
-                                     alt="Generated trip poster (server SVG)"
-                                     loading="lazy" />
-                            </div>
-                        }
                     </div>
                 }
             </div>
         </div>
-        <div class="build-info">
-            <span>Build: @_buildVersion</span>
-            <span class="credit">Ken Gorman · 2026</span>
-        </div>
+        @if (!ViewModel.IsCalculatingTrip && !ViewModel.IsGeneratingContent && !ViewModel.IsFetchingPosterBytes && !(ViewModel.HasCalculated && !ViewModel.ShowResults))
+        {
+            <div class="build-info">
+                <span>Build: @_buildVersion</span>
+                <span class="credit">Ken Gorman · 2026</span>
+            </div>
+        }
 
         @* NASA Images Bottom Sheet *@
         @if (ViewModel.IsImageSheetOpen)

@@ -332,8 +332,8 @@ Branch system:
           cx="{{ branch_end_x }}"
           cy="{{ branch_y }}"
           r="{{ branch_end_radius * 0.5 }}"
-          fill="#0b1b3b"
-          opacity="0.6"
+          fill="{{ bar_color_origin }}"
+          opacity="0.4"
         />
       </g>
 

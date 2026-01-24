@@ -156,6 +156,11 @@ html, body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-top: 24px;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background-color: #fafafa;
 }
 
 .results-data .result-item {

@@ -122,7 +122,8 @@ public class MainViewModel
         && _selectedSpeedMph > 0
         && !IsCalculatingTrip
         && !IsGeneratingContent
-        && !IsFetchingPosterBytes;
+        && !IsFetchingPosterBytes
+        && !ShowResults;
 
     public double? SelectedPresetSpeed
     {
@@ -156,7 +157,8 @@ public class MainViewModel
         ArrivalDateString = "---";
         ArrivalShipDateString = "---";
 
-        // Hide time chart, persona, and poster panels
+        // Hide all result panels
+        ShowResults = false;
         ShowTimeChart = false;
         ShowSummary = false;
         ShowPoster = false;
@@ -247,9 +249,7 @@ public class MainViewModel
                 await Task.Delay(Phase1MinMs - (int)phase1Elapsed);
             if (requestVersion != _evaluationRequestVersion) return;
 
-            // Transition: Show results, start Phase 2
-            ShowResults = true;
-            // ShowTimeChart = true; // Temporarily disabled
+            // Transition: Start Phase 2 (don't show results yet - wait for all phases)
             PhaseMessage = Phase2Message;
             NotifyStateChanged();
             var phase2Start = DateTime.UtcNow;
@@ -272,8 +272,7 @@ public class MainViewModel
                 await Task.Delay(Phase2MinMs - (int)phase2Elapsed);
             if (requestVersion != _evaluationRequestVersion) return;
 
-            // Transition: Show summary, start Phase 3
-            ShowSummary = true;
+            // Transition: Start Phase 3 (don't show summary yet - wait for all phases)
             DisplayedJourneySummary = JourneySummary;
             PhaseMessage = Phase3Message;
             NotifyStateChanged();
@@ -306,8 +305,10 @@ public class MainViewModel
                 await Task.Delay(Phase3MinMs - (int)phase3Elapsed);
             if (requestVersion != _evaluationRequestVersion) return;
 
-            // Transition: Show poster, clear phase message
+            // Transition: All phases complete - show everything at once
             IsFetchingPosterBytes = false;
+            ShowResults = true;
+            ShowSummary = true;
             ShowPoster = true;
             PhaseMessage = "";
             NotifyStateChanged();
