@@ -213,11 +213,18 @@ Branch system:
       .meta { font: 600 {{ font_meta }}px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; fill: #94a3b8; }
       .branch-label {
         font: 500 {{ font_event }}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-        fill: #e2e8f0;
+        color: #e2e8f0;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.4;
       }
       .branch-desc {
-        font: 400 {{ font_event_desc }}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-        fill: #94a3b8;
+        font: 450 {{ font_event_desc }}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+        color: #b8c4d0;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.4;
+        margin-top: 4px;
       }
       .footer { font: 500 {{ font_footer }}px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; fill: #94a3b8; }
     </style>
@@ -308,7 +315,7 @@ Branch system:
       curve_control_x = spine_x + curve_offset
     ~}}
 
-    <g class="branch" opacity="0.88">
+    <g class="branch" opacity="0.94">
       <!-- Branch line from spine to circle -->
       <line
         x1="{{ spine_x }}"
@@ -347,22 +354,9 @@ Branch system:
         height="{{ text_box_height }}"
       >
         <div xmlns="http://www.w3.org/1999/xhtml" style="text-align: {{ text_align }};">
-          <div style="
-            font: 500 {{ font_event }}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: #e2e8f0;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            line-height: 1.4;
-          ">{{ event.text }}</div>
+          <div class="branch-label">{{ event.text }}</div>
           {{~ if event.description ~}}
-          <div style="
-            font: 400 {{ font_event_desc }}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: #94a3b8;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            line-height: 1.4;
-            margin-top: 4px;
-          ">{{ event.description }}</div>
+          <div class="branch-desc">{{ event.description }}</div>
           {{~ end ~}}
         </div>
       </foreignObject>
