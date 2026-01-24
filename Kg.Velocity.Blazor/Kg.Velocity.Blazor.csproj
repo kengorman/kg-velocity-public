@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Kg.Velocity.Contracts\Kg.Velocity.Contracts.csproj" />
+    <ProjectReference Include="..\Kg.Velocity.UI\Kg.Velocity.UI.csproj" />
   </ItemGroup>
 
 </Project>

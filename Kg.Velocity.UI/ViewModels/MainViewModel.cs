@@ -1,16 +1,16 @@
-using Kg.Velocity.Blazor.Services;
+using Kg.Velocity.UI.Services;
 using Kg.Velocity.Contracts.Catalogs;
 using Kg.Velocity.Contracts.Nasa;
 using Kg.Velocity.Contracts.Trips;
 using System.Collections.ObjectModel;
 using System.Globalization;
 
-namespace Kg.Velocity.Blazor.ViewModels;
+namespace Kg.Velocity.UI.ViewModels;
 
 public class MainViewModel
 {
     private readonly TripEvaluationService _tripEvaluationService;
-    private readonly PersonaIdStore _personaIdStore;
+    private readonly IPersonaIdStore _personaIdStore;
     private readonly TripCatalogClient _catalogClient;
     private DateTimeOffset _startTime;
     private double _selectedSpeedMph;
@@ -22,7 +22,7 @@ public class MainViewModel
 
     public MainViewModel(
         TripEvaluationService tripEvaluationService,
-        PersonaIdStore personaIdStore,
+        IPersonaIdStore personaIdStore,
         TripCatalogClient catalogClient)
     {
         _tripEvaluationService = tripEvaluationService;
@@ -34,7 +34,7 @@ public class MainViewModel
         // Initialize display properties without triggering state change
         UpdatePropertiesWithoutNotification();
     }
-    
+
     private void UpdatePropertiesWithoutNotification()
     {
         // Initialize properties to safe defaults for first render
@@ -104,7 +104,7 @@ public class MainViewModel
     public bool IsImageSheetOpen { get; set; }
     public bool IsLoadingNasaImages { get; set; }
     public List<NasaImageDto> NasaImages { get; set; } = [];
-    
+
     private DestinationDto? _selectedDestination;
     public DestinationDto? SelectedDestination
     {

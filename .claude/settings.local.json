@@ -21,7 +21,12 @@
       "Bash(/mnt/c/Program\\\\ Files/dotnet/dotnet.exe run:*)",
       "Bash(/mnt/c/Program\\\\ Files/dotnet/dotnet.exe sln:*)",
       "Bash(xargs ls:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(dotnet new:*)",
+      "Bash(/mnt/c/Program Files/dotnet/dotnet.exe new:*)",
+      "Bash(/mnt/c/Program Files/dotnet/dotnet.exe sln add:*)",
+      "Bash(/mnt/c/Program\\\\ Files/dotnet/dotnet.exe add:*)",
+      "Bash(/mnt/c/Program Files/dotnet/dotnet.exe build:*)"
     ]
   }
 }

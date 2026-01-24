@@ -1,5 +1,5 @@
 @page "/"
-@using Kg.Velocity.Blazor.ViewModels
+@using Kg.Velocity.UI.ViewModels
 @using System.Linq
 @using System.Reflection
 @inject MainViewModel ViewModel
@@ -59,7 +59,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Results -->
             <div class="results-section">
                 @if (!ViewModel.HasCalculated)
@@ -205,7 +205,7 @@
 else
 {
     <div class="loading-container">
-        <img src="dualRing.gif" alt="Loading..." class="loading-spinner" />
+        <img src="_content/Kg.Velocity.UI/dualRing.gif" alt="Loading..." class="loading-spinner" />
         <p class="loading-text">Initializing Flight Systems...</p>
     </div>
 }
@@ -219,7 +219,7 @@ else
     {
         var version = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
-        
+
         // Format: 1.0.0-20251221.145308+084afce53482e9405bf0c1ca759bda007ed76f09
         var plusIndex = version.IndexOf('+');
         if (plusIndex >= 0 && version.Length > plusIndex + 7)

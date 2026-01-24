@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
 using Kg.Velocity.Contracts.Catalogs;
 
-namespace Kg.Velocity.Blazor.Services;
+namespace Kg.Velocity.UI.Services;
 
 public class TripCatalogClient
 {
@@ -32,16 +32,3 @@ public class TripCatalogClient
         return _speedPresets;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

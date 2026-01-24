@@ -1,8 +1,12 @@
 using Microsoft.JSInterop;
+using Kg.Velocity.UI.Services;
 
 namespace Kg.Velocity.Blazor.Services;
 
-public class PersonaIdStore(IJSRuntime js)
+/// <summary>
+/// Browser-specific implementation using localStorage.
+/// </summary>
+public class BrowserPersonaIdStore(IJSRuntime js) : IPersonaIdStore
 {
     private const string Key = "kgv.persona.id";
 
@@ -25,7 +29,6 @@ public class PersonaIdStore(IJSRuntime js)
 
         try
         {
-            // localStorage.setItem returns void/undefined; use InvokeVoidAsync to avoid marshal errors.
             await js.InvokeVoidAsync("localStorage.setItem", Key, personaId.ToString());
         }
         catch
@@ -34,9 +37,3 @@ public class PersonaIdStore(IJSRuntime js)
         }
     }
 }
-
-
-
-
-
-

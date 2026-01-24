@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
 using Kg.Velocity.Contracts.Trips;
 
-namespace Kg.Velocity.Blazor.Services;
+namespace Kg.Velocity.UI.Services;
 
 public class TripEvaluationService
 {
@@ -59,8 +59,3 @@ public class TripEvaluationService
         }
     }
 }
-
-
-
-
-
