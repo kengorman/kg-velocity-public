@@ -2,7 +2,7 @@
 <!--
 Coordinate system:
 - viewBox: 0 0 800 1200
-- origin (0,0) is top-left
+- origin (0,0) is top-left 
 - y increases downward
 
 Header band:
@@ -24,8 +24,9 @@ Branch system:
   font_title = font_base
   font_subtitle = font_base * 0.55
   font_meta = font_base * 0.41
-  font_event = font_base * 0.41
+  font_event = font_base * 0.45
   font_event_desc = font_base * 0.40
+  font_footer = font_base * 0.32
 
   #
   # COLORS (computed from accent_hue passed by C#)
@@ -41,7 +42,7 @@ Branch system:
   #
   # EARTH (absolute anchor)
   #
-  canvas_height = 1200
+  canvas_height = 1350
   earth_cx = 400
   earth_r = 225
   earth_visible_cap = 90
@@ -51,7 +52,7 @@ Branch system:
   #
   # BAR (bottom-anchored, adjustable, centered horizontally)
   #
-  bar_height = 900
+  bar_height = 1062
   bar_center_x = 400
   bar_width = 32
   bar_rx = bar_width / 2
@@ -144,7 +145,7 @@ Branch system:
 
 ~}}
 -->
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1350" viewBox="0 0 800 1350">
   <defs>
     <linearGradient id="spine" x1="0" x2="0" y1="0" y2="1">
       <stop offset="0%" stop-color="{{ bar_color_destination }}" stop-opacity="0.9"/>
@@ -218,10 +219,11 @@ Branch system:
         font: 400 {{ font_event_desc }}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
         fill: #94a3b8;
       }
+      .footer { font: 500 {{ font_footer }}px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; fill: #94a3b8; }
     </style>
   </defs>
 
-  <rect x="0" y="0" width="800" height="1200" fill="#0b1b3b"/>
+  <rect x="0" y="0" width="800" height="1350" fill="#0b1b3b"/>
 
   <!-- Background stars -->
   {{~ for star in stars ~}}
@@ -350,7 +352,7 @@ Branch system:
             color: #e2e8f0;
             word-wrap: break-word;
             overflow-wrap: break-word;
-            line-height: 1.3;
+            line-height: 1.4;
           ">{{ event.text }}</div>
           {{~ if event.description ~}}
           <div style="
@@ -358,7 +360,7 @@ Branch system:
             color: #94a3b8;
             word-wrap: break-word;
             overflow-wrap: break-word;
-            line-height: 1.3;
+            line-height: 1.4;
             margin-top: 4px;
           ">{{ event.description }}</div>
           {{~ end ~}}
@@ -448,9 +450,9 @@ Branch system:
 
   <text
     x="50%"
-    y="1180"
+    y="1330"
     text-anchor="middle"
-    class="meta"
+    class="footer"
   >
     Absurd Travel Simulator · kg-velocity · 2026
   </text>
