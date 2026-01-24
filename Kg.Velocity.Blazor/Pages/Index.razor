@@ -85,10 +85,7 @@
                         {
                             <div id="journey-summary" class="journey-summary fade-in">
                                 <div class="summary-header">
-                                    @if (!string.IsNullOrEmpty(ViewModel.PersonaName))
-                                    {
-                                        <div class="persona-name">...as @ViewModel.PersonaName</div>
-                                    }
+                                    <div class="summary-label">Your journey...</div>
                                 </div>
                                 <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
                             </div>
