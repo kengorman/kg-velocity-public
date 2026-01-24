@@ -1,45 +1,34 @@
 using static System.Math;
+using Kg.Velocity.Contracts.Trips;
 
 namespace Kg.Velocity.Engine;
 
-internal class JourneyWeightExperiment
+public static class JourneyWeightCalculator
 {
-
-
-    static void Run()
-    {
-        var x = ComputeJourneyWeights(
-            24_930_000_000_000,
-            603_554_966,
-            17_989.20528,
-            0.2);
-
-    }
-
-    static JourneyWeights ComputeJourneyWeights(
-    double distance,     // miles
-    double speed,        // mph
-    double timePassed,   // hours experienced by traveler (0 for FTL)
-    double random)       // 0..1
+    public static JourneyWeights Compute(
+        double distanceMiles,
+        double speedMph,
+        double shipTimeHours,
+        double random = 0.5)
     {
         // -----------------------------
         // Safety
         // -----------------------------
-        distance = Max(1, distance);
-        speed = Max(1, speed);
+        distanceMiles = Max(1, distanceMiles);
+        speedMph = Max(1, speedMph);
         random = Clamp(random, 0, 1);
 
-        bool isFtl = timePassed <= 0;
+        bool isFtl = shipTimeHours <= 0;
 
         // -----------------------------
         // Time core (this is the soul)
         // -----------------------------
 
         // Raw outside time from kinematics
-        double tOutside = distance / speed;     // hours
+        double tOutside = distanceMiles / speedMph;     // hours
 
         // Distance scale
-        double Ld = Log10(distance);
+        double Ld = Log10(distanceMiles);
 
         // FTL outside-time floor based on distance class
         double outsideFloorHours =
@@ -66,7 +55,7 @@ internal class JourneyWeightExperiment
         }
         else
         {
-            tTraveler = Max(1e-6, timePassed);
+            tTraveler = Max(1e-6, shipTimeHours);
         }
 
         // -----------------------------
@@ -75,7 +64,7 @@ internal class JourneyWeightExperiment
 
         double Lt = Log10(tOutside);     // outside time (log hours)
         double Lτ = Log10(tTraveler);    // lived time   (log hours)
-        double Lv = Log10(speed);
+        double Lv = Log10(speedMph);
 
         // Desynchronization magnitude
         double D = Lt - Lτ;
@@ -141,8 +130,7 @@ internal class JourneyWeightExperiment
             - 0.40 * compression;
 
         // Loneliness / isolation
-        double loneliness =
-              isolation;
+        double loneliness = isolation;
 
         // -----------------------------
         // Clamp negatives
@@ -150,14 +138,14 @@ internal class JourneyWeightExperiment
 
         var raw = new[]
         {
-        Max(0, emotion),
-        Max(0, perceivedDistance),
-        Max(0, awe),
-        Max(0, timeGoneBy),
-        Max(0, memories),
-        Max(0, patience),
-        Max(0, loneliness),
-    };
+            Max(0, emotion),
+            Max(0, perceivedDistance),
+            Max(0, awe),
+            Max(0, timeGoneBy),
+            Max(0, memories),
+            Max(0, patience),
+            Max(0, loneliness),
+        };
 
         // -----------------------------
         // Normalize to 100%
@@ -178,16 +166,4 @@ internal class JourneyWeightExperiment
             Loneliness: raw[6] / sum * 100
         );
     }
-
-
-    public sealed record JourneyWeights(
-        double Emotion,
-        double Distance,
-        double Awe,
-        double TimeGoneBy,
-        double Memories,
-        double Patience,
-        double Loneliness
-    );
-
 }

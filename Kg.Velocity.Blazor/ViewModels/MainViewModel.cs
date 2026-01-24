@@ -249,7 +249,7 @@ public class MainViewModel
 
             // Transition: Show results, start Phase 2
             ShowResults = true;
-            ShowTimeChart = true;
+            // ShowTimeChart = true; // Temporarily disabled
             PhaseMessage = Phase2Message;
             NotifyStateChanged();
             var phase2Start = DateTime.UtcNow;

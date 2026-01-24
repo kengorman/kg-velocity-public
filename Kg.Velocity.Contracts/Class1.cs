@@ -1,5 +1,15 @@
 ﻿namespace Kg.Velocity.Contracts.Trips;
 
+public sealed record JourneyWeights(
+    double Emotion,
+    double Distance,
+    double Awe,
+    double TimeGoneBy,
+    double Memories,
+    double Patience,
+    double Loneliness
+);
+
 /// <summary>
 /// Inputs-only request. The API is responsible for computing all derived values.
 /// </summary>
@@ -31,7 +41,7 @@ public sealed record TripComputationResult(
     string ArrivedEarthTime,
     string ArrivedShipTime,
     double? LorentzFactor,
-    string JourneyFocus
+    JourneyWeights Weights
 );
 
 public sealed record TripEvaluateResponse(

@@ -21,11 +21,10 @@ public class TripComputationService
         double percentageOfLightSpeed = RelativisticPhysics.CalculatePercentageOfLightSpeed(request.SpeedMph);
         double distanceLightYears = RelativisticPhysics.MilesToLightYears(request.DistanceMiles);
 
-        string journeyFocus = JourneyInsightClassifier.Classify(
-            earthTimeSeconds,
-            shipTimeSeconds,
+        var weights = JourneyWeightCalculator.Compute(
+            request.DistanceMiles,
             request.SpeedMph,
-            lorentzFactor);
+            shipTimeSeconds / 3600.0);
 
         string earthTimeFormatted = FlightComputer.FormatDuration(earthTimeSeconds);
         string shipTimeFormatted = FlightComputer.FormatDuration(shipTimeSeconds);
@@ -51,7 +50,7 @@ public class TripComputationService
             ArrivedEarthTime: arrivedEarthTime,
             ArrivedShipTime: arrivedShipTime,
             LorentzFactor: double.IsInfinity(lorentzFactor) ? null : lorentzFactor,
-            JourneyFocus: journeyFocus
+            Weights: weights
         );
     }
 }

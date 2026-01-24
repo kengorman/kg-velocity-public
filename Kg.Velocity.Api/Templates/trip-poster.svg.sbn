@@ -20,7 +20,7 @@ Branch system:
   #
   # FONTS (proportional sizing - change font_base to scale everything)
   #
-  font_base = 58
+  font_base = 56
   font_title = font_base
   font_subtitle = font_base * 0.55
   font_meta = font_base * 0.41

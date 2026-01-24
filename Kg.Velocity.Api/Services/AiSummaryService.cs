@@ -6,16 +6,16 @@ namespace Kg.Velocity.Api.Services;
 public class AiSummaryService
 {
     private readonly ChatClient _chatClient;
-    private readonly IPersonaSelector _personaSelector;
     private readonly TripSummaryPromptBuilder _tripSummaryPromptBuilder;
+
+    // Default persona returned when personas are bypassed
+    private static readonly Persona DefaultPersona = new(0, "Narrator", "");
 
     public AiSummaryService(
         ChatClient chatClient,
-        IPersonaSelector personaSelector,
         TripSummaryPromptBuilder tripSummaryPromptBuilder)
     {
         _chatClient = chatClient;
-        _personaSelector = personaSelector;
         _tripSummaryPromptBuilder = tripSummaryPromptBuilder;
     }
 
@@ -23,10 +23,7 @@ public class AiSummaryService
         TripEvaluateRequest request,
         TripComputationResult trip)
     {
-        var persona = request.PersonaId is int personaId
-            ? PersonaCatalog.GetNextById(personaId)
-            : _personaSelector.SelectPersona();
-        var prompt = _tripSummaryPromptBuilder.BuildPrompt(trip, persona);
+        var prompt = _tripSummaryPromptBuilder.BuildPrompt(trip);
 
         try
         {
@@ -42,14 +39,11 @@ public class AiSummaryService
 
             var completion = await _chatClient.CompleteChatAsync(messages, chatOptions);
             var summary = completion.Value.Content[0].Text;
-            return (summary, persona);
+            return (summary, DefaultPersona);
         }
         catch (Exception ex)
         {
-            // Keep a consistent PersonaId even when AI is unavailable:
-            // - If caller provided PersonaId, we already advanced deterministically.
-            // - Otherwise, we picked a persona via selector above.
-            return ($"AI unavailable: {ex.Message}", persona);
+            return ($"AI unavailable: {ex.Message}", DefaultPersona);
         }
     }
 }

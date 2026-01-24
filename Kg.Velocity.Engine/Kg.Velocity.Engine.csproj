@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Kg.Velocity.Math\Kg.Velocity.Math.csproj" />
+    <ProjectReference Include="..\Kg.Velocity.Contracts\Kg.Velocity.Contracts.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

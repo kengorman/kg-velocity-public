@@ -10,6 +10,8 @@ public class PosterEventsPromptBuilder(PromptStore prompts)
     {
         var template = prompts.GetPrompt(PosterEventsPromptPath);
 
+        var w = trip.Weights;
+
         return PromptRenderer.Render(template, new Dictionary<string, string>
         {
             ["Destination"] = trip.Destination,
@@ -21,7 +23,13 @@ public class PosterEventsPromptBuilder(PromptStore prompts)
             ["EarthTimeFormatted"] = trip.EarthTimeFormatted,
             ["ShipTimeFormatted"] = trip.ShipTimeFormatted,
             ["TimeDifference"] = trip.TimeDifferenceFormatted,
-            ["JourneyFocus"] = trip.JourneyFocus,
+            ["WeightEmotion"] = w.Emotion.ToString("F1"),
+            ["WeightDistance"] = w.Distance.ToString("F1"),
+            ["WeightAwe"] = w.Awe.ToString("F1"),
+            ["WeightTimeGoneBy"] = w.TimeGoneBy.ToString("F1"),
+            ["WeightMemories"] = w.Memories.ToString("F1"),
+            ["WeightPatience"] = w.Patience.ToString("F1"),
+            ["WeightLoneliness"] = w.Loneliness.ToString("F1"),
         });
     }
 }
