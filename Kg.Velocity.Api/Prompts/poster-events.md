@@ -13,8 +13,9 @@ Journey Data:
 - Earth time elapsed: {{EarthTimeFormatted}}
 - Ship time elapsed: {{ShipTimeFormatted}}
 - Time dilation difference: {{TimeDifference}}
+- Focus: {{JourneyFocus}}
 
-Generate 5–7 events relating to the journey.
+Generate 5–7 events relating to the journey. Emphasize the journey's focus ({{JourneyFocus}}) in your events.
 
 Each event must be factually derivable from the journey data above.
 Each event must focus on a different dimension of absurdity.

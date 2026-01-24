@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kg.Velocity.Api", "Kg.Veloc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kg.Velocity.Contracts", "Kg.Velocity.Contracts\Kg.Velocity.Contracts.csproj", "{6D3F98BC-5D1F-42F4-9620-6810DA1121BF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kg.Velocity.InsightTests", "Kg.Velocity.InsightTests\Kg.Velocity.InsightTests.csproj", "{C82B2983-7283-41EB-B9AD-A6AFD2760415}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{6D3F98BC-5D1F-42F4-9620-6810DA1121BF}.Release|x64.Build.0 = Release|Any CPU
 		{6D3F98BC-5D1F-42F4-9620-6810DA1121BF}.Release|x86.ActiveCfg = Release|Any CPU
 		{6D3F98BC-5D1F-42F4-9620-6810DA1121BF}.Release|x86.Build.0 = Release|Any CPU
+		{C82B2983-7283-41EB-B9AD-A6AFD2760415}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C82B2983-7283-41EB-B9AD-A6AFD2760415}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C82B2983-7283-41EB-B9AD-A6AFD2760415}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C82B2983-7283-41EB-B9AD-A6AFD2760415}.Debug|x64.Build.0 = Debug|Any CPU
+		{C82B2983-7283-41EB-B9AD-A6AFD2760415}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C82B2983-7283-41EB-B9AD-A6AFD2760415}.Debug|x86.Build.0 = Debug|Any CPU
+		{C82B2983-7283-41EB-B9AD-A6AFD2760415}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C82B2983-7283-41EB-B9AD-A6AFD2760415}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C82B2983-7283-41EB-B9AD-A6AFD2760415}.Release|x64.ActiveCfg = Release|Any CPU
+		{C82B2983-7283-41EB-B9AD-A6AFD2760415}.Release|x64.Build.0 = Release|Any CPU
+		{C82B2983-7283-41EB-B9AD-A6AFD2760415}.Release|x86.ActiveCfg = Release|Any CPU
+		{C82B2983-7283-41EB-B9AD-A6AFD2760415}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

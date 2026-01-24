@@ -17,7 +17,11 @@
       "WebSearch",
       "Bash(dotnet user-secrets:*)",
       "Bash(find:*)",
-      "Bash(/mnt/c/Program\\\\ Files/dotnet/dotnet.exe build:*)"
+      "Bash(/mnt/c/Program\\\\ Files/dotnet/dotnet.exe build:*)",
+      "Bash(/mnt/c/Program\\\\ Files/dotnet/dotnet.exe run:*)",
+      "Bash(/mnt/c/Program\\\\ Files/dotnet/dotnet.exe sln:*)",
+      "Bash(xargs ls:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }

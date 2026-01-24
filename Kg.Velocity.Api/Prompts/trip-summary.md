@@ -1,9 +1,10 @@
 Using the persona provided, write exactly THREE or FOUR sentences summarizing this hypothetical space journey.
 
 Audience: a curious non-technical reader.
-The listener and the traveler are the same person; speak as if addressing someone who personally experienced the journey you are describing.
+Speak as if addressing someone who personally experienced the journey you are describing.
 
 Rules:
+- Emphasize the journey's focus ({{JourneyFocus}}) in your response.
 - Try to show the awesome nature of the universe, time, distance, comparisons of historic events.
 - The consequence chosen does not need to be the most extreme; quiet or counterintuitive truths are valid.
 - Do not be negative, offer comments with optimism and awe.
@@ -23,3 +24,5 @@ Journey Details:
 - Earth time elapsed: {{EarthTimeFormatted}}
 - Ship time elapsed (due to time dilation): {{ShipTimeFormatted}}
 - Time saved by traveler: {{TimeDifference}}
+- Focus: {{JourneyFocus}}
+

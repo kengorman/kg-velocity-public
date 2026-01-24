@@ -29,7 +29,9 @@ public sealed record TripComputationResult(
     string TimeDifferenceFormatted,
     string DepartedEarthTime,
     string ArrivedEarthTime,
-    string ArrivedShipTime
+    string ArrivedShipTime,
+    double? LorentzFactor,
+    string JourneyFocus
 );
 
 public sealed record TripEvaluateResponse(
