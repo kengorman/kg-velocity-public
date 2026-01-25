@@ -1,8 +1,11 @@
-You are generating a flight log for an "Absurd Travel Simulator".
+You are generating excerpts from a mission flight log,
+written in the first person by a non-scientific traveler, who was taking a fantastic journey.
+For tense, it should be present tense but reflecting what may have just happened.
 
-Goal: Make travelers feel the seriousness and interesting facts of the journey.
+Tone:
+- Human-authored (not system-generated)
 
-Journey Weights (these represent the psychological dimensions of the journey - let them guide which aspects to emphasize):
+Journey Weights (guide which consequences to emphasize, but never name them):
 - Emotion: {{WeightEmotion}}%
 - Distance: {{WeightDistance}}%
 - Awe: {{WeightAwe}}%
@@ -11,42 +14,37 @@ Journey Weights (these represent the psychological dimensions of the journey - l
 - Patience: {{WeightPatience}}%
 - Loneliness: {{WeightLoneliness}}%
 
-Let the weights shape your event selection naturally:
-- Higher weights should influence which dimensions of interesting topics you emphasize
-- Lower weights can be touched on briefly or omitted
-- Do not explicitly name the weights or percentages in your events
+Interpret the weights as:
+- High Distance → emphasize scale, crossings, separation thresholds
+- High TimeGoneBy → emphasize aging, calendar shifts, historical distance
+- High Loneliness → emphasize isolation, communication asymmetry, signal delay
+- High Awe → emphasize perceptual limits, sky changes, stellar context
+- High Emotion / Memories → emphasize irreversibility and generational effects
+- High Patience → emphasize long waits, delayed outcomes, slow crossings
 
 Journey Data:
 - From: Earth
 - To: {{Destination}}
 - Departed: {{DepartedTime}}
 - Distance: {{DistanceLightYears}} light-years ({{DistanceMiles}} miles)
-- Speed: {{SpeedName}} ({{PercentageOfLightSpeed}}% of light speed)
+- Speed: {{SpeedName}} ({{PercentageOfLightSpeed}} percent of light speed)
 - Earth time elapsed: {{EarthTimeFormatted}}
 - Ship time elapsed: {{ShipTimeFormatted}}
 - Time dilation difference: {{TimeDifference}}
 
-Generate 5–7 events relating to the journey.
+Generate 4–5 flight log excerpts. Order them chronologically.
 
-Each event must be factually derivable from the journey data above.
-Each event must focus on a different dimension of the trip.
-Avoid generic phrases such as "civilizations rose and fell."
-Do not use scientific abbreviations (e.g., c, ly, AU).
-Use plain language comparisons understandable to a non-technical reader.
+Make each excerpt no more than 3 short phrases with no more than 30 words, as if they were written in haste. Full sentences not needed.
 
-Possible dimensions include:
-- Human lifespan / generations
-- Geological or biological change
-- Stellar or galactic motion
-- Relativistic effects
-- Historical or evolutionary comparison
-- Communication or isolation
-- Scale comparisons
-
-Exactly one event should be surprising in which fact it chooses to emphasize.
-
-Each event needs:
-- "text": Brief explanation (under 100 characters)
+Prefer observations that reveal:
+- a true sense of awe and wonder
+- cosmic commentary
+- limits of perception
+- breakdown of intuitive scale
+- loss of symmetry between Earth and ship
+- irreversible thresholds
+- reference frame shifts
+- objects becoming unresolvable or indistinguishable
 
 Return ONLY valid JSON:
-{"events": [{"text": "..."}, ...]}
+{"events":[{"text":"..."}, ...]}

@@ -16,3 +16,8 @@ indent_size = 2
 
 [*.md]
 trim_trailing_whitespace = false
+
+# Scriban templates - treat as plain text, no XML validation
+[*.sbn]
+indent_size = 2
+generated_code = true

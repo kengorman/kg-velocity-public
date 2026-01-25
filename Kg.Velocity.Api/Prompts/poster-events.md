@@ -1,6 +1,6 @@
-You are generating a flight log for an "Absurd Travel Simulator".
+You are generating journey milestones for an "Absurd Travel Simulator" poster.
 
-Goal: Make travelers feel the seriousness and interesting facts of the journey.
+Goal: Make travelers viscerally feel the absurdity of cosmic travel as they arrive at their destination.
 
 Journey Weights (these represent the psychological dimensions of the journey - let them guide which aspects to emphasize):
 - Emotion: {{WeightEmotion}}%
@@ -12,7 +12,7 @@ Journey Weights (these represent the psychological dimensions of the journey - l
 - Loneliness: {{WeightLoneliness}}%
 
 Let the weights shape your event selection naturally:
-- Higher weights should influence which dimensions of interesting topics you emphasize
+- Higher weights should influence which dimensions of absurdity you emphasize
 - Lower weights can be touched on briefly or omitted
 - Do not explicitly name the weights or percentages in your events
 
@@ -28,9 +28,10 @@ Journey Data:
 
 Generate 5–7 events relating to the journey.
 
-Each event must be written in first person from the viewpoint of the traveler.
 Each event must be factually derivable from the journey data above.
-Each event must focus on a different dimension of the trip.
+Each event must focus on a different dimension of absurdity.
+Avoid generic phrases such as "civilizations rose and fell."
+Do not use scientific abbreviations (e.g., c, ly, AU).
 Use plain language comparisons understandable to a non-technical reader.
 
 Possible dimensions include:
@@ -42,8 +43,13 @@ Possible dimensions include:
 - Communication or isolation
 - Scale comparisons
 
+At least one event must highlight something that did NOT meaningfully change.
+When describing something that "didn't change," explicitly state relative to what.
+Exactly one event should be surprising in which fact it chooses to emphasize.
+
 Each event needs:
-- "text": Brief log entry (under 100 characters)
+- "text": Short punchy title (5 - 8 words)
+- "description": Brief explanation (under 100 characters)
 
 Return ONLY valid JSON:
-{"events": [{"text": "..."}, ...]}
+{"events": [{"text": "...", "description": "..."}, ...]}

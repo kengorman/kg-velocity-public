@@ -3,16 +3,11 @@ using Kg.Velocity.Contracts.Catalogs;
 
 namespace Kg.Velocity.UI.Services;
 
-public class TripCatalogClient
+public class TripCatalogClient(HttpClient httpClient)
 {
-    private readonly HttpClient _httpClient;
+    private readonly HttpClient _httpClient = httpClient;
     private IReadOnlyList<DestinationDto>? _destinations;
     private IReadOnlyList<SpeedPresetDto>? _speedPresets;
-
-    public TripCatalogClient(HttpClient httpClient)
-    {
-        _httpClient = httpClient;
-    }
 
     public async Task<IReadOnlyList<DestinationDto>> GetDestinationsAsync()
     {

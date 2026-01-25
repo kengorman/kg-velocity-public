@@ -8,10 +8,11 @@ Travel Log - Notebook style SVG
 - 5-7 log entries from LLM
 -->
 
+<!--
 {{~
   # DIMENSIONS
   width = 600
-  height = 800
+  height = 600
 
   # PAPER STYLING
   paper_color = "#fffef5"
@@ -22,7 +23,7 @@ Travel Log - Notebook style SVG
   # LINES
   line_start_y = 140
   line_spacing = 28
-  line_count = 22
+  line_count = 15
 
   # TYPOGRAPHY
   font_header = 22
@@ -38,9 +39,9 @@ Travel Log - Notebook style SVG
   header_y = 50
   meta_start_y = 85
   entries_start_y = 175
-  entry_spacing = 80
+  entry_spacing = 70
 ~}}
-
+-->
 <svg xmlns="http://www.w3.org/2000/svg" width="{{ width }}" height="{{ height }}" viewBox="0 0 {{ width }} {{ height }}">
   <defs>
     <!-- Subtle paper texture -->
@@ -58,22 +59,24 @@ Travel Log - Notebook style SVG
     </filter>
 
     <style>
+      @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;display=swap');
+
       .header {
         font: 700 {{ font_header }}px "Georgia", "Times New Roman", serif;
         fill: {{ ink_dark }};
         letter-spacing: 3px;
       }
       .meta {
-        font: 400 {{ font_meta }}px "Courier New", monospace;
+        font: 400 {{ font_meta }}px "IBM Plex Mono", monospace;
         fill: {{ ink_meta }};
       }
       .entry {
-        font: 400 {{ font_entry }}px "Georgia", "Times New Roman", serif;
+        font: 400 {{ font_entry }}px "IBM Plex Mono", monospace;
         fill: {{ ink_dark }};
         line-height: 1.6;
       }
       .entry-marker {
-        font: 700 {{ font_entry }}px "Georgia", serif;
+        font: 500 {{ font_entry }}px "IBM Plex Mono", monospace;
         fill: {{ margin_color }};
       }
     </style>
@@ -83,7 +86,7 @@ Travel Log - Notebook style SVG
   <rect x="0" y="0" width="{{ width }}" height="{{ height }}" fill="{{ paper_color }}"/>
 
   <!-- Ruled lines -->
-  {{~ for i in 0..line_count ~}}
+  {{~ for i in (0..line_count) ~}}
   <line
     x1="20"
     y1="{{ line_start_y + (i * line_spacing) }}"
@@ -108,8 +111,8 @@ Travel Log - Notebook style SVG
 
   <!-- Hole punches (decorative) -->
   <circle cx="35" cy="100" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
-  <circle cx="35" cy="400" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
-  <circle cx="35" cy="700" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
+  <circle cx="35" cy="300" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
+  <circle cx="35" cy="500" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
 
   <!-- Header -->
   <text x="{{ margin_x + 20 }}" y="{{ header_y }}" class="header">MISSION LOG — EXCERPTS</text>
@@ -127,7 +130,7 @@ Travel Log - Notebook style SVG
   <g class="log-entry" filter="url(#inkBleed)">
     <text x="{{ margin_x + 10 }}" y="{{ entry_y }}" class="entry-marker">▸</text>
     <foreignObject x="{{ margin_x + 30 }}" y="{{ entry_y - 16 }}" width="{{ width - margin_x - 60 }}" height="70">
-      <div xmlns="http://www.w3.org/1999/xhtml" style="font: 400 {{ font_entry }}px Georgia, serif; color: {{ ink_dark }}; line-height: 1.5;">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font: 400 {{ font_entry }}px 'IBM Plex Mono', monospace; color: {{ ink_dark }}; line-height: 1.5;">
         {{ event.text }}
       </div>
     </foreignObject>
