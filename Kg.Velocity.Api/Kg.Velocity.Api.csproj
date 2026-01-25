@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Templates\trip-poster.svg.sbn" LogicalName="Kg.Velocity.Api.Templates.trip-poster.svg.sbn" />
+    <EmbeddedResource Include="Templates\travel-log.svg.sbn" LogicalName="Kg.Velocity.Api.Templates.travel-log.svg.sbn" />
     <EmbeddedResource Include="Templates\Icons\*.svg" />
   </ItemGroup>
 

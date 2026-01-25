@@ -96,6 +96,7 @@ public class MainViewModel
     public string PosterDataUrl { get; set; } = "";
     public string PosterFileName { get; set; } = "velocity-poster.svg";
     public string PosterGeneratedAtDisplay { get; set; } = "";
+    public string TravelLogDataUrl { get; set; } = "";
     public bool IsFetchingPosterBytes { get; set; }
     public ObservableCollection<DestinationDto> Destinations { get; set; } = new();
     public List<SpeedPresetDto> SpeedPresets { get; set; } = [];
@@ -200,6 +201,7 @@ public class MainViewModel
         DisplayedJourneySummary = "";
         PersonaName = "";
         PosterDataUrl = "";
+        TravelLogDataUrl = "";
         PosterGeneratedAtDisplay = "";
 
         // Phase 1: Establishing distance...
@@ -278,26 +280,10 @@ public class MainViewModel
             NotifyStateChanged();
             var phase3Start = DateTime.UtcNow;
 
-            // Fetch poster bytes
-            if (!string.IsNullOrWhiteSpace(content.PosterUrl))
-            {
-                try
-                {
-                    var posterBytes = await _tripEvaluationService.GetPosterBytesAsync(content.PosterUrl);
-                    if (requestVersion != _evaluationRequestVersion) return;
-
-                    PosterDataUrl = "data:image/svg+xml;base64," + Convert.ToBase64String(posterBytes);
-
-                    var nowLocal = DateTimeOffset.Now.ToLocalTime();
-                    PosterGeneratedAtDisplay = nowLocal.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-                    PosterFileName = $"velocity-poster-{nowLocal:yyyyMMdd-HHmmss}.svg";
-                }
-                catch
-                {
-                    PosterDataUrl = "";
-                    PosterGeneratedAtDisplay = "";
-                }
-            }
+            // Fetch poster and travel log bytes in parallel
+            var posterTask = FetchPosterBytesAsync(content.PosterUrl, requestVersion);
+            var travelLogTask = FetchTravelLogBytesAsync(content.TravelLogUrl, requestVersion);
+            await Task.WhenAll(posterTask, travelLogTask);
 
             // Ensure minimum Phase 3 display time
             var phase3Elapsed = (DateTime.UtcNow - phase3Start).TotalMilliseconds;
@@ -340,6 +326,45 @@ public class MainViewModel
         IsImageSheetOpen = true;
         // TODO: Load embedded images for destination
         NotifyStateChanged();
+    }
+
+    private async Task FetchPosterBytesAsync(string? posterUrl, int requestVersion)
+    {
+        if (string.IsNullOrWhiteSpace(posterUrl)) return;
+
+        try
+        {
+            var posterBytes = await _tripEvaluationService.GetPosterBytesAsync(posterUrl);
+            if (requestVersion != _evaluationRequestVersion) return;
+
+            PosterDataUrl = "data:image/svg+xml;base64," + Convert.ToBase64String(posterBytes);
+
+            var nowLocal = DateTimeOffset.Now.ToLocalTime();
+            PosterGeneratedAtDisplay = nowLocal.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+            PosterFileName = $"velocity-poster-{nowLocal:yyyyMMdd-HHmmss}.svg";
+        }
+        catch
+        {
+            PosterDataUrl = "";
+            PosterGeneratedAtDisplay = "";
+        }
+    }
+
+    private async Task FetchTravelLogBytesAsync(string? travelLogUrl, int requestVersion)
+    {
+        if (string.IsNullOrWhiteSpace(travelLogUrl)) return;
+
+        try
+        {
+            var travelLogBytes = await _tripEvaluationService.GetPosterBytesAsync(travelLogUrl);
+            if (requestVersion != _evaluationRequestVersion) return;
+
+            TravelLogDataUrl = "data:image/svg+xml;base64," + Convert.ToBase64String(travelLogBytes);
+        }
+        catch
+        {
+            TravelLogDataUrl = "";
+        }
     }
 
     /// <summary>

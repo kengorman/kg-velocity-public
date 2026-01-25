@@ -28,9 +28,10 @@ Journey Data:
 
 Generate 5–7 events relating to the journey.
 
-Each event must be written in first person from the viewpoint of the traveler.
 Each event must be factually derivable from the journey data above.
 Each event must focus on a different dimension of the trip.
+Avoid generic phrases such as "civilizations rose and fell."
+Do not use scientific abbreviations (e.g., c, ly, AU).
 Use plain language comparisons understandable to a non-technical reader.
 
 Possible dimensions include:
@@ -42,8 +43,10 @@ Possible dimensions include:
 - Communication or isolation
 - Scale comparisons
 
+Exactly one event should be surprising in which fact it chooses to emphasize.
+
 Each event needs:
-- "text": Brief log entry (under 100 characters)
+- "text": Brief explanation (under 100 characters)
 
 Return ONLY valid JSON:
 {"events": [{"text": "..."}, ...]}

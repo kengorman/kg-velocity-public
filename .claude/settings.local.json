@@ -26,7 +26,8 @@
       "Bash(/mnt/c/Program Files/dotnet/dotnet.exe new:*)",
       "Bash(/mnt/c/Program Files/dotnet/dotnet.exe sln add:*)",
       "Bash(/mnt/c/Program\\\\ Files/dotnet/dotnet.exe add:*)",
-      "Bash(/mnt/c/Program Files/dotnet/dotnet.exe build:*)"
+      "Bash(/mnt/c/Program Files/dotnet/dotnet.exe build:*)",
+      "Bash(claude config:*)"
     ]
   }
 }

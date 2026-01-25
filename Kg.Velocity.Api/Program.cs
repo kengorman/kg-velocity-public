@@ -66,6 +66,12 @@ builder.Services.AddSingleton<PosterEventsCache>();
 builder.Services.AddSingleton<DestinationIconService>();
 builder.Services.AddSingleton<TripPosterService>();
 
+// Travel log services
+builder.Services.AddSingleton<TravelLogPromptBuilder>();
+builder.Services.AddSingleton<AiTravelLogService>();
+builder.Services.AddSingleton<TravelLogEventsCache>();
+builder.Services.AddSingleton<TravelLogService>();
+
 var app = builder.Build();
 
 app.UseIpRateLimiting();
@@ -111,13 +117,15 @@ app.MapPost("/api/compute-trip", async (
     return Results.Ok(trip);
 });
 
-// Generate AI content (summary + poster)
+// Generate AI content (summary + poster + travel log)
 app.MapPost("/api/generate-content", async (
     TripEvaluateRequest request,
     TripComputationService tripComputationService,
     AiSummaryService aiService,
     AiPosterEventsService posterEventsService,
-    PosterEventsCache posterEventsCache) =>
+    AiTravelLogService travelLogService,
+    PosterEventsCache posterEventsCache,
+    TravelLogEventsCache travelLogEventsCache) =>
 {
     const int maxLength = 100;
     if (string.IsNullOrWhiteSpace(request.Destination) || request.Destination.Length > maxLength)
@@ -135,13 +143,16 @@ app.MapPost("/api/generate-content", async (
 
     var summaryTask = aiService.GenerateSummaryAsync(request, trip);
     var posterEventsTask = posterEventsService.GenerateEventsAsync(trip);
-    await Task.WhenAll(summaryTask, posterEventsTask);
+    var travelLogTask = travelLogService.GenerateEntriesAsync(trip);
+    await Task.WhenAll(summaryTask, posterEventsTask, travelLogTask);
 
     var (summary, persona) = summaryTask.Result;
     var posterEvents = posterEventsTask.Result;
+    var travelLogEntries = travelLogTask.Result;
 
     var nonce = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
     posterEventsCache.Store(nonce, posterEvents);
+    travelLogEventsCache.Store(nonce, travelLogEntries);
 
     var posterUrl =
         $"/api/poster.svg?nonce={nonce}" +
@@ -150,7 +161,14 @@ app.MapPost("/api/generate-content", async (
         $"&earthTime={Uri.EscapeDataString(trip.EarthTimeFormatted)}" +
         $"&shipTime={Uri.EscapeDataString(trip.ShipTimeFormatted)}";
 
-    return Results.Ok(new TripContentResponse(summary, persona.Id, persona.Name, posterUrl));
+    var travelLogUrl =
+        $"/api/travel-log.svg?nonce={nonce}" +
+        $"&destination={Uri.EscapeDataString(request.Destination)}" +
+        $"&speed={Uri.EscapeDataString(request.SpeedName)}" +
+        $"&departure={Uri.EscapeDataString(trip.DepartedEarthTime)}" +
+        $"&arrival={Uri.EscapeDataString(trip.ArrivedEarthTime)}";
+
+    return Results.Ok(new TripContentResponse(summary, persona.Id, persona.Name, posterUrl, travelLogUrl));
 });
 
 // Evaluate the trip including generating a summary and a poster svg
@@ -207,6 +225,14 @@ app.MapGet("/api/poster.svg", (HttpRequest httpRequest, TripPosterService poster
     var bytes = posterService.GeneratePoster(httpRequest);
     var nonce = httpRequest.Query["nonce"].ToString();
     return Results.File(bytes, "image/svg+xml; charset=utf-8", fileDownloadName: $"velocity-poster-{nonce}.svg");
+});
+
+// Get the travel log svg
+app.MapGet("/api/travel-log.svg", (HttpRequest httpRequest, TravelLogService travelLogService) =>
+{
+    var bytes = travelLogService.GenerateTravelLog(httpRequest);
+    var nonce = httpRequest.Query["nonce"].ToString();
+    return Results.File(bytes, "image/svg+xml; charset=utf-8", fileDownloadName: $"travel-log-{nonce}.svg");
 });
 
 // Static files and fallback after API routes

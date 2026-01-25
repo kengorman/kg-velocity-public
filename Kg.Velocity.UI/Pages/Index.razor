@@ -100,6 +100,15 @@
                                      loading="lazy" />
                             </div>
                         }
+                        @if (ViewModel.ShowPoster && !string.IsNullOrWhiteSpace(ViewModel.TravelLogDataUrl))
+                        {
+                            <div class="travel-log-panel slide-in" aria-label="Mission log">
+                                <img class="travel-log-preview"
+                                     src="@ViewModel.TravelLogDataUrl"
+                                     alt="Mission log"
+                                     loading="lazy" />
+                            </div>
+                        }
                         @if (ViewModel.ShowResults)
                         {
                             <div class="results-data">

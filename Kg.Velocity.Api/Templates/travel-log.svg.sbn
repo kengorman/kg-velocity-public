@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Travel Log - Notebook style SVG
+- viewBox: 0 0 600 800
+- Cream paper background with ruled lines
+- Red margin line
+- Header with trip metadata
+- 5-7 log entries from LLM
+-->
+
+{{~
+  # DIMENSIONS
+  width = 600
+  height = 800
+
+  # PAPER STYLING
+  paper_color = "#fffef5"
+  line_color = "#c4d4e8"
+  margin_color = "#e57373"
+  margin_x = 70
+
+  # LINES
+  line_start_y = 140
+  line_spacing = 28
+  line_count = 22
+
+  # TYPOGRAPHY
+  font_header = 22
+  font_meta = 13
+  font_entry = 15
+
+  # COLORS
+  ink_dark = "#1a237e"
+  ink_light = "#3949ab"
+  ink_meta = "#5c6bc0"
+
+  # CONTENT POSITIONING
+  header_y = 50
+  meta_start_y = 85
+  entries_start_y = 175
+  entry_spacing = 80
+~}}
+
+<svg xmlns="http://www.w3.org/2000/svg" width="{{ width }}" height="{{ height }}" viewBox="0 0 {{ width }} {{ height }}">
+  <defs>
+    <!-- Subtle paper texture -->
+    <filter id="paperTexture" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise"/>
+      <feDiffuseLighting in="noise" lighting-color="{{ paper_color }}" surfaceScale="1.5" result="diffuse">
+        <feDistantLight azimuth="45" elevation="60"/>
+      </feDiffuseLighting>
+      <feBlend in="SourceGraphic" in2="diffuse" mode="multiply"/>
+    </filter>
+
+    <!-- Ink style for handwritten feel -->
+    <filter id="inkBleed" x="-2%" y="-2%" width="104%" height="104%">
+      <feGaussianBlur stdDeviation="0.3"/>
+    </filter>
+
+    <style>
+      .header {
+        font: 700 {{ font_header }}px "Georgia", "Times New Roman", serif;
+        fill: {{ ink_dark }};
+        letter-spacing: 3px;
+      }
+      .meta {
+        font: 400 {{ font_meta }}px "Courier New", monospace;
+        fill: {{ ink_meta }};
+      }
+      .entry {
+        font: 400 {{ font_entry }}px "Georgia", "Times New Roman", serif;
+        fill: {{ ink_dark }};
+        line-height: 1.6;
+      }
+      .entry-marker {
+        font: 700 {{ font_entry }}px "Georgia", serif;
+        fill: {{ margin_color }};
+      }
+    </style>
+  </defs>
+
+  <!-- Paper background -->
+  <rect x="0" y="0" width="{{ width }}" height="{{ height }}" fill="{{ paper_color }}"/>
+
+  <!-- Ruled lines -->
+  {{~ for i in 0..line_count ~}}
+  <line
+    x1="20"
+    y1="{{ line_start_y + (i * line_spacing) }}"
+    x2="{{ width - 20 }}"
+    y2="{{ line_start_y + (i * line_spacing) }}"
+    stroke="{{ line_color }}"
+    stroke-width="1"
+    opacity="0.6"
+  />
+  {{~ end ~}}
+
+  <!-- Red margin line -->
+  <line
+    x1="{{ margin_x }}"
+    y1="0"
+    x2="{{ margin_x }}"
+    y2="{{ height }}"
+    stroke="{{ margin_color }}"
+    stroke-width="2"
+    opacity="0.7"
+  />
+
+  <!-- Hole punches (decorative) -->
+  <circle cx="35" cy="100" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
+  <circle cx="35" cy="400" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
+  <circle cx="35" cy="700" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
+
+  <!-- Header -->
+  <text x="{{ margin_x + 20 }}" y="{{ header_y }}" class="header">MISSION LOG — EXCERPTS</text>
+
+  <!-- Trip metadata -->
+  <text x="{{ margin_x + 20 }}" y="{{ meta_start_y }}" class="meta">Frame of reference: Earth departure</text>
+  <text x="{{ margin_x + 20 }}" y="{{ meta_start_y + 18 }}" class="meta">Trajectory: {{ destination }} — {{ speed_name }}</text>
+  <text x="{{ margin_x + 20 }}" y="{{ meta_start_y + 36 }}" class="meta">Departed: {{ departure_date }} · Arrived: {{ arrival_date }}</text>
+
+  <!-- Log entries -->
+  {{~ for event in events ~}}
+  {{~
+    entry_y = entries_start_y + (for.index * entry_spacing)
+  ~}}
+  <g class="log-entry" filter="url(#inkBleed)">
+    <text x="{{ margin_x + 10 }}" y="{{ entry_y }}" class="entry-marker">▸</text>
+    <foreignObject x="{{ margin_x + 30 }}" y="{{ entry_y - 16 }}" width="{{ width - margin_x - 60 }}" height="70">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font: 400 {{ font_entry }}px Georgia, serif; color: {{ ink_dark }}; line-height: 1.5;">
+        {{ event.text }}
+      </div>
+    </foreignObject>
+  </g>
+  {{~ end ~}}
+
+  <!-- Footer -->
+  <text x="{{ width / 2 }}" y="{{ height - 20 }}" text-anchor="middle" class="meta" opacity="0.5">
+    Absurd Travel Simulator · {{ arrival_date }}
+  </text>
+</svg>

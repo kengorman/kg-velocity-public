@@ -56,5 +56,6 @@ public sealed record TripContentResponse(
     string Summary,
     int PersonaId,
     string PersonaName,
-    string? PosterUrl = null
+    string? PosterUrl = null,
+    string? TravelLogUrl = null
 );
