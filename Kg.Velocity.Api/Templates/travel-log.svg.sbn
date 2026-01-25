@@ -12,34 +12,36 @@ Travel Log - Notebook style SVG
 {{~
   # DIMENSIONS
   width = 600
-  height = 600
+  height = 900
 
   # PAPER STYLING
   paper_color = "#fffef5"
   line_color = "#c4d4e8"
   margin_color = "#e57373"
-  margin_x = 70
+  margin_x = 50
 
   # LINES
   line_start_y = 140
   line_spacing = 28
-  line_count = 15
+  line_count = 26
 
-  # TYPOGRAPHY
-  font_header = 22
-  font_meta = 13
-  font_entry = 15
+  # TYPOGRAPHY (sized for mobile scaling - SVG scales down ~50% on phones)
+  font_header = 26
+  font_meta = 14
+  font_entry = 18
+  font_footer = 14
 
   # COLORS
   ink_dark = "#1a237e"
   ink_light = "#3949ab"
+  ink_header = "#283593"
   ink_meta = "#5c6bc0"
 
   # CONTENT POSITIONING
   header_y = 50
-  meta_start_y = 85
-  entries_start_y = 175
-  entry_spacing = 70
+  meta_start_y = 80
+  entries_start_y = 190
+  entry_spacing = 115
 ~}}
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="{{ width }}" height="{{ height }}" viewBox="0 0 {{ width }} {{ height }}">
@@ -59,25 +61,27 @@ Travel Log - Notebook style SVG
     </filter>
 
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;display=swap');
-
       .header {
         font: 700 {{ font_header }}px "Georgia", "Times New Roman", serif;
-        fill: {{ ink_dark }};
-        letter-spacing: 3px;
+        fill: {{ ink_header}};
+        letter-spacing: 0.12em;
       }
       .meta {
-        font: 400 {{ font_meta }}px "IBM Plex Mono", monospace;
+        font: 400 {{ font_meta }}px ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", Menlo, Monaco, Consolas, monospace;
         fill: {{ ink_meta }};
       }
       .entry {
-        font: 400 {{ font_entry }}px "IBM Plex Mono", monospace;
+        font: 400 {{ font_entry }}px ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", Menlo, Monaco, Consolas, monospace;
         fill: {{ ink_dark }};
         line-height: 1.6;
       }
       .entry-marker {
-        font: 500 {{ font_entry }}px "IBM Plex Mono", monospace;
+        font: 500 {{ font_entry }}px ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", Menlo, Monaco, Consolas, monospace;
         fill: {{ margin_color }};
+      }
+      .footer {
+        font: 500 {{ font_footer }}px ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", Menlo, Monaco, Consolas, monospace;
+        fill: #94a3b8;
       }
     </style>
   </defs>
@@ -110,9 +114,9 @@ Travel Log - Notebook style SVG
   />
 
   <!-- Hole punches (decorative) -->
-  <circle cx="35" cy="100" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
-  <circle cx="35" cy="300" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
-  <circle cx="35" cy="500" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
+  <circle cx="25" cy="100" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
+  <circle cx="25" cy="450" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
+  <circle cx="25" cy="800" r="8" fill="none" stroke="#ccc" stroke-width="1"/>
 
   <!-- Header -->
   <text x="{{ margin_x + 20 }}" y="{{ header_y }}" class="header">MISSION LOG — EXCERPTS</text>
@@ -120,7 +124,8 @@ Travel Log - Notebook style SVG
   <!-- Trip metadata -->
   <text x="{{ margin_x + 20 }}" y="{{ meta_start_y }}" class="meta">Frame of reference: Earth departure</text>
   <text x="{{ margin_x + 20 }}" y="{{ meta_start_y + 18 }}" class="meta">Trajectory: {{ destination }} — {{ speed_name }}</text>
-  <text x="{{ margin_x + 20 }}" y="{{ meta_start_y + 36 }}" class="meta">Departed: {{ departure_date }} · Arrived: {{ arrival_date }}</text>
+  <text x="{{ margin_x + 20 }}" y="{{ meta_start_y + 36 }}" class="meta">Departed: {{ departure_date }}</text>
+  <text x="{{ margin_x + 20 }}" y="{{ meta_start_y + 54 }}" class="meta">Arrived: {{ arrival_date }}</text>
 
   <!-- Log entries -->
   {{~ for event in events ~}}
@@ -129,8 +134,8 @@ Travel Log - Notebook style SVG
   ~}}
   <g class="log-entry" filter="url(#inkBleed)">
     <text x="{{ margin_x + 10 }}" y="{{ entry_y }}" class="entry-marker">▸</text>
-    <foreignObject x="{{ margin_x + 30 }}" y="{{ entry_y - 16 }}" width="{{ width - margin_x - 60 }}" height="70">
-      <div xmlns="http://www.w3.org/1999/xhtml" style="font: 400 {{ font_entry }}px 'IBM Plex Mono', monospace; color: {{ ink_dark }}; line-height: 1.5;">
+    <foreignObject x="{{ margin_x + 30 }}" y="{{ entry_y - 16 }}" width="{{ width - margin_x - 40 }}" height="100">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font: 400 {{ font_entry }}px ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace; color: {{ ink_dark }}; line-height: 1.4;">
         {{ event.text }}
       </div>
     </foreignObject>
@@ -138,7 +143,7 @@ Travel Log - Notebook style SVG
   {{~ end ~}}
 
   <!-- Footer -->
-  <text x="{{ width / 2 }}" y="{{ height - 20 }}" text-anchor="middle" class="meta" opacity="0.5">
+  <text x="{{ width / 2 }}" y="{{ height - 20 }}" text-anchor="middle" class="footer" opacity="0.5">
     Absurd Travel Simulator · {{ arrival_date }}
   </text>
 </svg>
