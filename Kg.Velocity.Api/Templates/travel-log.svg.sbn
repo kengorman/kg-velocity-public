@@ -132,7 +132,7 @@ Travel Log - Notebook style SVG
   {{~
     entry_y = entries_start_y + (for.index * entry_spacing)
   ~}}
-  <g class="log-entry" filter="url(#inkBleed)">
+  <g class="log-entry">
     <text x="{{ margin_x + 10 }}" y="{{ entry_y }}" class="entry-marker">▸</text>
     <foreignObject x="{{ margin_x + 30 }}" y="{{ entry_y - 16 }}" width="{{ width - margin_x - 40 }}" height="100">
       <div xmlns="http://www.w3.org/1999/xhtml" style="font: 400 {{ font_entry }}px ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace; color: {{ ink_dark }}; line-height: 1.4;">
