@@ -35,10 +35,15 @@
 
         <!-- Release signing -->
         <AndroidKeyStore Condition="'$(Configuration)' == 'Release'">true</AndroidKeyStore>
-        <AndroidSigningKeyStore Condition="'$(Configuration)' == 'Release'">C:\Users\gorma\ats-release.keystore</AndroidSigningKeyStore>
+        <!-- Use env var in CI, fallback to local path -->
+        <AndroidSigningKeyStore Condition="'$(Configuration)' == 'Release' And '$(ANDROID_KEYSTORE_PATH)' != ''">$(ANDROID_KEYSTORE_PATH)</AndroidSigningKeyStore>
+        <AndroidSigningKeyStore Condition="'$(Configuration)' == 'Release' And '$(ANDROID_KEYSTORE_PATH)' == ''">C:\Users\gorma\ats-release.keystore</AndroidSigningKeyStore>
         <AndroidSigningKeyAlias Condition="'$(Configuration)' == 'Release'">ats</AndroidSigningKeyAlias>
-        <AndroidSigningKeyPass Condition="'$(Configuration)' == 'Release'">***REMOVED***</AndroidSigningKeyPass>
-        <AndroidSigningStorePass Condition="'$(Configuration)' == 'Release'">***REMOVED***</AndroidSigningStorePass>
+        <!-- Use env var in CI, fallback to local value -->
+        <AndroidSigningKeyPass Condition="'$(Configuration)' == 'Release' And '$(ANDROID_KEYSTORE_PASSWORD)' != ''">$(ANDROID_KEYSTORE_PASSWORD)</AndroidSigningKeyPass>
+        <AndroidSigningKeyPass Condition="'$(Configuration)' == 'Release' And '$(ANDROID_KEYSTORE_PASSWORD)' == ''">***REMOVED***</AndroidSigningKeyPass>
+        <AndroidSigningStorePass Condition="'$(Configuration)' == 'Release' And '$(ANDROID_KEYSTORE_PASSWORD)' != ''">$(ANDROID_KEYSTORE_PASSWORD)</AndroidSigningStorePass>
+        <AndroidSigningStorePass Condition="'$(Configuration)' == 'Release' And '$(ANDROID_KEYSTORE_PASSWORD)' == ''">***REMOVED***</AndroidSigningStorePass>
         <AndroidPackageFormat Condition="'$(Configuration)' == 'Release'">aab</AndroidPackageFormat>
 
         <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
