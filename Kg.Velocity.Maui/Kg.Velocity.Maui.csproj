@@ -24,14 +24,22 @@
         <Nullable>enable</Nullable>
 
         <!-- Display name -->
-        <ApplicationTitle>Kg.Velocity.Maui</ApplicationTitle>
+        <ApplicationTitle>Absurd Travel Simulator</ApplicationTitle>
 
         <!-- App Identifier -->
-        <ApplicationId>com.companyname.kg.velocity.maui</ApplicationId>
+        <ApplicationId>com.absurdtravelsimulator</ApplicationId>
 
         <!-- Versions -->
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
         <ApplicationVersion>1</ApplicationVersion>
+
+        <!-- Release signing -->
+        <AndroidKeyStore Condition="'$(Configuration)' == 'Release'">true</AndroidKeyStore>
+        <AndroidSigningKeyStore Condition="'$(Configuration)' == 'Release'">C:\Users\gorma\ats-release.keystore</AndroidSigningKeyStore>
+        <AndroidSigningKeyAlias Condition="'$(Configuration)' == 'Release'">ats</AndroidSigningKeyAlias>
+        <AndroidSigningKeyPass Condition="'$(Configuration)' == 'Release'">***REMOVED***</AndroidSigningKeyPass>
+        <AndroidSigningStorePass Condition="'$(Configuration)' == 'Release'">***REMOVED***</AndroidSigningStorePass>
+        <AndroidPackageFormat Condition="'$(Configuration)' == 'Release'">aab</AndroidPackageFormat>
 
         <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
         <WindowsPackageType>None</WindowsPackageType>

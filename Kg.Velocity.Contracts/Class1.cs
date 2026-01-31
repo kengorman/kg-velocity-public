@@ -1,5 +1,8 @@
-﻿namespace Kg.Velocity.Contracts.Trips;
+namespace Kg.Velocity.Contracts.Trips;
 
+/// Represents normalized perceptual weight signals derived from a journey,
+/// expressing how different aspects of the trip should be emphasized
+/// based on scale, time passage, and desynchronization effects.
 public sealed record JourneyWeights(
     double Emotion,
     double Distance,

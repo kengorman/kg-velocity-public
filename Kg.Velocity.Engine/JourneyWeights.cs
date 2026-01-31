@@ -1,10 +1,24 @@
-using static System.Math;
 using Kg.Velocity.Contracts.Trips;
+using static System.Math;
 
 namespace Kg.Velocity.Engine;
 
 public static class JourneyWeightCalculator
 {
+
+    /// Computes perceptual journey weights by comparing
+    /// how long the universe waits versus how long the traveler experiences.
+    ///
+    /// distanceMiles  → physical separation (sets scale regime and awe)
+    /// speedMph       → reference speed used to estimate outside time
+    /// shipTimeHours → time experienced by the traveler (may differ from outside time for relativistic / FTL travel)
+    /// random         → small noise to avoid deterministic outputs
+    ///
+    /// Rationale:
+    /// - Outside time is derived from distance and speed.
+    /// - Traveler time is supplied separately so relativistic / FTL travel.
+    /// - Allows outside time to differ from traveler time
+    /// - The model maps these scale differences into narrative weight signals (JourneyWeights).
     public static JourneyWeights Compute(
         double distanceMiles,
         double speedMph,
@@ -12,12 +26,15 @@ public static class JourneyWeightCalculator
         double random = 0.5)
     {
         // -----------------------------
-        // Safety
+        // Safety block
         // -----------------------------
         distanceMiles = Max(1, distanceMiles);
         speedMph = Max(1, speedMph);
         random = Clamp(random, 0, 1);
 
+        // -----------------------------
+        // Determines how time is supposed to behave
+        // -----------------------------
         bool isFtl = shipTimeHours <= 0;
 
         // -----------------------------
@@ -27,12 +44,29 @@ public static class JourneyWeightCalculator
         // Raw outside time from kinematics
         double tOutside = distanceMiles / speedMph;     // hours
 
+        // -----------------------------
         // Distance scale
+        // -----------------------------
         double Ld = Log10(distanceMiles);
 
+        // -----------------------------
+        // Boundary between local scale and astronomical scale
+        // 10⁷ miles = inner solar system scale
+        // Below → planetary / local
+        // Above → true astronomical distances
+        // -----------------------------
+        const double AstronomicalDistancePivot = 7.0;
+
+        // -----------------------------
+        // How fast the outside-time floor grows with distance scale
+        // -----------------------------
+        const double TimeFloorGrowthRate = 1.2;
+
+        // -----------------------------
         // FTL outside-time floor based on distance class
+        // -----------------------------
         double outsideFloorHours =
-            Pow(10, Max(-2, (Ld - 7) * 1.2));
+            Pow(10, Max(-2, (Ld - AstronomicalDistancePivot) * TimeFloorGrowthRate));
         // Ld < 7  -> 0.01 h (36 seconds)
         // Ld = 8  -> ~16 hours
         // Ld = 9  -> ~10 days
