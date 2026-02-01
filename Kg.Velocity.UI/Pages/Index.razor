@@ -1,5 +1,6 @@
 @page "/"
 @using Kg.Velocity.UI.ViewModels
+@using Kg.Velocity.Contracts.Catalogs
 @using System.Linq
 @using System.Reflection
 @inject MainViewModel ViewModel
@@ -21,34 +22,40 @@
         <div class="journey-card">
             <!-- Inputs -->
             <div class="inputs-section">
-                <select id="destination-select"
-                        class="journey-select"
-                        value="@(ViewModel.SelectedDestination?.Name ?? "")"
-                        @onchange="OnDestinationChanged"
-                        disabled="@(ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes)">
-                    <option value="">Destination...</option>
-                    @foreach (var dest in ViewModel.Destinations)
-                    {
-                        <option value="@dest.Name">@dest.DisplayName</option>
-                    }
-                </select>
+                <!-- Destination Picker -->
+                <div class="destination-picker-wrapper @(IsPickerDisabled ? "disabled" : "")">
+                    <button type="button" class="picker-arrow picker-arrow-left" @onclick="() => ScrollPicker(_destinationPickerId, -1)">‹</button>
+                    <div id="@_destinationPickerId" class="destination-picker">
+                        @foreach (var dest in ViewModel.Destinations)
+                        {
+                            <div class="destination-card @(ViewModel.SelectedDestination == dest ? "selected" : "")"
+                                 @onclick="() => SelectDestination(dest)"
+                                 data-destination="@dest.Name">
+                                <div class="destination-image" style="background-image: url('_content/Kg.Velocity.UI/images/placeholder.svg')"></div>
+                                <div class="destination-name">@dest.DisplayName</div>
+                                <div class="destination-tagline">@dest.Tagline</div>
+                                <div class="destination-info">@FormatDistance(dest.DistanceMiles)</div>
+                            </div>
+                        }
+                    </div>
+                    <button type="button" class="picker-arrow picker-arrow-right" @onclick="() => ScrollPicker(_destinationPickerId, 1)">›</button>
+                </div>
 
-                <select id="speed-select"
-                        class="journey-select"
-                        value="@(ViewModel.SelectedPresetSpeed?.ToString() ?? "")"
-                        @onchange="OnSpeedChanged"
-                        disabled="@(ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes)">
-                    <option value="">Speed...</option>
-                    @foreach (var group in ViewModel.SpeedPresets.GroupBy(p => p.Group))
-                    {
-                        <optgroup label="@group.Key">
-                            @foreach (var preset in group)
-                            {
-                                <option value="@preset.SpeedMph">@preset.Name</option>
-                            }
-                        </optgroup>
-                    }
-                </select>
+                <!-- Speed Picker -->
+                <div class="speed-picker-wrapper @(IsPickerDisabled ? "disabled" : "")">
+                    <button type="button" class="picker-arrow picker-arrow-left" @onclick="() => ScrollPicker(_speedPickerId, -1)">‹</button>
+                    <div id="@_speedPickerId" class="speed-picker">
+                        @foreach (var preset in ViewModel.SpeedPresets)
+                        {
+                            <div class="speed-card @(ViewModel.SelectedPresetSpeed == preset.SpeedMph ? "selected" : "")"
+                                 @onclick="() => SelectSpeed(preset)"
+                                 data-speed="@preset.SpeedMph">
+                                <div class="speed-name">@preset.Name</div>
+                            </div>
+                        }
+                    </div>
+                    <button type="button" class="picker-arrow picker-arrow-right" @onclick="() => ScrollPicker(_speedPickerId, 1)">›</button>
+                </div>
 
                 <div class="start-button-container">
                     <button type="button"
@@ -224,6 +231,10 @@ else
     private bool _isInitialized = false;
     private bool _previousShowPoster = false;
     private string _buildVersion = GetShortCommitHash();
+    private const string _destinationPickerId = "destination-picker";
+    private const string _speedPickerId = "speed-picker";
+
+    private bool IsPickerDisabled => ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes;
 
     private static string GetShortCommitHash()
     {
@@ -268,32 +279,34 @@ else
         }
     }
 
-    private async Task OnDestinationChanged(ChangeEventArgs e)
+    private async Task SelectDestination(DestinationDto dest)
     {
-        var selectedName = e.Value?.ToString();
-        if (string.IsNullOrEmpty(selectedName))
-        {
-            ViewModel.SelectedDestination = null;
-        }
-        else
-        {
-            ViewModel.SelectedDestination = ViewModel.Destinations
-                .FirstOrDefault(d => d.Name == selectedName);
-            await JS.InvokeVoidAsync("eval", "document.getElementById('destination-select')?.blur()");
-        }
+        if (IsPickerDisabled) return;
+        ViewModel.SelectedDestination = dest;
+        await ScrollToSelectedCard(_destinationPickerId, dest.Name);
     }
 
-    private async Task OnSpeedChanged(ChangeEventArgs e)
+    private async Task SelectSpeed(SpeedPresetDto preset)
     {
-        if (double.TryParse(e.Value?.ToString(), out var speed) && speed > 0)
-        {
-            ViewModel.SelectedPresetSpeed = speed;
-            await JS.InvokeVoidAsync("eval", "document.getElementById('speed-select')?.blur()");
-        }
-        else
-        {
-            ViewModel.SelectedPresetSpeed = null;
-        }
+        if (IsPickerDisabled) return;
+        ViewModel.SelectedPresetSpeed = preset.SpeedMph;
+        await ScrollToSelectedCard(_speedPickerId, preset.SpeedMph.ToString());
+    }
+
+    private async Task ScrollPicker(string pickerId, int direction)
+    {
+        if (IsPickerDisabled) return;
+        var cardWidth = pickerId == _destinationPickerId ? 212 : 190; // card width + gap
+        var scrollAmount = direction * cardWidth;
+        var script = $"(function(){{ var p=document.getElementById('{pickerId}'); if(p){{ p.scrollBy({{left:{scrollAmount},behavior:'smooth'}}); }} }})()";
+        await JS.InvokeVoidAsync("eval", script);
+    }
+
+    private async Task ScrollToSelectedCard(string pickerId, string dataValue)
+    {
+        var attr = pickerId == _destinationPickerId ? "data-destination" : "data-speed";
+        var script = $"(function(){{ var p=document.getElementById('{pickerId}'); if(!p)return; var c=p.querySelector('[{attr}=\"{dataValue}\"]'); if(c){{ var o=c.offsetLeft-(p.clientWidth/2)+(c.clientWidth/2); p.scrollTo({{left:o,behavior:'smooth'}}); }} }})()";
+        await JS.InvokeVoidAsync("eval", script);
     }
 
     private async Task OnStartClicked()

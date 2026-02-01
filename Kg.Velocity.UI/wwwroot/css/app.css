@@ -728,3 +728,190 @@ html, body {
     color: var(--text-muted);
     text-align: right;
 }
+
+/* ========================================
+   Scroll-Snap Picker Styles
+   ======================================== */
+
+/* Shared picker wrapper */
+.destination-picker-wrapper,
+.speed-picker-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.destination-picker-wrapper {
+    margin-bottom: 4px;
+}
+
+/* Shared picker container */
+.destination-picker,
+.speed-picker {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    gap: 12px;
+    padding: 8px calc(50% - 100px); /* Center first/last cards */
+}
+
+.destination-picker::-webkit-scrollbar,
+.speed-picker::-webkit-scrollbar {
+    display: none;
+}
+
+/* Destination cards */
+.destination-card {
+    flex: 0 0 200px;
+    height: 150px;
+    scroll-snap-align: center;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid var(--border-color);
+    background: var(--bg-primary);
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.destination-card:hover {
+    border-color: var(--text-muted);
+}
+
+.destination-card.selected {
+    border-color: var(--accent-blue);
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+.destination-image {
+    flex: 1;
+    background-color: #1f2937;
+    background-size: cover;
+    background-position: center;
+}
+
+.destination-name {
+    padding: 8px 10px 2px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.destination-tagline {
+    padding: 0 10px 2px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.destination-info {
+    padding: 0 10px 6px;
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+/* Speed picker specific adjustments */
+.speed-picker {
+    padding: 4px calc(50% - 90px);
+    gap: 10px;
+}
+
+/* Speed cards */
+.speed-card {
+    flex: 0 0 180px;
+    height: 50px;
+    scroll-snap-align: center;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid var(--border-color);
+    background: var(--bg-primary);
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.speed-card:hover {
+    border-color: var(--text-muted);
+}
+
+.speed-card.selected {
+    border-color: var(--accent-blue);
+    background: #f0f7ff;
+}
+
+.speed-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-align: center;
+    padding: 0 8px;
+}
+
+/* Arrow buttons */
+.picker-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, background-color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+.picker-arrow:hover {
+    background-color: #f3f4f6;
+}
+
+.picker-arrow-left {
+    left: 4px;
+}
+
+.picker-arrow-right {
+    right: 4px;
+}
+
+.destination-picker-wrapper:hover .picker-arrow,
+.speed-picker-wrapper:hover .picker-arrow {
+    opacity: 1;
+}
+
+/* Hide arrows on touch devices */
+@media (hover: none) {
+    .picker-arrow {
+        display: none;
+    }
+}
+
+/* Disabled state for pickers */
+.destination-picker-wrapper.disabled,
+.speed-picker-wrapper.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.destination-picker-wrapper.disabled .picker-arrow,
+.speed-picker-wrapper.disabled .picker-arrow {
+    display: none;
+}
