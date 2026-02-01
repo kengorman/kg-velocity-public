@@ -24,7 +24,11 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
+#if DEBUG
+        var apiBaseUrl = "http://10.0.2.2:5101"; // Android emulator -> host localhost
+#else
         var apiBaseUrl = "https://www.absurdtravelsimulator.com";
+#endif
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 
         builder.Services.AddScoped<TripEvaluationService>();

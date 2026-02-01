@@ -86,4 +86,8 @@
       <ProjectReference Include="..\Kg.Velocity.Contracts\Kg.Velocity.Contracts.csproj" />
     </ItemGroup>
 
+    <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+      <AndroidResource Include="Platforms\Android\Resources\xml\network_security_config.xml" />
+    </ItemGroup>
+
 </Project>
