@@ -31,7 +31,7 @@
                             <div class="destination-card @(ViewModel.SelectedDestination == dest ? "selected" : "")"
                                  @onclick="() => SelectDestination(dest)"
                                  data-destination="@dest.Name">
-                                <div class="destination-image" style="background-image: url('_content/Kg.Velocity.UI/images/placeholder.svg')"></div>
+                                <div class="destination-image" style="background-image: url('_content/Kg.Velocity.UI/images/destinations/@(ToSlug(dest.Name)).jpg')"></div>
                                 <div class="destination-name">@dest.DisplayName</div>
                                 <div class="destination-tagline">@dest.Tagline</div>
                                 <div class="destination-info">@FormatDistance(dest.DistanceMiles)</div>
@@ -320,6 +320,9 @@ else
         var percentage = (ViewModel.ShipTimeSeconds / ViewModel.EarthTimeSeconds) * 100;
         return Math.Max(1, Math.Min(100, percentage)); // Clamp between 1-100 for visibility
     }
+
+    private static string ToSlug(string name) =>
+        name.ToLowerInvariant().Replace(" ", "-").Replace("(", "").Replace(")", "");
 
     private string FormatDistance(double miles)
     {
