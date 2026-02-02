@@ -765,7 +765,7 @@ html, body {
 /* Destination cards */
 .destination-card {
     flex: 0 0 200px;
-    height: 150px;
+    height: 175px;
     scroll-snap-align: center;
     border-radius: 12px;
     position: relative;
