@@ -1,0 +1,9 @@
+{
+  "name": "kg-velocity-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Development tools for kg-velocity",
+  "devDependencies": {
+    "sharp": "^0.33.5"
+  }
+}
