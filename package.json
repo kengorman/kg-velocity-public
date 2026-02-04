@@ -3,7 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "description": "Development tools for kg-velocity",
+  "scripts": {
+    "build:embla": "esbuild Kg.Velocity.UI/wwwroot/js/embla-carousel.js --bundle --minify --outfile=Kg.Velocity.UI/wwwroot/js/embla-carousel.bundle.js --format=iife",
+    "build": "npm run build:embla"
+  },
   "devDependencies": {
+    "embla-carousel": "^8.6.0",
+    "esbuild": "^0.27.2",
     "sharp": "^0.33.5"
   }
 }

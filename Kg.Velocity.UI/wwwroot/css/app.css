@@ -744,38 +744,49 @@ html, body {
     margin-bottom: 4px;
 }
 
-/* Shared picker container */
-.destination-picker,
-.speed-picker {
+/* Embla carousel base styles */
+.embla {
+    overflow: hidden;
+}
+
+.embla__container {
     display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
     gap: 12px;
     padding: 8px calc(50% - 100px); /* Center first/last cards */
 }
 
-.destination-picker::-webkit-scrollbar,
-.speed-picker::-webkit-scrollbar {
-    display: none;
+.embla__slide {
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+/* Both pickers use Embla */
+.destination-picker.embla,
+.speed-picker.embla {
+    /* Embla handles scrolling */
+}
+
+/* Speed picker container adjustments */
+.speed-picker .embla__container {
+    gap: 10px;
+    padding: 4px calc(50% - 90px);
 }
 
 /* Destination cards */
 .destination-card {
-    flex: 0 0 200px;
+    width: 200px;
     height: 175px;
-    scroll-snap-align: center;
     border-radius: 12px;
     position: relative;
     overflow: hidden;
     cursor: pointer;
     border: 2px solid var(--border-color);
     background: var(--bg-primary);
-    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    /* Transform and opacity controlled by Embla JS for smooth scaling */
+    transition: border-color 0.2s, box-shadow 0.2s;
     display: flex;
     flex-direction: column;
+    will-change: transform, opacity;
 }
 
 .destination-card:hover {
@@ -784,7 +795,6 @@ html, body {
 
 .destination-card.selected {
     border-color: var(--accent-blue);
-    transform: scale(1.02);
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
 }
 
@@ -820,17 +830,10 @@ html, body {
     color: var(--text-muted);
 }
 
-/* Speed picker specific adjustments */
-.speed-picker {
-    padding: 4px calc(50% - 90px);
-    gap: 10px;
-}
-
 /* Speed cards */
 .speed-card {
-    flex: 0 0 180px;
+    width: 180px;
     height: 50px;
-    scroll-snap-align: center;
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -838,7 +841,9 @@ html, body {
     cursor: pointer;
     border: 2px solid var(--border-color);
     background: var(--bg-primary);
-    transition: border-color 0.2s, background-color 0.2s;
+    /* Transform and opacity controlled by Embla JS for smooth scaling */
+    transition: border-color 0.2s, box-shadow 0.2s;
+    will-change: transform, opacity;
 }
 
 .speed-card:hover {
@@ -848,6 +853,7 @@ html, body {
 .speed-card.selected {
     border-color: var(--accent-blue);
     background: #f0f7ff;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
 }
 
 .speed-name {

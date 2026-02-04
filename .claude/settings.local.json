@@ -38,7 +38,9 @@
       "Bash(convert:*)",
       "Bash(node:*)",
       "Bash(npm install)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run build:embla:*)",
+      "Bash(dotnet clean:*)"
     ]
   }
 }

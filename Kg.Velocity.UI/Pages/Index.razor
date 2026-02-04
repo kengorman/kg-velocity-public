@@ -5,7 +5,7 @@
 @using System.Reflection
 @inject MainViewModel ViewModel
 @inject IJSRuntime JS
-@implements IDisposable
+@implements IAsyncDisposable
 
 <PageTitle>Absurd Travel Simulator</PageTitle>
 
@@ -24,37 +24,49 @@
             <div class="inputs-section">
                 <!-- Destination Picker -->
                 <div class="destination-picker-wrapper @(IsPickerDisabled ? "disabled" : "")">
-                    <button type="button" class="picker-arrow picker-arrow-left" @onclick="() => ScrollPicker(_destinationPickerId, -1)">‹</button>
-                    <div id="@_destinationPickerId" class="destination-picker">
-                        @foreach (var dest in ViewModel.Destinations)
-                        {
-                            <div class="destination-card @(ViewModel.SelectedDestination == dest ? "selected" : "")"
-                                 @onclick="() => SelectDestination(dest)"
-                                 data-destination="@dest.Name">
-                                <div class="destination-image" style="background-image: url('_content/Kg.Velocity.UI/images/destinations/@(ToSlug(dest.Name)).jpg')"></div>
-                                <div class="destination-name">@dest.DisplayName</div>
-                                <div class="destination-tagline">@dest.Tagline</div>
-                                <div class="destination-info">@FormatDistance(dest.DistanceMiles)</div>
-                            </div>
-                        }
+                    <button type="button" class="picker-arrow picker-arrow-left" @onclick="() => ScrollPrev(_destinationPickerId)">‹</button>
+                    <div id="@_destinationPickerId" class="embla destination-picker">
+                        <div class="embla__container">
+                            @{ var destIndex = 0; }
+                            @foreach (var dest in ViewModel.Destinations)
+                            {
+                                var currentIndex = destIndex;
+                                <div class="embla__slide destination-card @(ViewModel.SelectedDestination == dest ? "selected" : "")"
+                                     @onclick="() => SelectDestinationByIndex(currentIndex)"
+                                     data-destination="@dest.Name"
+                                     data-index="@destIndex">
+                                    <div class="destination-image" style="background-image: url('_content/Kg.Velocity.UI/images/destinations/@(ToSlug(dest.Name)).jpg')"></div>
+                                    <div class="destination-name">@dest.DisplayName</div>
+                                    <div class="destination-tagline">@dest.Tagline</div>
+                                    <div class="destination-info">@FormatDistance(dest.DistanceMiles)</div>
+                                </div>
+                                destIndex++;
+                            }
+                        </div>
                     </div>
-                    <button type="button" class="picker-arrow picker-arrow-right" @onclick="() => ScrollPicker(_destinationPickerId, 1)">›</button>
+                    <button type="button" class="picker-arrow picker-arrow-right" @onclick="() => ScrollNext(_destinationPickerId)">›</button>
                 </div>
 
                 <!-- Speed Picker -->
                 <div class="speed-picker-wrapper @(IsPickerDisabled ? "disabled" : "")">
-                    <button type="button" class="picker-arrow picker-arrow-left" @onclick="() => ScrollPicker(_speedPickerId, -1)">‹</button>
-                    <div id="@_speedPickerId" class="speed-picker">
-                        @foreach (var preset in ViewModel.SpeedPresets)
-                        {
-                            <div class="speed-card @(ViewModel.SelectedPresetSpeed == preset.SpeedMph ? "selected" : "")"
-                                 @onclick="() => SelectSpeed(preset)"
-                                 data-speed="@preset.SpeedMph">
-                                <div class="speed-name">@preset.Name</div>
-                            </div>
-                        }
+                    <button type="button" class="picker-arrow picker-arrow-left" @onclick="() => ScrollPrev(_speedPickerId)">‹</button>
+                    <div id="@_speedPickerId" class="embla speed-picker">
+                        <div class="embla__container">
+                            @{ var speedIndex = 0; }
+                            @foreach (var preset in ViewModel.SpeedPresets)
+                            {
+                                var currentSpeedIndex = speedIndex;
+                                <div class="embla__slide speed-card @(ViewModel.SelectedPresetSpeed == preset.SpeedMph ? "selected" : "")"
+                                     @onclick="() => SelectSpeedByIndex(currentSpeedIndex)"
+                                     data-speed="@preset.SpeedMph"
+                                     data-index="@speedIndex">
+                                    <div class="speed-name">@preset.Name</div>
+                                </div>
+                                speedIndex++;
+                            }
+                        </div>
                     </div>
-                    <button type="button" class="picker-arrow picker-arrow-right" @onclick="() => ScrollPicker(_speedPickerId, 1)">›</button>
+                    <button type="button" class="picker-arrow picker-arrow-right" @onclick="() => ScrollNext(_speedPickerId)">›</button>
                 </div>
 
                 <div class="start-button-container">
@@ -233,6 +245,8 @@ else
     private string _buildVersion = GetShortCommitHash();
     private const string _destinationPickerId = "destination-picker";
     private const string _speedPickerId = "speed-picker";
+    private DotNetObjectReference<Index>? _dotNetRef;
+    private bool _carouselInitialized = false;
 
     private bool IsPickerDisabled => ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes;
 
@@ -257,6 +271,41 @@ else
         _isInitialized = true;
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Initialize carousel after DOM is ready (when _isInitialized becomes true)
+        if (_isInitialized && !_carouselInitialized)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await InitializeCarouselsAsync();
+            _carouselInitialized = true;
+        }
+    }
+
+    private async Task InitializeCarouselsAsync()
+    {
+        // Initialize both carousels
+        await JS.InvokeVoidAsync("emblaCarousel.initCarousel", _destinationPickerId, _dotNetRef, new { align = "center", containScroll = "trimSnaps" });
+        await JS.InvokeVoidAsync("emblaCarousel.initCarousel", _speedPickerId, _dotNetRef, new { align = "center", containScroll = "trimSnaps" });
+    }
+
+    [JSInvokable]
+    public void OnCarouselSelect(string containerId, int index)
+    {
+        if (IsPickerDisabled) return;
+
+        if (containerId == _destinationPickerId && index >= 0 && index < ViewModel.Destinations.Count)
+        {
+            ViewModel.SelectedDestination = ViewModel.Destinations[index];
+            StateHasChanged();
+        }
+        else if (containerId == _speedPickerId && index >= 0 && index < ViewModel.SpeedPresets.Count)
+        {
+            ViewModel.SelectedPresetSpeed = ViewModel.SpeedPresets[index].SpeedMph;
+            StateHasChanged();
+        }
+    }
+
     private void OnViewModelStateChanged()
     {
         if (_isInitialized)
@@ -279,20 +328,39 @@ else
         }
     }
 
-    private async Task SelectDestination(DestinationDto dest)
+    private async Task SelectDestinationByIndex(int index)
     {
         if (IsPickerDisabled) return;
-        ViewModel.SelectedDestination = dest;
-        await ScrollToSelectedCard(_destinationPickerId, dest.Name);
+        if (index >= 0 && index < ViewModel.Destinations.Count)
+        {
+            ViewModel.SelectedDestination = ViewModel.Destinations[index];
+            await JS.InvokeVoidAsync("emblaCarousel.scrollTo", _destinationPickerId, index);
+        }
     }
 
-    private async Task SelectSpeed(SpeedPresetDto preset)
+    private async Task SelectSpeedByIndex(int index)
     {
         if (IsPickerDisabled) return;
-        ViewModel.SelectedPresetSpeed = preset.SpeedMph;
-        await ScrollToSelectedCard(_speedPickerId, preset.SpeedMph.ToString());
+        if (index >= 0 && index < ViewModel.SpeedPresets.Count)
+        {
+            ViewModel.SelectedPresetSpeed = ViewModel.SpeedPresets[index].SpeedMph;
+            await JS.InvokeVoidAsync("emblaCarousel.scrollTo", _speedPickerId, index);
+        }
     }
 
+    private async Task ScrollNext(string pickerId)
+    {
+        if (IsPickerDisabled) return;
+        await JS.InvokeVoidAsync("emblaCarousel.scrollNext", pickerId);
+    }
+
+    private async Task ScrollPrev(string pickerId)
+    {
+        if (IsPickerDisabled) return;
+        await JS.InvokeVoidAsync("emblaCarousel.scrollPrev", pickerId);
+    }
+
+    // Legacy method - can be removed once confirmed working
     private async Task ScrollPicker(string pickerId, int direction)
     {
         if (IsPickerDisabled) return;
@@ -340,11 +408,26 @@ else
             return $"{miles / 1_000_000_000_000:N2}T miles";
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (ViewModel != null)
         {
             ViewModel.StateChanged -= OnViewModelStateChanged;
         }
+
+        if (_carouselInitialized)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("emblaCarousel.destroyCarousel", _destinationPickerId);
+                await JS.InvokeVoidAsync("emblaCarousel.destroyCarousel", _speedPickerId);
+            }
+            catch
+            {
+                // Ignore errors during disposal (e.g., if JS runtime is already disposed)
+            }
+        }
+
+        _dotNetRef?.Dispose();
     }
 }
