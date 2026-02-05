@@ -4,6 +4,46 @@ import EmblaCarousel from 'embla-carousel';
 const carousels = new Map();
 
 /**
+ * Initialize pagination dots for a carousel
+ * @param {string} containerId - The carousel container ID
+ * @param {object} embla - The Embla carousel instance
+ */
+function initDots(containerId, embla) {
+  const dotsContainer = document.getElementById(`${containerId}-dots`);
+  if (!dotsContainer) return;
+
+  const slides = embla.slideNodes();
+
+  // Clear existing dots
+  dotsContainer.innerHTML = '';
+
+  // Create dots
+  slides.forEach((_, index) => {
+    const dot = document.createElement('button');
+    dot.className = 'embla__dot';
+    dot.type = 'button';
+    dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
+    dot.addEventListener('click', () => embla.scrollTo(index));
+    dotsContainer.appendChild(dot);
+  });
+
+  // Update active dot
+  const updateDots = () => {
+    const selectedIndex = embla.selectedScrollSnap();
+    const dots = dotsContainer.querySelectorAll('.embla__dot');
+    dots.forEach((dot, index) => {
+      dot.classList.toggle('active', index === selectedIndex);
+    });
+  };
+
+  // Initial update
+  updateDots();
+
+  // Update on select
+  embla.on('select', updateDots);
+}
+
+/**
  * Initialize an Embla carousel on a container
  * @param {string} containerId - The ID of the carousel container element
  * @param {object} dotNetRef - Blazor .NET object reference for callbacks
@@ -77,6 +117,9 @@ export function initCarousel(containerId, dotNetRef, options = {}) {
 
   // Initial scale application
   applyScaleEffect();
+
+  // Initialize pagination dots
+  initDots(containerId, embla);
 
   // Store instance
   carousels.set(containerId, embla);
