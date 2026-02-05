@@ -98,90 +98,117 @@
                 }
                 else
                 {
-                    <div class="results-grid">
-                        @if (!string.IsNullOrEmpty(ViewModel.PhaseMessage))
-                        {
-                            <div class="phase-message" role="status" aria-live="polite">@ViewModel.PhaseMessage</div>
-                        }
-                        @if (ViewModel.ShowSummary)
-                        {
-                            <div id="journey-summary" class="journey-summary fade-in">
-                                <div class="summary-header">
-                                    <div class="summary-label">Your journey...</div>
-                                </div>
-                                <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
-                            </div>
-                        }
-                        @if (ViewModel.ShowPoster && !string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
-                        {
-                            <div class="poster-panel slide-in" aria-label="Generated poster preview">
-                                <img class="poster-preview"
-                                     src="@ViewModel.PosterDataUrl"
-                                     alt="Generated trip poster (server SVG)"
-                                     loading="lazy" />
-                            </div>
-                        }
-                        @if (ViewModel.ShowPoster && !string.IsNullOrWhiteSpace(ViewModel.TravelLogDataUrl))
-                        {
-                            <div class="travel-log-panel slide-in" aria-label="Mission log">
-                                <img class="travel-log-preview"
-                                     src="@ViewModel.TravelLogDataUrl"
-                                     alt="Mission log"
-                                     loading="lazy" />
-                            </div>
-                        }
-                        @if (ViewModel.ShowResults)
-                        {
-                            <div class="results-data">
-                                <div class="result-item secondary">
-                                    <span class="result-label">Distance Travelled</span>
-                                    <span class="result-value">@FormatDistance(ViewModel.DistanceMiles)</span>
-                                </div>
-                                <div class="result-item primary">
-                                    <span class="result-label">Arrival date (Earth Calendar)</span>
-                                    <span class="result-value">@ViewModel.ArrivalDateString</span>
-                                </div>
-                                <div class="result-item secondary">
-                                    <span class="result-label">Duration (Earth time)</span>
-                                    <span class="result-value">@ViewModel.EarthTimeElapsed</span>
-                                </div>
-                                <div class="result-item primary">
-                                    <span class="result-label">Arrival date (Ship Calendar)</span>
-                                    <span class="result-value ship-time">@ViewModel.ArrivalShipDateString</span>
-                                </div>
-                                <div class="result-item secondary">
-                                    <span class="result-label">Duration (Ship time)</span>
-                                    <span class="result-value ship-time">@ViewModel.ShipTimeElapsed</span>
-                                </div>
-                                <div class="result-item secondary">
-                                    <span class="result-label">Earth/Ship Time Difference</span>
-                                    <span class="result-value highlight">@ViewModel.TimeDifference</span>
-                                </div>
-                            </div>
+                    @* Phase message - transient loading state *@
+                    @if (!string.IsNullOrEmpty(ViewModel.PhaseMessage))
+                    {
+                        <div class="phase-message" role="status" aria-live="polite">@ViewModel.PhaseMessage</div>
+                    }
 
-                            @if (ViewModel.ShowTimeChart)
-                            {
-                                <!-- Time Comparison Chart -->
-                                <div class="time-chart">
-                                    <div class="time-chart-title">The Passage of Time</div>
-                                    <div class="time-chart-row">
-                                        <span class="time-chart-label">Ship</span>
-                                        <div class="time-chart-bar-container">
-                                            <div class="time-chart-bar ship" style="width: @(GetShipTimePercentage())%"></div>
+                    @* Results carousel - horizontal paging through journey moments *@
+                    @if (ViewModel.ShowResults)
+                    {
+                        <div class="results-carousel-wrapper">
+                            <div id="@_resultsCarouselId" class="embla results-carousel">
+                                <div class="embla__container">
+                                    @* Slide 1: Journey Summary *@
+                                    <div class="embla__slide results-slide">
+                                        <div class="results-slide-content">
+                                            <div id="journey-summary" class="journey-summary">
+                                                <div class="summary-header">
+                                                    <div class="summary-label">Your journey...</div>
+                                                </div>
+                                                <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
+                                            </div>
                                         </div>
-                                        <span class="time-chart-value ship-time">@ViewModel.ShipTimeElapsed</span>
                                     </div>
-                                    <div class="time-chart-row">
-                                        <span class="time-chart-label">Earth</span>
-                                        <div class="time-chart-bar-container">
-                                            <div class="time-chart-bar earth" style="width: 100%"></div>
+
+                                    @* Slide 2: Poster *@
+                                    @if (!string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
+                                    {
+                                        <div class="embla__slide results-slide">
+                                            <div class="results-slide-content">
+                                                <div class="poster-panel" aria-label="Generated poster preview">
+                                                    <img class="poster-preview"
+                                                         src="@ViewModel.PosterDataUrl"
+                                                         alt="Generated trip poster"
+                                                         loading="lazy" />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <span class="time-chart-value">@ViewModel.EarthTimeElapsed</span>
+                                    }
+
+                                    @* Slide 3: Mission Log *@
+                                    @if (!string.IsNullOrWhiteSpace(ViewModel.TravelLogDataUrl))
+                                    {
+                                        <div class="embla__slide results-slide">
+                                            <div class="results-slide-content">
+                                                <div class="travel-log-panel" aria-label="Mission log">
+                                                    <img class="travel-log-preview"
+                                                         src="@ViewModel.TravelLogDataUrl"
+                                                         alt="Mission log"
+                                                         loading="lazy" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    @* Slide 4: Trip Stats *@
+                                    <div class="embla__slide results-slide">
+                                        <div class="results-slide-content">
+                                            <div class="results-data">
+                                                <div class="result-item secondary">
+                                                    <span class="result-label">Distance Travelled</span>
+                                                    <span class="result-value">@FormatDistance(ViewModel.DistanceMiles)</span>
+                                                </div>
+                                                <div class="result-item primary">
+                                                    <span class="result-label">Arrival date (Earth Calendar)</span>
+                                                    <span class="result-value">@ViewModel.ArrivalDateString</span>
+                                                </div>
+                                                <div class="result-item secondary">
+                                                    <span class="result-label">Duration (Earth time)</span>
+                                                    <span class="result-value">@ViewModel.EarthTimeElapsed</span>
+                                                </div>
+                                                <div class="result-item primary">
+                                                    <span class="result-label">Arrival date (Ship Calendar)</span>
+                                                    <span class="result-value ship-time">@ViewModel.ArrivalShipDateString</span>
+                                                </div>
+                                                <div class="result-item secondary">
+                                                    <span class="result-label">Duration (Ship time)</span>
+                                                    <span class="result-value ship-time">@ViewModel.ShipTimeElapsed</span>
+                                                </div>
+                                                <div class="result-item secondary">
+                                                    <span class="result-label">Earth/Ship Time Difference</span>
+                                                    <span class="result-value highlight">@ViewModel.TimeDifference</span>
+                                                </div>
+                                            </div>
+
+                                            @if (ViewModel.ShowTimeChart)
+                                            {
+                                                <div class="time-chart">
+                                                    <div class="time-chart-title">The Passage of Time</div>
+                                                    <div class="time-chart-row">
+                                                        <span class="time-chart-label">Ship</span>
+                                                        <div class="time-chart-bar-container">
+                                                            <div class="time-chart-bar ship" style="width: @(GetShipTimePercentage())%"></div>
+                                                        </div>
+                                                        <span class="time-chart-value ship-time">@ViewModel.ShipTimeElapsed</span>
+                                                    </div>
+                                                    <div class="time-chart-row">
+                                                        <span class="time-chart-label">Earth</span>
+                                                        <div class="time-chart-bar-container">
+                                                            <div class="time-chart-bar earth" style="width: 100%"></div>
+                                                        </div>
+                                                        <span class="time-chart-value">@ViewModel.EarthTimeElapsed</span>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
                                     </div>
                                 </div>
-                            }
-                        }
-                    </div>
+                            </div>
+                            <div class="embla__dots" id="@_resultsCarouselId-dots"></div>
+                        </div>
+                    }
                 }
             </div>
         </div>
@@ -244,11 +271,14 @@ else
 @code {
     private bool _isInitialized = false;
     private bool _previousShowPoster = false;
+    private bool _previousShowResults = false;
     private string _buildVersion = GetShortCommitHash();
     private const string _destinationPickerId = "destination-picker";
     private const string _speedPickerId = "speed-picker";
+    private const string _resultsCarouselId = "results-carousel";
     private DotNetObjectReference<Index>? _dotNetRef;
     private bool _carouselInitialized = false;
+    private bool _resultsCarouselInitialized = false;
 
     private bool IsPickerDisabled => ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes;
 
@@ -324,22 +354,30 @@ else
     {
         if (_isInitialized)
         {
-            // Detect when poster becomes visible
-            var shouldScroll = !_previousShowPoster && ViewModel.ShowPoster;
-            _previousShowPoster = ViewModel.ShowPoster;
+            // Detect when results become visible to initialize carousel
+            var shouldInitResultsCarousel = !_previousShowResults && ViewModel.ShowResults;
+            _previousShowResults = ViewModel.ShowResults;
 
             InvokeAsync(async () =>
             {
                 StateHasChanged();
-                if (shouldScroll)
+                if (shouldInitResultsCarousel)
                 {
                     // Small delay to ensure DOM is updated
                     await Task.Delay(50);
-                    await JS.InvokeVoidAsync("eval",
-                        "document.getElementById('journey-summary')?.scrollIntoView({ behavior: 'smooth', block: 'center' })");
+                    await InitializeResultsCarouselAsync();
                 }
             });
         }
+    }
+
+    private async Task InitializeResultsCarouselAsync()
+    {
+        if (_resultsCarouselInitialized) return;
+
+        await JS.InvokeVoidAsync("emblaCarousel.initCarousel", _resultsCarouselId, _dotNetRef,
+            new { align = "start", containScroll = "trimSnaps", startIndex = 0, noScale = true });
+        _resultsCarouselInitialized = true;
     }
 
     private async Task SelectDestinationByIndex(int index)
@@ -393,6 +431,17 @@ else
 
     private async Task OnStartClicked()
     {
+        // Destroy previous results carousel if exists
+        if (_resultsCarouselInitialized)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("emblaCarousel.destroyCarousel", _resultsCarouselId);
+            }
+            catch { }
+            _resultsCarouselInitialized = false;
+            _previousShowResults = false;
+        }
         await ViewModel.EvaluateTripAsync();
     }
 
@@ -429,17 +478,21 @@ else
             ViewModel.StateChanged -= OnViewModelStateChanged;
         }
 
-        if (_carouselInitialized)
+        try
         {
-            try
+            if (_carouselInitialized)
             {
                 await JS.InvokeVoidAsync("emblaCarousel.destroyCarousel", _destinationPickerId);
                 await JS.InvokeVoidAsync("emblaCarousel.destroyCarousel", _speedPickerId);
             }
-            catch
+            if (_resultsCarouselInitialized)
             {
-                // Ignore errors during disposal (e.g., if JS runtime is already disposed)
+                await JS.InvokeVoidAsync("emblaCarousel.destroyCarousel", _resultsCarouselId);
             }
+        }
+        catch
+        {
+            // Ignore errors during disposal (e.g., if JS runtime is already disposed)
         }
 
         _dotNetRef?.Dispose();

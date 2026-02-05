@@ -73,8 +73,13 @@ export function initCarousel(containerId, dotNetRef, options = {}) {
 
   const embla = EmblaCarousel(container, defaultOptions);
 
-  // Apply scale effect on init and scroll
+  // Check if scale effect should be applied (default true, disable with noScale option)
+  const shouldScale = !options.noScale;
+
+  // Apply scale effect on init and scroll (for picker carousels)
   const applyScaleEffect = () => {
+    if (!shouldScale) return;
+
     const slides = embla.slideNodes();
     const scrollProgress = embla.scrollProgress();
     const slidesInView = embla.slidesInView();
@@ -102,7 +107,7 @@ export function initCarousel(containerId, dotNetRef, options = {}) {
   // Event: selection changed
   embla.on('select', () => {
     const index = embla.selectedScrollSnap();
-    applyScaleEffect();
+    if (shouldScale) applyScaleEffect();
 
     // Notify Blazor of selection change
     if (dotNetRef) {
@@ -111,12 +116,14 @@ export function initCarousel(containerId, dotNetRef, options = {}) {
   });
 
   // Event: scroll in progress (for smooth scale during drag)
-  embla.on('scroll', () => {
-    applyScaleEffect();
-  });
+  if (shouldScale) {
+    embla.on('scroll', () => {
+      applyScaleEffect();
+    });
+  }
 
   // Initial scale application
-  applyScaleEffect();
+  if (shouldScale) applyScaleEffect();
 
   // Initialize pagination dots
   initDots(containerId, embla);

@@ -155,12 +155,87 @@ html, body {
     padding: 24px 16px;
 }
 
+/* Results Carousel - horizontal paging */
+.results-carousel-wrapper {
+    margin-left: -16px;
+    margin-right: -16px;
+    width: calc(100% + 32px);
+}
+
+.results-carousel.embla {
+    overflow: hidden;
+}
+
+.results-carousel .embla__container {
+    display: flex;
+    gap: 0;
+    padding: 0;
+}
+
+.results-carousel .embla__slide {
+    flex: 0 0 100%;
+    min-width: 0;
+}
+
+.results-slide {
+    min-height: 300px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.results-slide-content {
+    width: 100%;
+    padding: 0 16px;
+}
+
+/* Adjust panels inside results carousel */
+.results-carousel .journey-summary {
+    margin-top: 0;
+}
+
+.results-carousel .poster-panel {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+}
+
+.results-carousel .poster-preview {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.results-carousel .travel-log-panel {
+    margin: 0;
+    padding: 8px;
+    background-color: #fffef5;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.results-carousel .travel-log-preview {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.results-carousel .results-data {
+    margin-top: 0;
+}
+
+/* Results carousel dots - centered below */
+.results-carousel-wrapper .embla__dots {
+    padding: 16px 0 8px;
+}
+
 /* Results data container - staggered fade-in */
 .results-data {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-top: 24px;
+    margin-top: 12px;
     padding: 16px;
     border-radius: 12px;
     background-color: #fafafa;
@@ -415,25 +490,17 @@ html, body {
     background: #0b1b3b;
 }
 
-/* Travel Log panel - full-bleed to viewport edges */
+/* Travel Log panel - full-bleed inside collapsible */
 .travel-log-panel {
-    margin-top: 10px;
-    margin-left: -32px;
-    margin-right: -32px;
-    padding: 14px 0 6px 0;
+    margin-top: 8px;
+    padding: 12px 0;
     background-color: #fffef5;
-    border-radius: 0;
-}
-
-.travel-log-panel.slide-in {
-    animation: fadeClean 0.3s ease-out;
 }
 
 .travel-log-preview {
     width: 100%;
     height: auto;
     display: block;
-    border-radius: 0;
 }
 
 .poster-loading {
