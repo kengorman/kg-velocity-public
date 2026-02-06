@@ -1,4 +1,5 @@
 using Kg.Velocity.UI.Services;
+using Kg.Velocity.UI.Utilities;
 using Kg.Velocity.Contracts.Catalogs;
 using Kg.Velocity.Contracts.Nasa;
 using Kg.Velocity.Contracts.Trips;
@@ -61,11 +62,7 @@ public class MainViewModel
         NotifyStateChanged();
     }
 
-    // Phase messages for the three-beat ritual
-    private const string Phase1Message = "Establishing distance...";
-    private const string Phase2Message = "Reflecting on your journey...";
-    private const string Phase3Message = "Marking the passage...";
-
+    // Phase timing for the three-beat ritual
     private const int Phase1MinMs = 600;
     private const int Phase2MinMs = 1000;
     private const int Phase3MinMs = 2000;
@@ -204,8 +201,8 @@ public class MainViewModel
         TravelLogDataUrl = "";
         PosterGeneratedAtDisplay = "";
 
-        // Phase 1: Establishing distance...
-        PhaseMessage = Phase1Message;
+        // Phase 1: Plotting course...
+        PhaseMessage = $"Plotting course to {SelectedDestination.DisplayName}...";
         NotifyStateChanged();
         var phase1Start = DateTime.UtcNow;
 
@@ -252,7 +249,10 @@ public class MainViewModel
             if (requestVersion != _evaluationRequestVersion) return;
 
             // Transition: Start Phase 2 (don't show results yet - wait for all phases)
-            PhaseMessage = Phase2Message;
+            var isLightSpeed = speedPreset?.Group?.Contains("Light") == true;
+            PhaseMessage = isLightSpeed
+                ? $"Traveling at {speedName}..."
+                : $"Traveling at {Formatting.FormatSpeed(_selectedSpeedMph)}...";
             NotifyStateChanged();
             var phase2Start = DateTime.UtcNow;
 
@@ -276,7 +276,7 @@ public class MainViewModel
 
             // Transition: Start Phase 3 (don't show summary yet - wait for all phases)
             DisplayedJourneySummary = JourneySummary;
-            PhaseMessage = Phase3Message;
+            PhaseMessage = $"Traveled {Formatting.FormatDistance(DistanceMiles)}...";
             NotifyStateChanged();
             var phase3Start = DateTime.UtcNow;
 
@@ -375,4 +375,5 @@ public class MainViewModel
         IsImageSheetOpen = false;
         NotifyStateChanged();
     }
+
 }

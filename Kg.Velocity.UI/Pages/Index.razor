@@ -1,5 +1,6 @@
 @page "/"
 @using Kg.Velocity.UI.ViewModels
+@using Kg.Velocity.UI.Utilities
 @using Kg.Velocity.Contracts.Catalogs
 @using System.Linq
 @using System.Reflection
@@ -38,7 +39,7 @@
                                     <div class="destination-image" style="background-image: url('_content/Kg.Velocity.UI/images/destinations/@(ToSlug(dest.Name)).jpg')"></div>
                                     <div class="destination-name">@dest.DisplayName</div>
                                     <div class="destination-tagline">@dest.Tagline</div>
-                                    <div class="destination-info">@FormatDistance(dest.DistanceMiles)</div>
+                                    <div class="destination-info">@Formatting.FormatDistance(dest.DistanceMiles)</div>
                                 </div>
                                 destIndex++;
                             }
@@ -158,7 +159,7 @@
                                             <div class="results-data">
                                                 <div class="result-item secondary">
                                                     <span class="result-label">Distance Travelled</span>
-                                                    <span class="result-value">@FormatDistance(ViewModel.DistanceMiles)</span>
+                                                    <span class="result-value">@Formatting.FormatDistance(ViewModel.DistanceMiles)</span>
                                                 </div>
                                                 <div class="result-item primary">
                                                     <span class="result-label">Arrival date (Earth Calendar)</span>
@@ -477,22 +478,6 @@ else
 
     private static string ToSlug(string name) =>
         name.ToLowerInvariant().Replace(" ", "-").Replace("(", "").Replace(")", "");
-
-    private string FormatDistance(double miles)
-    {
-        if (miles <= 0)
-            return "—";
-        if (miles < 1_000)
-            return $"{miles:N0} miles";
-        else if (miles < 1_000_000)
-            return $"{miles / 1_000:N1}k miles";
-        else if (miles < 1_000_000_000)
-            return $"{miles / 1_000_000:N1}M miles";
-        else if (miles < 1_000_000_000_000)
-            return $"{miles / 1_000_000_000:N2}B miles";
-        else
-            return $"{miles / 1_000_000_000_000:N2}T miles";
-    }
 
     public async ValueTask DisposeAsync()
     {
