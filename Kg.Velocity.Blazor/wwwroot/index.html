@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Absurd Travel Simulator</title>
     <meta name="description" content="Calculate absurd travel times to cosmic destinations using relativistic physics. See time dilation effects at different speeds." />
-    <meta name="theme-color" content="#0b1b3b" />
+    <meta name="theme-color" content="#0a0a0f" />
 
     <!-- Open Graph (Facebook, LinkedIn) -->
     <meta property="og:type" content="article" />
@@ -27,43 +27,110 @@
     <link rel="stylesheet" href="_content/Kg.Velocity.UI/css/app.css" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <style>
-        .loading-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+        /* Skeleton Loading Screen */
+        .skeleton-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 16px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #ffffff;
-            padding: 20px;
-            text-align: center;
+            background: #0a0a0f;
+            min-height: 100vh;
         }
-        .loading-spinner {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 16px;
+        .skeleton-header {
+            height: 15px;
+            width: 160px;
+            background: #1a1a24;
+            border-radius: 4px;
+            margin: 0 auto 16px;
         }
-        .loading-text {
-            color: #6b7280;
-            font-size: 14px;
+        .skeleton-carousel {
+            display: flex;
+            gap: 12px;
+            overflow: hidden;
+            padding: 8px 0;
         }
-        .loading-slow {
-            display: none;
-            margin-top: 16px;
-            color: #9ca3af;
-            font-size: 12px;
+        .skeleton-dest-card {
+            flex: 0 0 200px;
+            height: 145px;
+            background: #12121a;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .skeleton-speed-card {
+            flex: 0 0 140px;
+            height: 50px;
+            background: #12121a;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .skeleton-dots {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 0 12px;
+        }
+        .skeleton-dot {
+            width: 6px;
+            height: 6px;
+            background: #2a2a3a;
+            border-radius: 50%;
+        }
+        /* Shimmer animation */
+        .skeleton-dest-card::after,
+        .skeleton-speed-card::after,
+        .skeleton-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.04) 50%,
+                transparent 100%
+            );
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
     </style>
 </head>
 
 <body>
     <div id="app">
-        <div class="loading-container">
-            <img src="dualRing.gif" alt="Loading..." class="loading-spinner" />
-            <div class="loading-text">Initializing Flight Systems...</div>
-            <div class="loading-slow" id="slow-message" data-nosnippet>
-                Taking longer than expected.<br/>
-                Please wait or try refreshing.
+        <div class="skeleton-container">
+            <div class="skeleton-header"></div>
+            <!-- Destination carousel skeleton -->
+            <div class="skeleton-carousel">
+                <div class="skeleton-dest-card"></div>
+                <div class="skeleton-dest-card"></div>
+                <div class="skeleton-dest-card"></div>
+            </div>
+            <div class="skeleton-dots">
+                <div class="skeleton-dot"></div>
+                <div class="skeleton-dot"></div>
+                <div class="skeleton-dot"></div>
+                <div class="skeleton-dot"></div>
+                <div class="skeleton-dot"></div>
+            </div>
+            <!-- Speed carousel skeleton -->
+            <div class="skeleton-carousel">
+                <div class="skeleton-speed-card"></div>
+                <div class="skeleton-speed-card"></div>
+                <div class="skeleton-speed-card"></div>
+            </div>
+            <div class="skeleton-dots">
+                <div class="skeleton-dot"></div>
+                <div class="skeleton-dot"></div>
+                <div class="skeleton-dot"></div>
+                <div class="skeleton-dot"></div>
+                <div class="skeleton-dot"></div>
             </div>
         </div>
     </div>
@@ -74,13 +141,6 @@
         <span class="dismiss">🗙</span>
     </div>
     
-    <script>
-        // Show slow-loading message after 8 seconds
-        setTimeout(function() {
-            var slowMsg = document.getElementById('slow-message');
-            if (slowMsg) slowMsg.style.display = 'block';
-        }, 8000);
-    </script>
     <script src="_content/Kg.Velocity.UI/js/embla-carousel.bundle.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
