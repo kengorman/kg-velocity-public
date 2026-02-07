@@ -70,32 +70,6 @@ html, body {
     margin-bottom: 16px;
 }
 
-.journey-select {
-    width: 100%;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-primary);
-    background-color: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 12px 10px;
-    outline: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    cursor: pointer;
-}
-
-.journey-select:focus {
-    border-color: var(--accent-blue);
-}
-
-.journey-select:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 /* Start Button */
 .start-button-container {
     display: flex;
@@ -526,30 +500,6 @@ html, body {
 
 .build-info .credit {
     font-family: inherit;
-}
-
-/* More About Destination Button */
-.more-about-destination {
-    width: 100%;
-    padding: 14px 16px;
-    margin-top: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--accent-blue);
-    background-color: #f0f7ff;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    text-align: center;
-    transition: background-color 0.15s ease;
-}
-
-.more-about-destination:hover {
-    background-color: #e0efff;
-}
-
-.more-about-destination:active {
-    background-color: #d0e7ff;
 }
 
 /* Bottom Sheet Backdrop */

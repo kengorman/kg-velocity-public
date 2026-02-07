@@ -316,18 +316,6 @@ public class MainViewModel
         }
     }
 
-    /// <summary>
-    /// Opens the destination images bottom sheet.
-    /// </summary>
-    public void OpenImageSheet()
-    {
-        if (SelectedDestination == null) return;
-
-        IsImageSheetOpen = true;
-        // TODO: Load embedded images for destination
-        NotifyStateChanged();
-    }
-
     private async Task FetchPosterBytesAsync(string? posterUrl, int requestVersion)
     {
         if (string.IsNullOrWhiteSpace(posterUrl)) return;

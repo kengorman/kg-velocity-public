@@ -13,16 +13,6 @@ public class TripCatalogService
 
     public IReadOnlyList<DestinationDto> GetDestinations()
     {
-        // NASA search term overrides for destinations where the name doesn't search well
-        var nasaSearchTerms = new Dictionary<string, string>
-        {
-            ["Proxima Centauri"] = "Alpha Centauri",
-            ["Polaris (North Star)"] = "Polaris star",
-            ["Milky Way (center)"] = "Milky Way galactic center",
-            ["The Sun"] = "Sun solar"
-        };
-
-        // Keep the same destination catalog the client previously had.
         var destinations = new List<Destination>
         {
             // Solar System
@@ -51,8 +41,7 @@ public class TripCatalogService
                 d.DistanceMiles,
                 d.Category,
                 d.DisplayName,
-                d.Tagline,
-                nasaSearchTerms.GetValueOrDefault(d.Name)))
+                d.Tagline))
             .ToList();
     }
 }

@@ -5,8 +5,7 @@ public sealed record DestinationDto(
     double DistanceMiles,
     string Category,
     string DisplayName,
-    string Tagline,
-    string? NasaSearchTerm = null
+    string Tagline
 );
 
 
