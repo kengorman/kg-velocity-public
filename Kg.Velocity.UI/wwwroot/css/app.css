@@ -896,6 +896,7 @@ html, body {
 .destination-picker.embla,
 .speed-picker.embla {
     /* Embla handles scrolling */
+    user-select: none;
 }
 
 /* Speed picker container adjustments */
@@ -919,6 +920,7 @@ html, body {
     display: flex;
     flex-direction: column;
     will-change: transform, opacity;
+    user-select: none;
 }
 
 .destination-card:hover {
@@ -975,6 +977,7 @@ html, body {
     /* Transform and opacity controlled by Embla JS for smooth scaling */
     transition: box-shadow 0.2s, background-color 0.2s;
     will-change: transform, opacity;
+    user-select: none;
 }
 
 .speed-card:hover {

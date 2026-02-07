@@ -42,7 +42,8 @@
       "Bash(npm run build:embla:*)",
       "Bash(dotnet clean:*)",
       "Bash(git log:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(grep:*)"
     ]
   }
 }
