@@ -340,21 +340,26 @@ else
 
     private async Task InitializeCarouselsAsync()
     {
-        // Calculate middle indices for both carousels
-        var destMidIndex = ViewModel.Destinations.Count / 2;
-        var speedMidIndex = ViewModel.SpeedPresets.Count / 2;
+        // Random starting positions for destination and speed carousels.
+        // Why: Adds variety and whimsy on each app launch - users see different starting
+        // combinations rather than always the same "middle" defaults.
+        // How: Random.Shared uses system entropy for seeding (not just clock time), providing
+        // uniform distribution across all indices. Over many app launches, each destination
+        // and speed has equal probability of being the initial selection.
+        var destStartIndex = Random.Shared.Next(ViewModel.Destinations.Count);
+        var speedStartIndex = Random.Shared.Next(ViewModel.SpeedPresets.Count);
 
-        // Initialize both carousels starting at middle index
+        // Initialize both carousels with their random starting positions
         await JS.InvokeVoidAsync("emblaCarousel.initCarousel", _destinationPickerId, _dotNetRef,
-            new { align = "center", containScroll = "trimSnaps", startIndex = destMidIndex });
+            new { align = "center", containScroll = "trimSnaps", startIndex = destStartIndex });
         await JS.InvokeVoidAsync("emblaCarousel.initCarousel", _speedPickerId, _dotNetRef,
-            new { align = "center", containScroll = "trimSnaps", startIndex = speedMidIndex });
+            new { align = "center", containScroll = "trimSnaps", startIndex = speedStartIndex });
 
-        // Sync ViewModel selection with carousel position
+        // Sync ViewModel selection with carousel position so state matches visual
         if (ViewModel.Destinations.Count > 0)
-            ViewModel.SelectedDestination = ViewModel.Destinations[destMidIndex];
+            ViewModel.SelectedDestination = ViewModel.Destinations[destStartIndex];
         if (ViewModel.SpeedPresets.Count > 0)
-            ViewModel.SelectedPresetSpeed = ViewModel.SpeedPresets[speedMidIndex].SpeedMph;
+            ViewModel.SelectedPresetSpeed = ViewModel.SpeedPresets[speedStartIndex].SpeedMph;
     }
 
     [JSInvokable]
