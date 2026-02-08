@@ -19,6 +19,7 @@ public class AiSummaryService
         _tripSummaryPromptBuilder = tripSummaryPromptBuilder;
     }
 
+    /// <summary>Generates a narrative summary of the trip via LLM, making raw physics results emotionally engaging.</summary>
     public async Task<(string Summary, Persona Persona)> GenerateSummaryAsync(
         TripEvaluateRequest request,
         TripComputationResult trip)

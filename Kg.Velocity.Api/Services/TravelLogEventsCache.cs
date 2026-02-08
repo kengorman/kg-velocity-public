@@ -12,12 +12,14 @@ public class TravelLogEventsCache
         _cache = cache;
     }
 
+    /// <summary>Caches log entries so the same content appears when the travel log SVG is rendered after evaluation.</summary>
     public void Store(string nonce, List<TravelLogEntry> entries)
     {
         var cacheKey = GetCacheKey(nonce);
         _cache.Set(cacheKey, entries, CacheDuration);
     }
 
+    /// <summary>Retrieves cached entries for travel log rendering, returning null if expired or missing.</summary>
     public List<TravelLogEntry>? TryGet(string nonce)
     {
         var cacheKey = GetCacheKey(nonce);

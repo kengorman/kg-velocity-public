@@ -12,12 +12,14 @@ public class PosterEventsCache
         _cache = cache;
     }
 
+    /// <summary>Caches events so the same content appears when the poster SVG is rendered after evaluation.</summary>
     public void Store(string nonce, List<JourneyEvent> events)
     {
         var cacheKey = GetCacheKey(nonce);
         _cache.Set(cacheKey, events, CacheDuration);
     }
 
+    /// <summary>Retrieves cached events for poster rendering, returning null if expired or missing.</summary>
     public List<JourneyEvent>? TryGet(string nonce)
     {
         var cacheKey = GetCacheKey(nonce);

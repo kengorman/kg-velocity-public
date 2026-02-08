@@ -6,11 +6,13 @@ namespace Kg.Velocity.Api.Services;
 
 public class TripCatalogService
 {
+    /// <summary>Provides speed options for the UI, from walking pace to faster-than-light.</summary>
     public IReadOnlyList<SpeedPresetDto> GetSpeedPresets()
         => Kg.Velocity.Engine.SpeedPresets.All
             .Select(p => new SpeedPresetDto(p.Name, p.SpeedMph, p.Group))
             .ToList();
 
+    /// <summary>Provides destination options spanning the Moon to Andromeda, each with real astronomical distances.</summary>
     public IReadOnlyList<DestinationDto> GetDestinations()
     {
         var destinations = new List<Destination>

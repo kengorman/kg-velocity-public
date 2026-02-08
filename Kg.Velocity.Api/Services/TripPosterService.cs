@@ -5,9 +5,6 @@ using System.Text;
 
 namespace Kg.Velocity.Api.Services;
 
-/// <summary>
-/// 
-/// </summary>
 public class TripPosterService(PosterEventsCache eventsCache, DestinationIconService iconService)
 {
     private const string TemplateResourceName = "Kg.Velocity.Api.Templates.trip-poster.svg.sbn";
@@ -103,6 +100,7 @@ public class TripPosterService(PosterEventsCache eventsCache, DestinationIconSer
         return allEvents.Take(eventCount).ToList();
     }
 
+    /// <summary>Renders the trip poster SVG using cached AI-generated events, destination icons, and Scriban templating.</summary>
     public byte[] GeneratePoster(HttpRequest httpRequest)
     {
         try

@@ -52,6 +52,7 @@ public class TravelLogService(TravelLogEventsCache eventsCache)
         };
     }
 
+    /// <summary>Renders the travel log SVG using cached AI-generated entries and Scriban templating.</summary>
     public byte[] GenerateTravelLog(HttpRequest httpRequest)
     {
         var destination = httpRequest.Query["destination"].ToString();

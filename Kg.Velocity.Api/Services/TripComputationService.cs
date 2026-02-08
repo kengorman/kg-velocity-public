@@ -6,6 +6,7 @@ namespace Kg.Velocity.Api.Services;
 
 public class TripComputationService
 {
+    /// <summary>Calculates all relativistic physics for a trip: time dilation, Lorentz factor, and formatted outputs.</summary>
     public TripComputationResult Compute(TripEvaluateRequest request)
     {
         // Keep the caller's wall-clock base time (including their offset) rather than converting to server-local time.

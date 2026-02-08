@@ -8,6 +8,7 @@ public class PromptStore
     private static readonly Assembly Assembly = typeof(PromptStore).Assembly;
     private readonly ConcurrentDictionary<string, string> _cache = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Loads prompt templates from embedded resources, caching to avoid repeated I/O.</summary>
     public string GetPrompt(string relativePath)
     {
         return _cache.GetOrAdd(relativePath, LoadPrompt);

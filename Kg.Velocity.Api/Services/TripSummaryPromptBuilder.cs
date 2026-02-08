@@ -6,6 +6,7 @@ public class TripSummaryPromptBuilder(PromptStore prompts)
 {
     private const string TripSummaryPromptPath = "Prompts/trip-summary.md";
 
+    /// <summary>Injects trip data into the summary prompt template, separating prompt content from code.</summary>
     public string BuildPrompt(TripComputationResult trip)
     {
         var template = prompts.GetPrompt(TripSummaryPromptPath);

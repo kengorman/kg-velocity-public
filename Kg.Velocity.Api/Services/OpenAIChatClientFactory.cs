@@ -9,6 +9,7 @@ public class OpenAIChatClientFactory(IConfiguration configuration)
     public ApiKeyCredential Credential { get; } = new ApiKeyCredential(
         configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("OpenAI:ApiKey not configured"));
 
+    /// <summary>Creates a chat client for the specified model, centralizing API key management.</summary>
     public ChatClient CreateChatClient(string model)
     {
         var client = new OpenAIClient(Credential);

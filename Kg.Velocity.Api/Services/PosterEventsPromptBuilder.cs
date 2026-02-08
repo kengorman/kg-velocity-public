@@ -6,6 +6,7 @@ public class PosterEventsPromptBuilder(PromptStore prompts)
 {
     private const string PosterEventsPromptPath = "Prompts/poster-events.md";
 
+    /// <summary>Injects trip data into the poster events prompt template, separating prompt content from code.</summary>
     public string BuildPrompt(TripComputationResult trip)
     {
         var template = prompts.GetPrompt(PosterEventsPromptPath);

@@ -10,6 +10,7 @@ public enum DurationFormat
 
 public static class FlightComputer
 {
+    /// <summary>Converts raw seconds to human-readable format, scaling from seconds up to quadrillions of years for astronomical journeys.</summary>
     public static string FormatDuration(double totalSeconds, DurationFormat format = DurationFormat.Verbose)
     {
         if (double.IsInfinity(totalSeconds) || double.IsNaN(totalSeconds))
@@ -86,6 +87,7 @@ public static class FlightComputer
         }
     }
 
+    /// <summary>Displays the time dilation effect - how much more time passed on Earth than aboard the ship.</summary>
     public static string CalculateTimeDifference(double earthTimeSeconds, double shipTimeSeconds)
     {
         double diffSeconds = earthTimeSeconds - shipTimeSeconds;
@@ -103,6 +105,7 @@ public static class FlightComputer
         return FormatDuration(diffSeconds, DurationFormat.Compact);
     }
 
+    /// <summary>Projects arrival date from travel time, switching to "Year X Million" format when beyond DateTime limits.</summary>
     public static string FormatDateTime(DateTime baseDate, double secondsToAdd)
     {
         try 

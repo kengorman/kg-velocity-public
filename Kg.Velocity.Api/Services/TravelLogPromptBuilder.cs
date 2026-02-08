@@ -6,6 +6,7 @@ public class TravelLogPromptBuilder(PromptStore prompts)
 {
     private const string TravelLogPromptPath = "Prompts/travel-log.md";
 
+    /// <summary>Injects trip data into the travel log prompt template, separating prompt content from code.</summary>
     public string BuildPrompt(TripComputationResult trip)
     {
         var template = prompts.GetPrompt(TravelLogPromptPath);

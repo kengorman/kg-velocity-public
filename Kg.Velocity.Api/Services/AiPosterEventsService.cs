@@ -20,6 +20,7 @@ public class AiPosterEventsService
         _logger = logger;
     }
 
+    /// <summary>Generates milestone events for the trip poster via LLM, giving the poster narrative depth.</summary>
     public async Task<List<JourneyEvent>> GenerateEventsAsync(
         TripComputationResult trip)
     {

@@ -29,6 +29,7 @@ public static class PersonaCatalog
       )
     ];
 
+    /// <summary>Retrieves a specific persona when user has a saved preference.</summary>
     public static bool TryGetById(int id, out Persona persona)
     {
         foreach (var p in Personas)
@@ -44,6 +45,7 @@ public static class PersonaCatalog
         return false;
     }
 
+    /// <summary>Cycles to the next persona, providing narrative variety across repeated trips.</summary>
     public static Persona GetNextById(int currentId)
     {
         // Use deterministic order by Id, not array position.

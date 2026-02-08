@@ -4,6 +4,7 @@ namespace Kg.Velocity.Api.Services;
 
 public static class PromptRenderer
 {
+    /// <summary>Replaces {{token}} placeholders in prompt templates with trip-specific values.</summary>
     public static string Render(string template, IReadOnlyDictionary<string, string> tokens)
     {
         if (string.IsNullOrEmpty(template) || tokens.Count == 0)

@@ -4,6 +4,7 @@ public static class JourneyInsightClassifier
 {
     private const double SecondsPerYear = 365.25 * 24 * 3600;
 
+    /// <summary>Identifies the most compelling aspect of a trip (speed, dilation, scale, etc.) to guide AI-generated narrative focus.</summary>
     public static string Classify(
         double earthTimeSeconds,
         double shipTimeSeconds,

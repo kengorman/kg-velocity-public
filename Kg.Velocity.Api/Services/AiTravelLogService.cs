@@ -20,6 +20,7 @@ public class AiTravelLogService
         _logger = logger;
     }
 
+    /// <summary>Generates journal-style log entries via LLM, creating an immersive first-person narrative of the journey.</summary>
     public async Task<List<TravelLogEntry>> GenerateEntriesAsync(TripComputationResult trip)
     {
         var prompt = _promptBuilder.BuildPrompt(trip);

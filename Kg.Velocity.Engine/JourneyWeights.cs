@@ -6,19 +6,30 @@ namespace Kg.Velocity.Engine;
 public static class JourneyWeightCalculator
 {
 
-    /// Computes perceptual journey weights by comparing
-    /// how long the universe waits versus how long the traveler experiences.
-    ///
-    /// distanceMiles  → physical separation (sets scale regime and awe)
-    /// speedMph       → reference speed used to estimate outside time
-    /// shipTimeHours → time experienced by the traveler (may differ from outside time for relativistic / FTL travel)
-    /// random         → small noise to avoid deterministic outputs
-    ///
-    /// Rationale:
-    /// - Outside time is derived from distance and speed.
-    /// - Traveler time is supplied separately so relativistic / FTL travel.
-    /// - Allows outside time to differ from traveler time
-    /// - The model maps these scale differences into narrative weight signals (JourneyWeights).
+    /// <summary>
+    /// Computes perceptual journey weights by comparing how long the universe waits versus how long the traveler experiences.
+    /// These weights guide the AI narrative tone for each trip.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The core insight: relativistic and FTL travel create a desynchronization between "outside time" (what the
+    /// universe experiences) and "proper time" (what the traveler lives through). This function maps that
+    /// desynchronization into psychological dimensions like awe, loneliness, and patience.
+    /// </para>
+    /// <para>
+    /// All calculations happen in log-space because human perception of time and distance is logarithmic—the
+    /// difference between 1 year and 10 years feels similar to the difference between 10 years and 100 years.
+    /// </para>
+    /// <para>
+    /// For FTL travel (shipTimeHours ≤ 0), the traveler experiences essentially zero time, but we impose a
+    /// distance-scaled floor on outside time so that even instant travel to Andromeda feels different from
+    /// instant travel to the Moon.
+    /// </para>
+    /// </remarks>
+    /// <param name="distanceMiles">Physical separation (sets scale regime and awe).</param>
+    /// <param name="speedMph">Reference speed used to estimate outside time.</param>
+    /// <param name="shipTimeHours">Time experienced by the traveler (may differ from outside time for relativistic/FTL travel).</param>
+    /// <param name="random">Small noise (0-1) to avoid deterministic outputs.</param>
     public static JourneyWeights Compute(
         double distanceMiles,
         double speedMph,
