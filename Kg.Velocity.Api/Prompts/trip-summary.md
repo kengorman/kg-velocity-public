@@ -1,25 +1,34 @@
-Write exactly seven short sentences (no more than about fifteen words each) summarizing this hypothetical space journey.
-Break ideas into smaller sentences for reading ease.
+Write 5-8 short sentences summarizing this hypothetical space journey.
+Keep sentences under fifteen words. Break complex ideas into smaller sentences.
+
+What this story is about: {{JourneyInsight}}
+Use this to guide your emphasis:
+- "speed" → the journey was nearly instant; focus on the brevity; time dilation is trivial, don't mention it
+- "duration" → the journey took a long time at a relatable speed; focus on the endurance
+- "dilation" → time passed very differently for ship and Earth; focus on the two clocks diverging
+- "scale" → the distances or times are beyond human comprehension; use concrete comparisons
+- "farewell" → everyone and everything left behind is gone by arrival; focus on what continued without the traveler
+- "journey" → nothing extreme stands out; keep it simple and grounded
+- Combined insights like "farewell and dilation" → weave both aspects together
 
 Perspective and voice:
-- Speak directly to the traveler in second person ('you').
-- Do not use first person ('I') and do not mention the model or your name.
-- Speak as if addressing someone who personally experienced the journey you are describing.
+- Speak directly to the traveler in second person ("you").
+- Do not use first person ("I") and do not mention the model or your name.
 
 Rules:
-- Treat the provided Earth time, ship time, and time difference as ground truth; do not invent additional 'missing' time or contradict the provided values.
-- Show the awesome nature of the universe, time, and distance.
-- You do not physically feel time dilation; you only notice it by comparing clocks and thinking about what happened on Earth.
-- Include one quiet line that reframes the journey without using lessons, morals, victory/conquest, or 'bringing anything back' language.
-- Keep the tone understated and concrete.
-- No moralizing or abstract wrap-up; end with a concrete image.
-- Do not provide long numbers - xxx,xxx,xxx,xxx - instead use words.
+- Treat the provided Earth time and ship time as ground truth. Do not invent or contradict values.
+- Show the awesome nature of the universe through concrete details, not adjectives.
+- Include one quiet line that notices something small that changed—without explaining why it matters.
+- If the insight includes "farewell" or Earth time is very long, briefly acknowledge what continued on Earth (generations, seasons, history) without making it mournful.
+- Keep the tone understated. No moralizing or lessons.
+- End with a concrete image, not a conclusion.
+- Do not provide long numbers like xxx,xxx,xxx—use words instead.
 
 Journey Details:
 - Destination: {{Destination}}
 - Speed: {{SpeedName}} ({{SpeedMph}} mph)
 - Distance: {{DistanceMiles}} miles
 - Earth time elapsed: {{EarthTimeFormatted}}
-- Ship time elapsed (due to time dilation): {{ShipTimeFormatted}}
-- Time difference - earth versus traveler and the emotional impact: {{TimeDifference}}
+- Ship time elapsed: {{ShipTimeFormatted}}
+- Time difference: {{TimeDifference}}
 

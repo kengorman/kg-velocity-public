@@ -111,19 +111,17 @@ foreach (var (name, distance, speed, speedName) in scenarios)
     // Calculate trip parameters
     double earthTimeSeconds = distance / speed * 3600; // distance/speed gives hours, convert to seconds
 
-    // Calculate Lorentz factor (γ)
-    double v = speed;
-    double c = LightSpeedMph;
+    // Calculate Lorentz factor (γ) - matching RelativisticPhysics.CalculateLorentzFactor
+    double vOverC = speed / LightSpeedMph;
     double lorentzFactor;
 
-    if (speed >= c)
+    if (vOverC >= 1.0)
     {
-        // FTL: no time dilation in classical sense
-        lorentzFactor = 1.0;
+        // FTL: infinite gamma, ship time = 0
+        lorentzFactor = double.PositiveInfinity;
     }
     else
     {
-        double vOverC = v / c;
         lorentzFactor = 1.0 / System.Math.Sqrt(1 - vOverC * vOverC);
     }
 
@@ -155,7 +153,7 @@ foreach (var (name, distance, speed, speedName) in scenarios)
     Console.WriteLine($">>> {name}");
     Console.WriteLine($"    Earth time: {earthTimeStr}");
     Console.WriteLine($"    Ship time:  {shipTimeStr}");
-    Console.WriteLine($"    γ (Lorentz): {lorentzFactor:F2}");
+    Console.WriteLine($"    γ (Lorentz): {(double.IsInfinity(lorentzFactor) ? "∞ (FTL)" : lorentzFactor.ToString("F2"))}");
     Console.WriteLine($"    Scores: {string.Join(", ", scores.OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key}={kv.Value:F0}"))}");
     Console.WriteLine($"    --> INSIGHT: {insight}");
     Console.WriteLine();

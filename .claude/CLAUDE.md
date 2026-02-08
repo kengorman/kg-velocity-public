@@ -63,3 +63,45 @@ Kg.Velocity.UI            # Razor components (Index.razor is the main UI)
 - User secrets ID: `kg-velocity-api` (for OpenAI API key)
 - Rate limiting: 30 requests/minute on evaluate-trip endpoint
 - CORS: Configured for Azure deployment + localhost:5100-5101
+
+## LLM Prompt Design Philosophy
+
+The app uses GPT to generate trip summaries. These principles emerged from iterative testing:
+
+### Core Approach: Insights, Not Emotions
+
+The `JourneyInsightClassifier` determines what each trip is *about* (speed, duration, dilation, scale, farewell). This single insight guides the narrative—no emotion weights, no binary flags, just one mechanism.
+
+**Why this works**: Telling users "you felt lonely" falls flat. Describing concrete details that *evoke* loneliness lets users feel it themselves.
+
+### Key Principles
+
+1. **Describe, don't prescribe** - Never tell users what they felt. Describe what happened; let them infer emotion.
+
+2. **Quiet observational lines** - Include one line that *notices* something small (a bootlace fraying, a label curling, a coffee droplet) rather than *concluding* something philosophical.
+
+3. **Back home without mourning** - When Earth time is long, acknowledge what continued (seasons, generations, maps redrawn) without being mournful or heavy-handed.
+
+4. **Let significance emerge from the insight**:
+   - "speed" → don't dwell on trivial time differences
+   - "dilation" → the two-clocks story matters, mention it concretely
+   - "farewell" → focus on what continued without the traveler
+   - "journey" → nothing extreme, keep it grounded
+
+5. **FTL handling** - Faster-than-light means ship time = 0 (instant for traveler). This is extreme dilation but the classifier scores it via "farewell" (Earth time passes) not "dilation" (which requires sub-light γ > 1).
+
+### Files Involved
+
+- `Kg.Velocity.Engine/JourneyInsightClassifier.cs` - Determines what the story is about
+- `Kg.Velocity.Api/Services/TripSummaryPromptBuilder.cs` - Injects insight into prompt
+- `Kg.Velocity.Api/Prompts/trip-summary.md` - The prompt template (uses `{{JourneyInsight}}`)
+- `Kg.Velocity.InsightTests/Program.cs` - Console app to test classifier outputs
+
+### Testing Approach
+
+Run `Kg.Velocity.InsightTests` to see classifier outputs across scenarios. Then test actual LLM output by running the app and trying contrasting trips:
+- Moon @ walking vs 99% c vs 100x c
+- Pluto @ walking vs 99% c vs 100x c
+- Andromeda @ 1000x c (farewell at cosmic scale)
+
+The goal: every trip feels remarkable in its own way, calibrated to what's actually interesting about that specific combination of distance and speed.
