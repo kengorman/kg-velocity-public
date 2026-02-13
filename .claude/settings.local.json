@@ -47,7 +47,12 @@
       "Bash(dotnet run:*)",
       "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" run --project Kg.Velocity.InsightTests)",
       "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build:*)",
-      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" run --project Kg.Velocity.InsightTests --no-build)"
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" run --project Kg.Velocity.InsightTests --no-build)",
+      "Bash(claude install:*)",
+      "Bash(~/.bashrc)",
+      "Bash(source:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(~/.local/bin/claude doctor:*)"
     ]
   }
 }
