@@ -54,7 +54,9 @@
       "Bash(npm uninstall:*)",
       "Bash(~/.local/bin/claude doctor:*)",
       "Bash(ps:*)",
-      "Bash(/mnt/c/Program\\\\ Files/dotnet/dotnet.exe restore:*)"
+      "Bash(/mnt/c/Program\\\\ Files/dotnet/dotnet.exe restore:*)",
+      "Bash(pip3:*)",
+      "Bash(apt list:*)"
     ]
   }
 }
