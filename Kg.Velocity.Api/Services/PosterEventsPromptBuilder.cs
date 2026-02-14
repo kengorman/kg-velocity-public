@@ -1,4 +1,5 @@
 using Kg.Velocity.Contracts.Trips;
+using Kg.Velocity.Engine;
 
 namespace Kg.Velocity.Api.Services;
 
@@ -11,7 +12,12 @@ public class PosterEventsPromptBuilder(PromptStore prompts)
     {
         var template = prompts.GetPrompt(PosterEventsPromptPath);
 
-        var w = trip.Weights;
+        var lorentzFactor = trip.LorentzFactor ?? 1.0;
+        var insight = JourneyInsightClassifier.Classify(
+            trip.EarthTimeSeconds,
+            trip.ShipTimeSeconds,
+            trip.SpeedMph,
+            lorentzFactor);
 
         return PromptRenderer.Render(template, new Dictionary<string, string>
         {
@@ -24,13 +30,7 @@ public class PosterEventsPromptBuilder(PromptStore prompts)
             ["EarthTimeFormatted"] = trip.EarthTimeFormatted,
             ["ShipTimeFormatted"] = trip.ShipTimeFormatted,
             ["TimeDifference"] = trip.TimeDifferenceFormatted,
-            ["WeightEmotion"] = w.Emotion.ToString("F1"),
-            ["WeightDistance"] = w.Distance.ToString("F1"),
-            ["WeightAwe"] = w.Awe.ToString("F1"),
-            ["WeightTimeGoneBy"] = w.TimeGoneBy.ToString("F1"),
-            ["WeightMemories"] = w.Memories.ToString("F1"),
-            ["WeightPatience"] = w.Patience.ToString("F1"),
-            ["WeightLoneliness"] = w.Loneliness.ToString("F1"),
+            ["JourneyInsight"] = insight,
         });
     }
 }
