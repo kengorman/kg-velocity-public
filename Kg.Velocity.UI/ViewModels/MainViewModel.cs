@@ -62,11 +62,6 @@ public class MainViewModel
         NotifyStateChanged();
     }
 
-    // Phase timing for the three-beat ritual
-    private const int Phase1MinMs = 600;
-    private const int Phase2MinMs = 1000;
-    private const int Phase3MinMs = 2000;
-
     // Properties
     public bool HasCalculated { get; set; }
     public bool IsCalculatingTrip { get; set; }
@@ -76,6 +71,13 @@ public class MainViewModel
     public bool ShowTimeChart { get; set; }
     public bool ShowSummary { get; set; }
     public bool ShowPoster { get; set; }
+    public bool ShowMovie { get; set; }
+
+    /// <summary>
+    /// Set by the UI layer when movie animation completes (JS→.NET callback).
+    /// EvaluateTripAsync awaits this to know when to transition from movie to results.
+    /// </summary>
+    public TaskCompletionSource? MovieCompletionSource { get; set; }
     public double SpeedMph { get; set; }
     public double PercentageOfLightSpeed { get; set; }
     public double DistanceMiles { get; set; }
@@ -121,6 +123,7 @@ public class MainViewModel
         && !IsCalculatingTrip
         && !IsGeneratingContent
         && !IsFetchingPosterBytes
+        && !ShowMovie
         && !ShowResults;
 
     public double? SelectedPresetSpeed
@@ -157,6 +160,7 @@ public class MainViewModel
 
         // Hide all result panels
         ShowResults = false;
+        ShowMovie = false;
         ShowTimeChart = false;
         ShowSummary = false;
         ShowPoster = false;
@@ -183,9 +187,11 @@ public class MainViewModel
         IsGeneratingContent = true;
         IsFetchingPosterBytes = true;
         ShowResults = false;
+        ShowMovie = false;
         ShowTimeChart = false;
         ShowSummary = false;
         ShowPoster = false;
+        PhaseMessage = "";
 
         // Reset display values
         DistanceMiles = 0;
@@ -201,10 +207,7 @@ public class MainViewModel
         TravelLogDataUrl = "";
         PosterGeneratedAtDisplay = "";
 
-        // Phase 1: Plotting course...
-        PhaseMessage = $"Plotting course to {SelectedDestination.DisplayName}...";
         NotifyStateChanged();
-        var phase1Start = DateTime.UtcNow;
 
         try
         {
@@ -220,15 +223,15 @@ public class MainViewModel
                 PersonaId: _currentPersonaId
             );
 
-            // Start both calls in parallel
+            // Fire both API calls in parallel
             var computeTask = _tripEvaluationService.ComputeTripAsync(request);
             var contentTask = _tripEvaluationService.GenerateContentAsync(request);
 
-            // Wait for calculations
+            // Await physics (fast)
             var trip = await computeTask;
             if (requestVersion != _evaluationRequestVersion) return;
 
-            // Store results but don't show yet
+            // Store physics results
             SpeedMph = trip.SpeedMph;
             PercentageOfLightSpeed = trip.PercentageOfLightSpeed;
             DistanceMiles = trip.DistanceMiles;
@@ -242,21 +245,23 @@ public class MainViewModel
             ArrivalShipDateString = trip.ArrivedShipTime;
             IsCalculatingTrip = false;
 
-            // Ensure minimum Phase 1 display time
-            var phase1Elapsed = (DateTime.UtcNow - phase1Start).TotalMilliseconds;
-            if (phase1Elapsed < Phase1MinMs)
-                await Task.Delay(Phase1MinMs - (int)phase1Elapsed);
+            // Start the movie — UI layer detects ShowMovie transition and starts animation
+            ShowMovie = true;
+            MovieCompletionSource = new TaskCompletionSource();
+            NotifyStateChanged();
+
+            // Wait for movie animation to finish
+            await MovieCompletionSource.Task;
             if (requestVersion != _evaluationRequestVersion) return;
 
-            // Transition: Start Phase 2 (don't show results yet - wait for all phases)
-            var isLightSpeed = speedPreset?.Group?.Contains("Light") == true;
-            PhaseMessage = isLightSpeed
-                ? $"Traveling at {speedName}..."
-                : $"Traveling at {Formatting.FormatSpeed(_selectedSpeedMph)}...";
-            NotifyStateChanged();
-            var phase2Start = DateTime.UtcNow;
+            // Movie done — is AI content back yet?
+            if (!contentTask.IsCompleted)
+            {
+                PhaseMessage = "Receiving transmission...";
+                NotifyStateChanged();
+            }
 
-            // Wait for content (summary + poster URL)
+            // Await AI content
             var content = await contentTask;
             if (requestVersion != _evaluationRequestVersion) return;
 
@@ -264,40 +269,20 @@ public class MainViewModel
             _currentPersonaId = content.PersonaId;
             await _personaIdStore.TrySetAsync(content.PersonaId);
 
-            // Store summary but don't show yet
+            // Store AI results
             JourneySummary = content.Summary;
+            DisplayedJourneySummary = content.Summary;
             PersonaName = content.PersonaName;
 
-            // Ensure minimum Phase 2 display time
-            var phase2Elapsed = (DateTime.UtcNow - phase2Start).TotalMilliseconds;
-            if (phase2Elapsed < Phase2MinMs)
-                await Task.Delay(Phase2MinMs - (int)phase2Elapsed);
-            if (requestVersion != _evaluationRequestVersion) return;
-
-            // Transition: Start Phase 3 (don't show summary yet - wait for all phases)
-            DisplayedJourneySummary = JourneySummary;
-            PhaseMessage = $"Traveled {Formatting.FormatDistance(DistanceMiles)}...";
-            NotifyStateChanged();
-            var phase3Start = DateTime.UtcNow;
-
-            // Fetch poster and travel log bytes in parallel
-            var posterTask = FetchPosterBytesAsync(content.PosterUrl, requestVersion);
-            var travelLogTask = FetchTravelLogBytesAsync(content.TravelLogUrl, requestVersion);
-            await Task.WhenAll(posterTask, travelLogTask);
-
-            // Ensure minimum Phase 3 display time
-            var phase3Elapsed = (DateTime.UtcNow - phase3Start).TotalMilliseconds;
-            if (phase3Elapsed < Phase3MinMs)
-                await Task.Delay(Phase3MinMs - (int)phase3Elapsed);
-            if (requestVersion != _evaluationRequestVersion) return;
-
-            // Transition: All phases complete - show everything at once
-            IsFetchingPosterBytes = false;
+            // Transition: movie out, results in
+            ShowMovie = false;
             ShowResults = true;
             ShowSummary = true;
-            ShowPoster = true;
             PhaseMessage = "";
             NotifyStateChanged();
+
+            // Fetch poster and travel log in background (don't block results)
+            _ = FetchMediaInBackgroundAsync(content.PosterUrl, content.TravelLogUrl, requestVersion);
         }
         catch (Exception ex)
         {
@@ -306,6 +291,7 @@ public class MainViewModel
             IsCalculatingTrip = false;
             IsGeneratingContent = false;
             IsFetchingPosterBytes = false;
+            ShowMovie = false;
             PhaseMessage = "";
             ShowResults = true;
             ShowSummary = true;
@@ -314,6 +300,19 @@ public class MainViewModel
             PersonaName = "System";
             NotifyStateChanged();
         }
+    }
+
+    private async Task FetchMediaInBackgroundAsync(string? posterUrl, string? travelLogUrl, int requestVersion)
+    {
+        var posterTask = FetchPosterBytesAsync(posterUrl, requestVersion);
+        var travelLogTask = FetchTravelLogBytesAsync(travelLogUrl, requestVersion);
+        await Task.WhenAll(posterTask, travelLogTask);
+
+        if (requestVersion != _evaluationRequestVersion) return;
+
+        IsFetchingPosterBytes = false;
+        ShowPoster = true;
+        NotifyStateChanged();
     }
 
     private async Task FetchPosterBytesAsync(string? posterUrl, int requestVersion)

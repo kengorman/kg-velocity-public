@@ -1,0 +1,69 @@
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="trip-movie-container">
+    <canvas id="@CanvasId"></canvas>
+</div>
+
+@code {
+    private DotNetObjectReference<TripMovie>? _dotNetRef;
+    private TaskCompletionSource? _completionSource;
+    private bool _started;
+
+    [Parameter] public string CanvasId { get; set; } = "trip-movie-canvas";
+
+    /// <summary>
+    /// Task that completes when the current animation finishes.
+    /// Await this after calling StartAsync to wait for movie completion.
+    /// </summary>
+    public Task CompletionTask => _completionSource?.Task ?? Task.CompletedTask;
+
+    /// <summary>
+    /// Starts the movie animation.
+    /// </summary>
+    public async Task StartAsync(string category, string destinationName, double destinationDistance,
+        string shipTime, string earthTime, string distance, string speed)
+    {
+        // Create TCS before calling JS (in case callback fires immediately)
+        _completionSource = new TaskCompletionSource();
+        _dotNetRef ??= DotNetObjectReference.Create(this);
+        _started = true;
+
+        var tripData = new { shipTime, earthTime, distance, speed };
+        await JS.InvokeVoidAsync("tripMovie.start", CanvasId, category, destinationName,
+            destinationDistance, tripData, _dotNetRef);
+    }
+
+    /// <summary>
+    /// Stops the movie and cleans up.
+    /// </summary>
+    public async Task StopAsync()
+    {
+        if (!_started) return;
+        _started = false;
+
+        try
+        {
+            await JS.InvokeVoidAsync("tripMovie.stop", CanvasId);
+        }
+        catch
+        {
+            // JS runtime may already be disposed
+        }
+
+        _completionSource?.TrySetResult();
+        _completionSource = null;
+    }
+
+    [JSInvokable]
+    public void OnMovieComplete()
+    {
+        _completionSource?.TrySetResult();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await StopAsync();
+        _dotNetRef?.Dispose();
+    }
+}

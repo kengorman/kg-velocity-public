@@ -99,10 +99,15 @@
                 }
                 else
                 {
-                    @* Phase message - transient loading state *@
-                    @if (!string.IsNullOrEmpty(ViewModel.PhaseMessage))
+                    @* Movie animation — plays while AI generates content *@
+                    @if (ViewModel.ShowMovie)
                     {
-                        <div class="phase-message" role="status" aria-live="polite">@ViewModel.PhaseMessage</div>
+                        <TripMovie @ref="_tripMovie" />
+
+                        @if (!string.IsNullOrEmpty(ViewModel.PhaseMessage))
+                        {
+                            <div class="phase-message" role="status" aria-live="polite">@ViewModel.PhaseMessage</div>
+                        }
                     }
 
                     @* Results carousel - horizontal paging through journey moments *@
@@ -213,7 +218,7 @@
                 }
             </div>
         </div>
-        @if (!ViewModel.IsCalculatingTrip && !ViewModel.IsGeneratingContent && !ViewModel.IsFetchingPosterBytes && !(ViewModel.HasCalculated && !ViewModel.ShowResults))
+        @if (!ViewModel.IsCalculatingTrip && !ViewModel.IsGeneratingContent && !ViewModel.IsFetchingPosterBytes && !ViewModel.ShowMovie && !(ViewModel.HasCalculated && !ViewModel.ShowResults))
         {
             <div class="build-info">
                 <span>Build: @_buildVersion</span>
@@ -294,8 +299,8 @@ else
 
 @code {
     private bool _isInitialized = false;
-   // private bool _previousShowPoster = false;
     private bool _previousShowResults = false;
+    private bool _previousShowMovie = false;
     private string _buildVersion = GetShortCommitHash();
     private const string _destinationPickerId = "destination-picker";
     private const string _speedPickerId = "speed-picker";
@@ -303,8 +308,9 @@ else
     private DotNetObjectReference<Index>? _dotNetRef;
     private bool _carouselInitialized = false;
     private bool _resultsCarouselInitialized = false;
+    private TripMovie? _tripMovie;
 
-    private bool IsPickerDisabled => ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes;
+    private bool IsPickerDisabled => ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes || ViewModel.ShowMovie;
 
     private static string GetShortCommitHash()
     {
@@ -383,13 +389,23 @@ else
     {
         if (_isInitialized)
         {
-            // Detect when results become visible to initialize carousel
+            // Detect transitions
+            var shouldStartMovie = !_previousShowMovie && ViewModel.ShowMovie;
             var shouldInitResultsCarousel = !_previousShowResults && ViewModel.ShowResults;
+            _previousShowMovie = ViewModel.ShowMovie;
             _previousShowResults = ViewModel.ShowResults;
 
             InvokeAsync(async () =>
             {
                 StateHasChanged();
+
+                if (shouldStartMovie)
+                {
+                    // Small delay to ensure canvas is in the DOM after render
+                    await Task.Delay(50);
+                    await StartMovieAsync();
+                }
+
                 if (shouldInitResultsCarousel)
                 {
                     // Small delay to ensure DOM is updated
@@ -398,6 +414,28 @@ else
                 }
             });
         }
+    }
+
+    private async Task StartMovieAsync()
+    {
+        if (_tripMovie == null || ViewModel.SelectedDestination == null) return;
+
+        var dest = ViewModel.SelectedDestination;
+        await _tripMovie.StartAsync(
+            category: dest.Category,
+            destinationName: dest.DisplayName,
+            destinationDistance: dest.DistanceMiles,
+            shipTime: ViewModel.ShipTimeElapsed,
+            earthTime: ViewModel.EarthTimeElapsed,
+            distance: Formatting.FormatDistance(ViewModel.DistanceMiles),
+            speed: Formatting.FormatSpeed(ViewModel.SpeedMph));
+
+        // When movie finishes (JS callback → TripMovie.OnMovieComplete → TCS),
+        // resolve the ViewModel's MovieCompletionSource so EvaluateTripAsync can continue
+        _ = _tripMovie.CompletionTask.ContinueWith(_ =>
+        {
+            ViewModel.MovieCompletionSource?.TrySetResult();
+        }, TaskScheduler.Default);
     }
 
     private async Task InitializeResultsCarouselAsync()
@@ -460,6 +498,14 @@ else
 
     private async Task OnStartClicked()
     {
+        // Stop any existing movie animation
+        if (_tripMovie != null)
+        {
+            try { await _tripMovie.StopAsync(); }
+            catch { }
+            _previousShowMovie = false;
+        }
+
         // Destroy previous results carousel if exists
         if (_resultsCarouselInitialized)
         {
@@ -493,6 +539,8 @@ else
 
         try
         {
+            if (_tripMovie != null)
+                await _tripMovie.StopAsync();
             if (_carouselInitialized)
             {
                 await JS.InvokeVoidAsync("emblaCarousel.destroyCarousel", _destinationPickerId);
