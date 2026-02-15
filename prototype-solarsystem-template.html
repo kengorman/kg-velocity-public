@@ -261,6 +261,8 @@ function drawTrail(progress) {
     x: earthScreen.x + (destScreen.x - earthScreen.x) * easeInCubicOut(trailProgress),
     y: earthScreen.y + (destScreen.y - earthScreen.y) * easeInCubicOut(trailProgress),
   };
+  // Keep ship visible — clamp to top of viewport
+  trailEnd.y = Math.max(60, trailEnd.y);
 
   if (trailProgress > 0) {
     ctx.save();
