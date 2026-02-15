@@ -6,7 +6,7 @@
 <title>Extragalactic Template</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+  body { background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; height: 100dvh; }
   canvas { display: block; }
   #overlay {
     position: fixed; bottom: 40px; left: 0; right: 0;
@@ -52,10 +52,8 @@ const ctx = canvas.getContext('2d');
 // =============================================================
 // TIMING
 // DURATION: total animation length in ms (slightly longer than other templates — more ground to cover)
-// HOLD_END: fraction of animation spent holding tight on Earth (0-1), shorter than solar system
 // =============================================================
 const DURATION = 7000;
-const HOLD_END = 0.08;
 
 // =============================================================
 // SCALE SYSTEM
@@ -175,6 +173,7 @@ for (let arm = 0; arm < 3; arm++) {
 // camZoom: pixels per normalized unit (scales logarithmically during animation)
 // =============================================================
 let camX, camY, camZoom;
+let cssWidth, cssHeight;
 
 // =============================================================
 // CAMERA ANIMATION — computes start/end camera positions
@@ -182,7 +181,7 @@ let camX, camY, camZoom;
 // Final state: framed to show Earth → Andromeda (0.015, 0.45) at lower zoom
 // Zoom multipliers are based on screen height to maintain consistent framing across devices
 // =============================================================
-const screenH = () => canvas.height || 800;
+const screenH = () => cssHeight || 800;
 
 function getHold() {
   return { cx: 0, cy: EARTH_Y, zoom: screenH() * 12 };  // 12x screen height = very tight
@@ -221,39 +220,36 @@ function toScreen(nx, ny, parallax = 1.0) {
   const dx = (nx - camX) * parallax;
   const dy = (ny - camY) * parallax;
   return {
-    x: canvas.width / 2 + dx * camZoom,
-    y: canvas.height / 2 - dy * camZoom,
+    x: cssWidth / 2 + dx * camZoom,
+    y: cssHeight / 2 - dy * camZoom,
   };
 }
 
 function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  const dpr = window.devicePixelRatio || 1;
+  cssWidth = window.innerWidth;
+  cssHeight = window.innerHeight;
+  canvas.width = cssWidth * dpr;
+  canvas.height = cssHeight * dpr;
+  canvas.style.width = cssWidth + 'px';
+  canvas.style.height = cssHeight + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 window.addEventListener('resize', resize);
 resize();
 
 // =============================================================
 // CAMERA ANIMATION
-// Two phases:
-//   1. HOLD (0 → HOLD_END): stay tight on Earth, slight drift outward (6% zoom-out)
-//   2. PULL-BACK (HOLD_END → 1): logarithmic zoom-out with easeInCubicOut
+// Smooth logarithmic zoom-out from Earth to final framing with easeInCubicOut
 // Zoom interpolation happens in log-space for smooth perceptual scaling
 // =============================================================
 function getCameraState(progress) {
   const hold = getHold();
   const final = getFinal();
-  const logStart = Math.log(hold.zoom * 0.94);  // after 6% drift
+  const logStart = Math.log(hold.zoom);
   const logEnd = Math.log(final.zoom);
 
-  if (progress <= HOLD_END) {
-    // Hold phase: gentle 6% drift outward
-    const t = progress / HOLD_END;
-    return { cx: hold.cx, cy: hold.cy, zoom: hold.zoom - t * (hold.zoom * 0.06) };
-  }
-  // Pull-back phase: log-interpolated zoom, eased position
-  const t = (progress - HOLD_END) / (1 - HOLD_END);
-  const e = easeInCubicOut(t);
+  const e = easeInCubicOut(progress);
   const logZoom = logStart + (logEnd - logStart) * e;
   // Delay vertical pan (e*e) so MW stays in frame while zoom pulls back
   const cyE = e * e;
@@ -338,7 +334,7 @@ function drawStars(time) {
   for (const layer of starLayers) {
     for (const star of layer.stars) {
       const pos = toScreen(star.x, star.y, layer.parallax);
-      if (pos.x < -5 || pos.x > canvas.width + 5 || pos.y < -5 || pos.y > canvas.height + 5) continue;
+      if (pos.x < -5 || pos.x > cssWidth + 5 || pos.y < -5 || pos.y > cssHeight + 5) continue;
       const twinkle = 0.5 + 0.5 * Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
       const alpha = star.brightness * (0.3 + 0.7 * twinkle);
       ctx.beginPath();
@@ -365,7 +361,7 @@ function drawMilkyWay(time, progress) {
   // Core glow
   const corePos = toScreen(coreGlow.x, coreGlow.y);
   const coreR = coreGlow.radius * camZoom;
-  if (coreR > 2 && coreR < canvas.width * 2) {
+  if (coreR > 2 && coreR < cssWidth * 2) {
     const drawR = Math.min(coreR, 150);
     const gradient = ctx.createRadialGradient(corePos.x, corePos.y, 0, corePos.x, corePos.y, drawR);
     gradient.addColorStop(0, `rgba(255, 240, 200, ${mwAlpha * 0.4})`);
@@ -380,7 +376,7 @@ function drawMilkyWay(time, progress) {
   // Spiral arm stars
   for (const star of spiralStars) {
     const pos = toScreen(star.x, star.y);
-    if (pos.x < -5 || pos.x > canvas.width + 5 || pos.y < -5 || pos.y > canvas.height + 5) continue;
+    if (pos.x < -5 || pos.x > cssWidth + 5 || pos.y < -5 || pos.y > cssHeight + 5) continue;
     const twinkle = 0.5 + 0.5 * Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
     const alpha = mwAlpha * star.brightness * (0.3 + 0.7 * twinkle);
     ctx.beginPath();
@@ -392,7 +388,7 @@ function drawMilkyWay(time, progress) {
   // Label
   if (mwAlpha > 0.5) {
     const labelPos = toScreen(milkyWayPos.x + 0.12, milkyWayPos.y);
-    if (labelPos.y > 0 && labelPos.y < canvas.height) {
+    if (labelPos.y > 0 && labelPos.y < cssHeight) {
       ctx.font = '11px "Segoe UI", system-ui, sans-serif';
       ctx.fillStyle = `rgba(255,255,255,${mwAlpha * 0.5})`;
       ctx.textAlign = 'left';
@@ -442,7 +438,7 @@ function drawAndromeda(time, progress) {
     ctx.restore();
   }
 
-  if (coreR > 1 && coreR < canvas.width) {
+  if (coreR > 1 && coreR < cssWidth) {
     const drawR = Math.min(coreR, 100);
     const gradient = ctx.createRadialGradient(corePos.x, corePos.y, 0, corePos.x, corePos.y, drawR);
     gradient.addColorStop(0, `rgba(200, 210, 255, ${andAlpha * 0.35})`);
@@ -457,7 +453,7 @@ function drawAndromeda(time, progress) {
   // Spiral stars
   for (const star of andromedaStars) {
     const pos = toScreen(star.x, star.y);
-    if (pos.x < -5 || pos.x > canvas.width + 5 || pos.y < -5 || pos.y > canvas.height + 5) continue;
+    if (pos.x < -5 || pos.x > cssWidth + 5 || pos.y < -5 || pos.y > cssHeight + 5) continue;
     const twinkle = 0.5 + 0.5 * Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
     const alpha = andAlpha * star.brightness * (0.3 + 0.7 * twinkle);
     ctx.beginPath();
@@ -469,7 +465,7 @@ function drawAndromeda(time, progress) {
   // Label — bolder on arrival
   if (andAlpha > 0.3) {
     const labelPos = toScreen(andromedaPos.x, andromedaPos.y - 0.06);
-    if (labelPos.y > 0 && labelPos.y < canvas.height) {
+    if (labelPos.y > 0 && labelPos.y < cssHeight) {
       const arrived = arrivalAmount > 0;
       const fontSize = arrived ? 14 : 11;
       ctx.font = `${arrived ? '600' : '400'} ${fontSize}px "Segoe UI", system-ui, sans-serif`;
@@ -486,13 +482,13 @@ function drawAndromeda(time, progress) {
 // Dashed line from Earth to ship position, with a glowing dot at the tip.
 // Synced to same easing as camera so the ship stays in frame.
 // Disappears (dot hidden) when trail reaches 98% to avoid overlapping destination.
-// Trail progresses during pull-back phase only (after HOLD_END)
+// Trail progresses in sync with camera zoom-out
 // =============================================================
 function drawTrail(progress) {
   const earthPos = toScreen(0, EARTH_Y);
   const destPos = toScreen(andromedaPos.x, andromedaPos.y);
 
-  const trailProgress = Math.min(1, Math.max(0, (progress - HOLD_END) / (1 - HOLD_END)));
+  const trailProgress = progress;
   const trailEnd = {
     x: earthPos.x + (destPos.x - earthPos.x) * easeInCubicOut(trailProgress),
     y: earthPos.y + (destPos.y - earthPos.y) * easeInCubicOut(trailProgress),
@@ -549,7 +545,7 @@ function frame(timestamp) {
 
   // Clear canvas
   ctx.fillStyle = '#030308';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, cssWidth, cssHeight);
 
   // Arrival ramps in from progress 0.75 to 0.90
   arrivalAmount = Math.min(1, Math.max(0, (progress - 0.75) / 0.15));

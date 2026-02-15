@@ -6,7 +6,7 @@
 <title>Milky Way Template</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+  body { background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; height: 100dvh; }
   canvas { display: block; }
   #overlay {
     position: fixed; bottom: 40px; left: 0; right: 0;
@@ -178,6 +178,7 @@ for (const def of starLayerDefs) {
 // camX, camY: normalized world coordinates the camera is centered on
 // camZoom: pixels per normalized unit (higher = more zoomed in)
 let camX, camY, camZoom;
+let cssWidth, cssHeight;
 
 // ====================================================================
 // CAMERA FRAMING — start/end positions computed per destination
@@ -197,7 +198,7 @@ function computeAnimParams(destName) {
   const dest = DESTINATIONS[destName];
   destY = lyToY(dest.ly);
 
-  const screenH = canvas.height || 800;
+  const screenH = cssHeight || 800;
   const midpoint = destY / 2;
 
   // Final zoom: fit Earth (y=0) and destination (y=destY) with padding
@@ -206,7 +207,7 @@ function computeAnimParams(destName) {
   hold = { cx: 0, cy: 0.0, zoom: screenH * 12 };
   finalState = { cx: 0, cy: midpoint, zoom: finalZoom };
 
-  LOG_ZOOM_START = Math.log(hold.zoom * 0.94);
+  LOG_ZOOM_START = Math.log(hold.zoom);
   LOG_ZOOM_END = Math.log(finalState.zoom);
 }
 
@@ -239,36 +240,29 @@ function toScreen(nx, ny, parallax = 1.0) {
   const dx = (nx - camX) * parallax;
   const dy = (ny - camY) * parallax;
   return {
-    x: canvas.width / 2 + dx * camZoom,
-    y: canvas.height / 2 - dy * camZoom,
+    x: cssWidth / 2 + dx * camZoom,
+    y: cssHeight / 2 - dy * camZoom,
   };
 }
 
 function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  const dpr = window.devicePixelRatio || 1;
+  cssWidth = window.innerWidth;
+  cssHeight = window.innerHeight;
+  canvas.width = cssWidth * dpr;
+  canvas.height = cssHeight * dpr;
+  canvas.style.width = cssWidth + 'px';
+  canvas.style.height = cssHeight + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 window.addEventListener('resize', resize);
 resize();
 
 // ====================================================================
-// CAMERA ANIMATION — interpolates from hold to finalState over time
+// CAMERA ANIMATION — smooth zoom-out from Earth to final framing
 // ====================================================================
-// HOLD_END: progress value (0-1) where hold phase ends and zoom-out begins
-//   - Tweak this to adjust how long the camera stays tight on Earth
-//   - 0.10 = 10% of animation is hold, 90% is zoom-out
-//
-// During hold (0 to HOLD_END): camera stays on Earth, subtle zoom-out (6%)
-// After hold: logarithmic zoom-out from Earth to final framing
-const HOLD_END = 0.10;
-
 function getCameraState(progress) {
-  if (progress <= HOLD_END) {
-    const t = progress / HOLD_END;
-    return { cx: hold.cx, cy: hold.cy, zoom: hold.zoom - t * (hold.zoom * 0.06) };
-  }
-  const t = (progress - HOLD_END) / (1 - HOLD_END);
-  const e = easeInCubicOut(t);
+  const e = easeInCubicOut(progress);
   const logZoom = LOG_ZOOM_START + (LOG_ZOOM_END - LOG_ZOOM_START) * e;
   return {
     cx: hold.cx + (finalState.cx - hold.cx) * e,
@@ -361,9 +355,9 @@ function drawGalacticObjects(time) {
   for (const obj of galacticObjects) {
     const pos = toScreen(obj.x, obj.y);
 
-    if (pos.x < -100 || pos.x > canvas.width + 100 || pos.y < -100 || pos.y > canvas.height + 100) continue;
+    if (pos.x < -100 || pos.x > cssWidth + 100 || pos.y < -100 || pos.y > cssHeight + 100) continue;
 
-    const zoomFactor = camZoom / (canvas.height * 2);
+    const zoomFactor = camZoom / (cssHeight * 2);
     const drawR = Math.max(2, Math.min(obj.baseR * Math.sqrt(zoomFactor), 20));
 
     const isDest = obj.name === currentDest;
@@ -440,7 +434,7 @@ function drawStars(time) {
   for (const layer of starLayers) {
     for (const star of layer.stars) {
       const pos = toScreen(star.x, star.y, layer.parallax);
-      if (pos.x < -5 || pos.x > canvas.width + 5 || pos.y < -5 || pos.y > canvas.height + 5) continue;
+      if (pos.x < -5 || pos.x > cssWidth + 5 || pos.y < -5 || pos.y > cssHeight + 5) continue;
       const twinkle = 0.5 + 0.5 * Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
       const alpha = star.brightness * (0.3 + 0.7 * twinkle);
       ctx.beginPath();
@@ -454,7 +448,7 @@ function drawStars(time) {
 // ====================================================================
 // SHIP TRAIL — dashed line from Earth to destination with moving dot
 // ====================================================================
-// Draws during zoom-out phase (after HOLD_END). Trail and ship dot
+// Draws during zoom-out phase. Trail and ship dot
 // animate from Earth toward destination using same easing as camera.
 //
 // Tweak these for visual style:
@@ -467,7 +461,7 @@ function drawTrail(progress) {
   const destObj = galacticObjects.find(o => o.name === currentDest);
   const destPos = toScreen(destObj ? destObj.x : 0, destY);
 
-  const trailProgress = Math.min(1, Math.max(0, (progress - HOLD_END) / (1 - HOLD_END)));
+  const trailProgress = progress;
   const trailEnd = {
     x: earthPos.x + (destPos.x - earthPos.x) * easeInCubicOut(trailProgress),
     y: earthPos.y + (destPos.y - earthPos.y) * easeInCubicOut(trailProgress),
@@ -528,7 +522,7 @@ function frame(timestamp) {
   camZoom = cam.zoom;
 
   ctx.fillStyle = '#030308';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, cssWidth, cssHeight);
 
   arrivalAmount = Math.min(1, Math.max(0, (progress - 0.75) / 0.15));
 
