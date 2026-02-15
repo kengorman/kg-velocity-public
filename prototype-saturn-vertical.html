@@ -26,7 +26,7 @@
   #trip-data .stat .value { color: #7eb8ff; font-size: 20px; font-weight: 600; }
   #trip-data .stat .label { color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
   #arrival-card {
-    position: fixed; top: 15%; left: 0; right: 0;
+    position: fixed; top: 50%; left: 0; right: 0; transform: translateY(-50%);
     text-align: center; pointer-events: none; z-index: 10;
     font-family: 'Segoe UI', system-ui, sans-serif;
     opacity: 0; transition: opacity 1s ease;
@@ -170,10 +170,10 @@ function drawTrail(progress) {
   const saturnScreen = toScreen(0, 9.5);
 
   // Trail progress (ship traveling)
-  const trailProgress = Math.min(1, Math.max(0, (progress - 0.1) / 0.75));
+  const trailProgress = Math.min(1, Math.max(0, (progress - HOLD_END) / (1 - HOLD_END)));
   const trailEnd = {
-    x: earthScreen.x + (saturnScreen.x - earthScreen.x) * easeInOutCubic(trailProgress),
-    y: earthScreen.y + (saturnScreen.y - earthScreen.y) * easeInOutCubic(trailProgress),
+    x: earthScreen.x + (saturnScreen.x - earthScreen.x) * easeInCubicOut(trailProgress),
+    y: earthScreen.y + (saturnScreen.y - earthScreen.y) * easeInCubicOut(trailProgress),
   };
 
   if (trailProgress > 0) {

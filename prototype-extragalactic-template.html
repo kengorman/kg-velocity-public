@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Extragalactic Template</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+  canvas { display: block; }
+  #overlay {
+    position: fixed; bottom: 40px; left: 0; right: 0;
+    text-align: center; font-family: 'Segoe UI', system-ui, sans-serif;
+    pointer-events: none; z-index: 10;
+  }
+  #trip-data {
+    display: inline-block; padding: 20px 32px;
+    background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px; backdrop-filter: blur(8px);
+    opacity: 0; transition: opacity 0.8s ease;
+  }
+  #trip-data.visible { opacity: 1; }
+  #trip-data h2 { color: #fff; font-size: 16px; font-weight: 300; letter-spacing: 2px; margin-bottom: 8px; text-transform: uppercase; }
+  #trip-data .stats { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+  #trip-data .stat { text-align: center; }
+  #trip-data .stat .value { color: #7eb8ff; font-size: 20px; font-weight: 600; }
+  #trip-data .stat .label { color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+  #restart {
+    position: fixed; top: 20px; right: 20px; z-index: 20;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer;
+    font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px;
+  }
+  #restart:hover { background: rgba(255,255,255,0.2); }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="overlay">
+  <div id="trip-data">
+    <h2>Earth → Andromeda Galaxy</h2>
+    <div class="stats">
+      <div class="stat"><div class="value">2.537M ly</div><div class="label">Distance</div></div>
+    </div>
+  </div>
+</div>
+<button id="restart" onclick="startAnimation()">Replay</button>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// =============================================================
+// TIMING
+// DURATION: total animation length in ms (slightly longer than other templates — more ground to cover)
+// HOLD_END: fraction of animation spent holding tight on Earth (0-1), shorter than solar system
+// =============================================================
+const DURATION = 7000;
+const HOLD_END = 0.08;
+
+// =============================================================
+// SCALE SYSTEM
+// This template zooms from Earth → solar system dot → Milky Way spiral → beyond
+// Normalized space: Earth at 0.0, Andromeda at 0.9
+// The Milky Way spiral sits at ~0.15 (visible in middle of journey)
+// Camera zooms logarithmically through multiple scales of magnitude
+// =============================================================
+
+// =============================================================
+// BACKGROUND STARS
+// 3 parallax layers. Lower parallax = slower movement = feels farther away (deep field).
+// count: number of stars in this layer (300 / 500 / 700)
+// x/y: scattered in normalized coordinates (wide horizontal spread, vertical matches viewport)
+// parallax: movement multiplier (0.03 = very distant, 0.23 = closer)
+// These stars are always present as a background, separate from the galaxy spirals
+// =============================================================
+const starLayerDefs = [
+  { count: 1200, spread: 10, parallax: 0.1 },  // Distant background
+  { count: 900,  spread: 6,  parallax: 0.2 },  // Mid-depth
+  { count: 600,  spread: 3,  parallax: 0.4 },  // Foreground
+];
+const starLayers = [];
+for (const def of starLayerDefs) {
+  const stars = [];
+  for (let i = 0; i < def.count; i++) {
+    stars.push({
+      x: (Math.random() - 0.5) * def.spread,
+      y: (Math.random() - 0.5) * def.spread + 0.45,  // centered on mid-journey
+      brightness: 0.2 + Math.random() * 0.8,
+      size: 0.5 + Math.random() * 1.2,
+      twinkleSpeed: 1 + Math.random() * 3,
+      twinkleOffset: Math.random() * Math.PI * 2,
+    });
+  }
+  starLayers.push({ stars, parallax: def.parallax });
+}
+
+// (Solar system rendered as orbit-ring icon — see drawSolarSystemIcon below)
+
+// =============================================================
+// MILKY WAY SPIRAL
+// Procedurally generated tilted spiral galaxy, appears as we zoom out.
+// milkyWayPos: center position in normalized space (slightly above Earth)
+// ARM_COUNT: number of spiral arms (4)
+// STARS_PER_ARM: stars per arm (300)
+// Spiral arms wind ~2.5 turns, compressed vertically (tilted view)
+// Fades in between progress 0.15 and 0.40 (see drawMilkyWay fadeIn)
+// =============================================================
+// Earth is at y=0.2 (shifted up to clear trip data panel at final zoom).
+// Milky Way center positioned so Earth sits in an outer arm.
+const EARTH_Y = 0.2;
+const milkyWayPos = { x: 0, y: EARTH_Y + 0.02 };
+
+// Spiral arm stars (make up the galaxy shape)
+const spiralStars = [];
+const ARM_COUNT = 4;
+const STARS_PER_ARM = 400;
+for (let arm = 0; arm < ARM_COUNT; arm++) {
+  const armOffset = (arm / ARM_COUNT) * Math.PI * 2;
+  for (let i = 0; i < STARS_PER_ARM; i++) {
+    const t = i / STARS_PER_ARM;
+    const angle = armOffset + t * Math.PI * 2.5;
+    const radius = 0.005 + t * 0.1;  // bigger spiral to contain Earth
+    const spread = 0.004 + t * 0.012;
+    const r = radius + (Math.random() - 0.5) * spread;
+    const a = angle + (Math.random() - 0.5) * 0.4;
+    spiralStars.push({
+      x: milkyWayPos.x + r * Math.cos(a),
+      y: milkyWayPos.y + r * Math.sin(a) * 0.4,
+      brightness: 0.3 + Math.random() * 0.7,
+      size: 0.3 + Math.random() * 1.2,
+      twinkleSpeed: 0.3 + Math.random() * 1,
+      twinkleOffset: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+// Galactic core glow
+const coreGlow = { x: milkyWayPos.x, y: milkyWayPos.y, radius: 0.025 };
+
+// =============================================================
+// ANDROMEDA GALAXY
+// Destination galaxy, appears at the top of the viewport.
+// andromedaPos: center position in normalized space (slightly offset for visual interest)
+// 3 spiral arms, smaller than Milky Way (fewer stars, tighter spiral)
+// Fades in between progress 0.45 and 0.70 (see drawAndromeda fadeIn)
+// Receives arrival arrow and bold label at end of animation
+// =============================================================
+const andromedaPos = { x: 0.03, y: 0.9 };
+
+// Andromeda spiral stars
+const andromedaStars = [];
+for (let arm = 0; arm < 3; arm++) {
+  const armOffset = (arm / 3) * Math.PI * 2;
+  for (let i = 0; i < 150; i++) {
+    const t = i / 150;
+    const angle = armOffset + t * Math.PI * 2;
+    const radius = 0.002 + t * 0.03;
+    const spread = 0.002 + t * 0.005;
+    const r = radius + (Math.random() - 0.5) * spread;
+    const a = angle + (Math.random() - 0.5) * 0.5;
+    andromedaStars.push({
+      x: andromedaPos.x + r * Math.cos(a),
+      y: andromedaPos.y + r * Math.sin(a) * 0.5, // compressed vertically (tilted)
+      brightness: 0.2 + Math.random() * 0.6,
+      size: 0.3 + Math.random() * 0.8,
+      twinkleSpeed: 0.3 + Math.random() * 1,
+      twinkleOffset: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+// =============================================================
+// CAMERA STATE
+// camX, camY: camera center in normalized coordinates
+// camZoom: pixels per normalized unit (scales logarithmically during animation)
+// =============================================================
+let camX, camY, camZoom;
+
+// =============================================================
+// CAMERA ANIMATION — computes start/end camera positions
+// Hold state: tight on Earth (0, 0) at high zoom
+// Final state: framed to show Earth → Andromeda (0.015, 0.45) at lower zoom
+// Zoom multipliers are based on screen height to maintain consistent framing across devices
+// =============================================================
+const screenH = () => canvas.height || 800;
+
+function getHold() {
+  return { cx: 0, cy: EARTH_Y, zoom: screenH() * 12 };  // 12x screen height = very tight
+}
+function getFinal() {
+  return { cx: 0.015, cy: 0.55, zoom: screenH() * 0.7 };  // shifted up so MW clears trip data panel
+}
+
+// =============================================================
+// EASING FUNCTIONS
+// easeInCubicOut: slow start (cubic), accelerates, gentle settle (quadratic)
+//   - 85% of duration is cubic ease-in, last 15% is quadratic ease-out
+//   - Used for camera zoom and ship trail
+// easeInOutCubic: standard symmetric ease (currently unused but available)
+// =============================================================
+function easeInCubicOut(t) {
+  if (t < 0.85) {
+    const st = t / 0.85;
+    return 0.85 * (st * st * st);
+  }
+  const st = (t - 0.85) / 0.15;
+  return 0.85 + 0.15 * (1 - Math.pow(1 - st, 2));
+}
+
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+// =============================================================
+// COORDINATE CONVERSION
+// Converts normalized coordinates to screen pixels.
+// parallax < 1 makes objects move slower (appear farther away).
+// Y-axis is inverted: higher normalized Y = higher on screen.
+// =============================================================
+function toScreen(nx, ny, parallax = 1.0) {
+  const dx = (nx - camX) * parallax;
+  const dy = (ny - camY) * parallax;
+  return {
+    x: canvas.width / 2 + dx * camZoom,
+    y: canvas.height / 2 - dy * camZoom,
+  };
+}
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// =============================================================
+// CAMERA ANIMATION
+// Two phases:
+//   1. HOLD (0 → HOLD_END): stay tight on Earth, slight drift outward (6% zoom-out)
+//   2. PULL-BACK (HOLD_END → 1): logarithmic zoom-out with easeInCubicOut
+// Zoom interpolation happens in log-space for smooth perceptual scaling
+// =============================================================
+function getCameraState(progress) {
+  const hold = getHold();
+  const final = getFinal();
+  const logStart = Math.log(hold.zoom * 0.94);  // after 6% drift
+  const logEnd = Math.log(final.zoom);
+
+  if (progress <= HOLD_END) {
+    // Hold phase: gentle 6% drift outward
+    const t = progress / HOLD_END;
+    return { cx: hold.cx, cy: hold.cy, zoom: hold.zoom - t * (hold.zoom * 0.06) };
+  }
+  // Pull-back phase: log-interpolated zoom, eased position
+  const t = (progress - HOLD_END) / (1 - HOLD_END);
+  const e = easeInCubicOut(t);
+  const logZoom = logStart + (logEnd - logStart) * e;
+  // Delay vertical pan (e*e) so MW stays in frame while zoom pulls back
+  const cyE = e * e;
+  return {
+    cx: hold.cx + (final.cx - hold.cx) * e,
+    cy: hold.cy + (final.cy - hold.cy) * cyE,
+    zoom: Math.exp(logZoom),
+  };
+}
+
+// =============================================================
+// SOLAR SYSTEM ICON
+// Same orbit-ring icon as the milky way template.
+// Scales with camZoom: big when close, shrinks to a dot as we pull back.
+// Orbit rings with planet dots + central sun glow.
+// =============================================================
+function drawSolarSystemIcon() {
+  const pos = toScreen(0, EARTH_Y);
+  const r = Math.max(3, Math.min(60, camZoom * 0.008));
+
+  const orbits = [0.35, 0.55, 0.75, 1.0];
+  const planetColors = ['#c1440e', '#c88b3a', '#d4a94b', '#3f54ba'];
+  const planetSizes = [0.8, 1.4, 1.2, 0.9];
+
+  ctx.save();
+  for (let i = 0; i < orbits.length; i++) {
+    const orbitR = r * orbits[i] * 2.5;
+
+    // Orbit ring
+    ctx.beginPath();
+    ctx.ellipse(pos.x, pos.y, orbitR, orbitR * 0.35, -0.3, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    // Planet dot on ring
+    const angle = i * 1.8 + 0.5;
+    const px = pos.x + orbitR * Math.cos(angle);
+    const py = pos.y + orbitR * 0.35 * Math.sin(angle - 0.3);
+    const dotR = Math.max(0.8, planetSizes[i]);
+    ctx.beginPath();
+    ctx.arc(px, py, dotR, 0, Math.PI * 2);
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = planetColors[i];
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // Sun glow
+  const gradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, r * 0.8);
+  gradient.addColorStop(0, 'rgba(253, 184, 19, 0.5)');
+  gradient.addColorStop(1, 'transparent');
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, r * 0.8, 0, Math.PI * 2);
+  ctx.fillStyle = gradient;
+  ctx.fill();
+
+  // Sun dot
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, Math.max(1.5, r * 0.18), 0, Math.PI * 2);
+  ctx.fillStyle = '#FDB813';
+  ctx.fill();
+
+  // "Solar System" label (only when big enough to read)
+  if (r > 8) {
+    const labelR = r * 2.5;
+    ctx.font = `400 ${Math.min(12, r * 0.4)}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.textAlign = 'left';
+    ctx.fillText('Solar System', pos.x + labelR + 8, pos.y + 4);
+  }
+  ctx.restore();
+}
+
+// =============================================================
+// BACKGROUND STARFIELD
+// Draws all 3 parallax layers. Each star twinkles independently.
+// Stars outside the viewport are skipped for performance.
+// These are separate from galaxy spirals — deep space background
+// =============================================================
+function drawStars(time) {
+  for (const layer of starLayers) {
+    for (const star of layer.stars) {
+      const pos = toScreen(star.x, star.y, layer.parallax);
+      if (pos.x < -5 || pos.x > canvas.width + 5 || pos.y < -5 || pos.y > canvas.height + 5) continue;
+      const twinkle = 0.5 + 0.5 * Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
+      const alpha = star.brightness * (0.3 + 0.7 * twinkle);
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, star.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+      ctx.fill();
+    }
+  }
+}
+
+// =============================================================
+// MILKY WAY RENDERING
+// Draws the Milky Way spiral galaxy with core glow and arm stars.
+// Fades in (mwAlpha) as we zoom out: progress 0.15 → 0.40
+// Core glow: warm yellow/white radial gradient (max 150px)
+// Spiral stars: twinkling warm white dots arranged in spiral arms
+// Label appears when mwAlpha > 0.5
+// =============================================================
+function drawMilkyWay(time, progress) {
+  // Fades in as we zoom out enough to see galactic structure
+  const mwAlpha = Math.min(1, Math.max(0, (progress - 0.08) / 0.20));
+  if (mwAlpha <= 0) return;
+
+  // Core glow
+  const corePos = toScreen(coreGlow.x, coreGlow.y);
+  const coreR = coreGlow.radius * camZoom;
+  if (coreR > 2 && coreR < canvas.width * 2) {
+    const drawR = Math.min(coreR, 150);
+    const gradient = ctx.createRadialGradient(corePos.x, corePos.y, 0, corePos.x, corePos.y, drawR);
+    gradient.addColorStop(0, `rgba(255, 240, 200, ${mwAlpha * 0.4})`);
+    gradient.addColorStop(0.3, `rgba(255, 220, 150, ${mwAlpha * 0.15})`);
+    gradient.addColorStop(1, 'transparent');
+    ctx.beginPath();
+    ctx.arc(corePos.x, corePos.y, drawR, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+  }
+
+  // Spiral arm stars
+  for (const star of spiralStars) {
+    const pos = toScreen(star.x, star.y);
+    if (pos.x < -5 || pos.x > canvas.width + 5 || pos.y < -5 || pos.y > canvas.height + 5) continue;
+    const twinkle = 0.5 + 0.5 * Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
+    const alpha = mwAlpha * star.brightness * (0.3 + 0.7 * twinkle);
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, star.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(230, 220, 200, ${alpha})`;
+    ctx.fill();
+  }
+
+  // Label
+  if (mwAlpha > 0.5) {
+    const labelPos = toScreen(milkyWayPos.x + 0.12, milkyWayPos.y);
+    if (labelPos.y > 0 && labelPos.y < canvas.height) {
+      ctx.font = '11px "Segoe UI", system-ui, sans-serif';
+      ctx.fillStyle = `rgba(255,255,255,${mwAlpha * 0.5})`;
+      ctx.textAlign = 'left';
+      ctx.fillText('Milky Way', labelPos.x, labelPos.y);
+    }
+  }
+}
+
+// =============================================================
+// ARRIVAL HIGHLIGHT
+// Ramps from 0 to 1 between progress 0.75 and 0.90.
+// Used to trigger: Andromeda arrival arrow, bold label, bright color.
+// =============================================================
+let arrivalAmount = 0;
+
+// =============================================================
+// ANDROMEDA RENDERING
+// Draws the Andromeda galaxy with core glow, spiral stars, and arrival highlight.
+// Fades in (andAlpha) as we zoom out: progress 0.45 → 0.70
+// Core glow: cool blue/white radial gradient (max 100px)
+// Spiral stars: twinkling cool blue dots arranged in spiral arms
+// Arrival arrow: triangle pointing at Andromeda from the left (controlled by arrivalAmount)
+// Label: "Andromeda Galaxy" — becomes bold and bright on arrival
+// =============================================================
+function drawAndromeda(time, progress) {
+  const andAlpha = Math.min(1, Math.max(0, (progress - 0.45) / 0.25));
+  if (andAlpha <= 0) return;
+
+  // Core glow
+  const corePos = toScreen(andromedaPos.x, andromedaPos.y);
+  const coreR = 0.01 * camZoom;
+
+  // Arrival arrow — points at Andromeda from the left
+  if (arrivalAmount > 0) {
+    const arrowX = corePos.x - 20;
+    const arrowY = corePos.y;
+    const size = 5;
+    const alpha = arrivalAmount * 0.9;
+    ctx.save();
+    ctx.fillStyle = `rgba(126, 184, 255, ${alpha})`;
+    ctx.beginPath();
+    ctx.moveTo(arrowX + size, arrowY);
+    ctx.lineTo(arrowX - size, arrowY - size);
+    ctx.lineTo(arrowX - size, arrowY + size);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  if (coreR > 1 && coreR < canvas.width) {
+    const drawR = Math.min(coreR, 100);
+    const gradient = ctx.createRadialGradient(corePos.x, corePos.y, 0, corePos.x, corePos.y, drawR);
+    gradient.addColorStop(0, `rgba(200, 210, 255, ${andAlpha * 0.35})`);
+    gradient.addColorStop(0.4, `rgba(180, 190, 230, ${andAlpha * 0.1})`);
+    gradient.addColorStop(1, 'transparent');
+    ctx.beginPath();
+    ctx.arc(corePos.x, corePos.y, drawR, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+  }
+
+  // Spiral stars
+  for (const star of andromedaStars) {
+    const pos = toScreen(star.x, star.y);
+    if (pos.x < -5 || pos.x > canvas.width + 5 || pos.y < -5 || pos.y > canvas.height + 5) continue;
+    const twinkle = 0.5 + 0.5 * Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
+    const alpha = andAlpha * star.brightness * (0.3 + 0.7 * twinkle);
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, star.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200, 210, 255, ${alpha})`;
+    ctx.fill();
+  }
+
+  // Label — bolder on arrival
+  if (andAlpha > 0.3) {
+    const labelPos = toScreen(andromedaPos.x, andromedaPos.y - 0.06);
+    if (labelPos.y > 0 && labelPos.y < canvas.height) {
+      const arrived = arrivalAmount > 0;
+      const fontSize = arrived ? 14 : 11;
+      ctx.font = `${arrived ? '600' : '400'} ${fontSize}px "Segoe UI", system-ui, sans-serif`;
+      ctx.fillStyle = arrived ? `rgba(126, 184, 255, ${0.5 + arrivalAmount * 0.5})` :
+                      `rgba(255,255,255,${andAlpha * 0.5})`;
+      ctx.textAlign = 'center';
+      ctx.fillText('Andromeda Galaxy', labelPos.x, labelPos.y);
+    }
+  }
+}
+
+// =============================================================
+// SHIP TRAIL
+// Dashed line from Earth to ship position, with a glowing dot at the tip.
+// Synced to same easing as camera so the ship stays in frame.
+// Disappears (dot hidden) when trail reaches 98% to avoid overlapping destination.
+// Trail progresses during pull-back phase only (after HOLD_END)
+// =============================================================
+function drawTrail(progress) {
+  const earthPos = toScreen(0, EARTH_Y);
+  const destPos = toScreen(andromedaPos.x, andromedaPos.y);
+
+  const trailProgress = Math.min(1, Math.max(0, (progress - HOLD_END) / (1 - HOLD_END)));
+  const trailEnd = {
+    x: earthPos.x + (destPos.x - earthPos.x) * easeInCubicOut(trailProgress),
+    y: earthPos.y + (destPos.y - earthPos.y) * easeInCubicOut(trailProgress),
+  };
+
+  if (trailProgress > 0) {
+    ctx.save();
+    // Dashed line
+    ctx.setLineDash([4, 8]);
+    ctx.strokeStyle = 'rgba(126, 184, 255, 0.15)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(earthPos.x, earthPos.y);
+    ctx.lineTo(trailEnd.x, trailEnd.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Ship dot + glow
+    if (trailProgress < 0.98) {
+      ctx.beginPath();
+      ctx.arc(trailEnd.x, trailEnd.y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#7eb8ff';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(trailEnd.x, trailEnd.y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(126, 184, 255, 0.1)';
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+// =============================================================
+// MAIN ANIMATION LOOP
+// Runs at 60fps via requestAnimationFrame.
+// progress: 0 → 1 over DURATION ms.
+// Draw order: stars (back) → Milky Way → Andromeda → trail → solar system (front).
+// Arrival highlight ramps from 0.75 to 0.90.
+// Trip data panel fades in at 88% progress.
+// =============================================================
+let startTime = null;
+let animId = null;
+
+function frame(timestamp) {
+  if (!startTime) startTime = timestamp;
+  const elapsed = timestamp - startTime;
+  const progress = Math.min(1, elapsed / DURATION);
+  const time = timestamp / 1000;
+
+  const cam = getCameraState(progress);
+  camX = cam.cx;
+  camY = cam.cy;
+  camZoom = cam.zoom;
+
+  // Clear canvas
+  ctx.fillStyle = '#030308';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Arrival ramps in from progress 0.75 to 0.90
+  arrivalAmount = Math.min(1, Math.max(0, (progress - 0.75) / 0.15));
+
+  // Draw layers back-to-front
+  drawStars(time);
+  drawMilkyWay(time, progress);
+  drawAndromeda(time, progress);
+  drawTrail(progress);
+  drawSolarSystemIcon();
+
+  // Show trip data panel near end of animation
+  if (progress > 0.88) {
+    document.getElementById('trip-data').classList.add('visible');
+  }
+
+  if (progress < 1) {
+    animId = requestAnimationFrame(frame);
+  }
+}
+
+// =============================================================
+// LAUNCH — starts/restarts animation
+// =============================================================
+function startAnimation() {
+  if (animId) cancelAnimationFrame(animId);
+  startTime = null;
+  document.getElementById('trip-data').classList.remove('visible');
+  arrivalAmount = 0;
+  animId = requestAnimationFrame(frame);
+}
+
+startAnimation();
+</script>
+</body>
+</html>

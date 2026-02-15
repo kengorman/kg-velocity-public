@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar System Template</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+  canvas { display: block; }
+  #overlay {
+    position: fixed; bottom: 40px; left: 0; right: 0;
+    text-align: center; font-family: 'Segoe UI', system-ui, sans-serif;
+    pointer-events: none; z-index: 10;
+  }
+  #trip-data {
+    display: inline-block; padding: 20px 32px;
+    background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px; backdrop-filter: blur(8px);
+    opacity: 0; transition: opacity 0.8s ease;
+  }
+  #trip-data.visible { opacity: 1; }
+  #trip-data h2 { color: #fff; font-size: 16px; font-weight: 300; letter-spacing: 2px; margin-bottom: 8px; text-transform: uppercase; }
+  #trip-data .stats { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+  #trip-data .stat { text-align: center; }
+  #trip-data .stat .value { color: #7eb8ff; font-size: 20px; font-weight: 600; }
+  #trip-data .stat .label { color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+  #controls {
+    position: fixed; top: 20px; right: 20px; z-index: 20;
+    display: flex; gap: 8px; align-items: center;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+  #dest-select {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; padding: 8px 12px; border-radius: 6px;
+    font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px;
+  }
+  #dest-select option { background: #1a1a2e; color: #fff; }
+  #restart {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer;
+    font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px;
+  }
+  #restart:hover { background: rgba(255,255,255,0.2); }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="overlay">
+  <div id="trip-data">
+    <h2 id="trip-heading"></h2>
+    <div class="stats">
+      <div class="stat"><div class="value" id="stat-ship">—</div><div class="label">Ship Time</div></div>
+      <div class="stat"><div class="value" id="stat-earth">—</div><div class="label">Earth Time</div></div>
+      <div class="stat"><div class="value" id="stat-dist">—</div><div class="label">Distance</div></div>
+    </div>
+  </div>
+</div>
+<div id="controls">
+  <select id="dest-select"></select>
+  <button id="restart" onclick="launchTo(document.getElementById('dest-select').value)">Go</button>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// =============================================================
+// DESTINATIONS
+// Each entry: au = position on Y-axis (distance from Sun in AU)
+// The Moon is nudged to 1.15 AU for visual separation from Earth
+// =============================================================
+const DESTINATIONS = {
+  'The Moon':  { au: 1.15, tagline: '239,000 miles from home', distLabel: '239K mi' },
+  'Mercury':   { au: 0.39,    tagline: '56 million miles from home', distLabel: '56M mi' },
+  'The Sun':   { au: 0,       tagline: '93 million miles from home', distLabel: '93M mi', note: 'sunTrip' },
+  'Mars':      { au: 1.52,    tagline: '140 million miles from home', distLabel: '140M mi' },
+  'Jupiter':   { au: 5.2,     tagline: '484 million miles from home', distLabel: '484M mi' },
+  'Saturn':    { au: 9.5,     tagline: '886 million miles from home', distLabel: '886M mi' },
+  'Pluto':     { au: 39.5,    tagline: '3.7 billion miles from home', distLabel: '3.7B mi' },
+};
+
+let currentDest = 'Saturn';
+
+// =============================================================
+// TIMING
+// DURATION: total animation length in ms
+// HOLD_END: fraction of animation spent holding tight on Earth (0-1)
+// =============================================================
+const DURATION = 6000;
+const HOLD_END = 0.12;
+
+// =============================================================
+// PLANETS
+// Laid out along the Y-axis by AU distance from Sun.
+// baseR: relative circle radius (not to real scale, but roughly proportional)
+// color: fill color for the dot
+// glow: radial glow color (null = no glow)
+// ring: true = draw Saturn-style rings
+// =============================================================
+const planets = [
+  { name: 'Sun',     au: 0,     baseR: 22, color: '#FDB813', glow: '#FDB81350', ring: false },
+  { name: 'Mercury', au: 0.39,  baseR: 2,  color: '#8c7e6d', glow: null, ring: false },
+  { name: 'Venus',   au: 0.72,  baseR: 4.8,color: '#c9a860', glow: null, ring: false },
+  { name: 'Earth',   au: 1.0,   baseR: 5,  color: '#4a90d9', glow: '#4a90d940', ring: false },
+  { name: 'Moon',    au: 1.15,  baseR: 1.2,color: '#aaa9a5', glow: null, ring: false },
+  { name: 'Mars',    au: 1.52,  baseR: 3,  color: '#c1440e', glow: null, ring: false },
+  { name: 'Jupiter', au: 5.2,   baseR: 14, color: '#c88b3a', glow: '#c88b3a20', ring: false },
+  { name: 'Saturn',  au: 9.5,   baseR: 12, color: '#d4a94b', glow: '#d4a94b30', ring: true },
+  { name: 'Uranus',  au: 19.2,  baseR: 6,  color: '#7ec8c8', glow: '#7ec8c820', ring: false },
+  { name: 'Neptune', au: 30.1,  baseR: 5.8,color: '#3f54ba', glow: '#3f54ba20', ring: false },
+  { name: 'Pluto',   au: 39.5,  baseR: 1.2,color: '#c4b59a', glow: null, ring: false },
+];
+
+// =============================================================
+// BACKGROUND STARS
+// 3 parallax layers. Lower parallax = slower movement = feels farther away.
+// count: number of stars in this layer
+// spread: how wide (in AU) the stars are scattered
+// parallax: movement multiplier (0 = fixed, 1 = moves with camera)
+// =============================================================
+const starLayers = [];
+for (let layer = 0; layer < 3; layer++) {
+  const stars = [];
+  const count = 300 + layer * 200;     // 300 / 500 / 700 stars per layer
+  for (let i = 0; i < count; i++) {
+    stars.push({
+      x: (Math.random() - 0.5) * 120,   // scattered across 120 AU wide
+      y: (Math.random() - 0.5) * 120,
+      brightness: 0.2 + Math.random() * 0.8,
+      size: 0.5 + Math.random() * (1.5 - layer * 0.3),
+      twinkleSpeed: 1 + Math.random() * 3,
+      twinkleOffset: Math.random() * Math.PI * 2,
+    });
+  }
+  starLayers.push({ stars, parallax: 0.3 + layer * 0.35 }); // 0.3 / 0.65 / 1.0
+}
+
+// =============================================================
+// CAMERA STATE
+// camX, camY: camera center in AU coordinates
+// camZoom: pixels per AU
+// =============================================================
+let camX, camY, camZoom;
+
+// Computed per-destination: hold position, final framing, zoom interpolation range
+let hold, finalState, LOG_ZOOM_START, LOG_ZOOM_END;
+
+// =============================================================
+// CAMERA FRAMING — computes start/end camera positions per destination
+// PANEL_MARGIN: pixels reserved at bottom for the trip data overlay
+// TOP_MARGIN: pixels reserved at top
+// The camera is offset so the Sun (0 AU) always clears the panel
+// =============================================================
+function computeAnimParams(destName) {
+  const dest = DESTINATIONS[destName];
+  const destAU = dest.au;
+
+  const screenH = canvas.height || 800;
+  const PANEL_MARGIN = 200;  // bottom safe zone (trip data panel + breathing room)
+  const TOP_MARGIN = 40;     // top safe zone
+  const usableH = screenH - PANEL_MARGIN - TOP_MARGIN;
+
+  // Zoom to fit Sun (0 AU) through destination in usable screen area
+  const minAU = 0;
+  const maxAU = Math.max(destAU, 1.5);  // at least show past Earth
+  const totalSpan = maxAU - minAU;
+  const finalZoom = Math.max(2, Math.min(200, usableH / Math.max(totalSpan, 0.5)));
+
+  // Offset camera so Sun sits just above the panel
+  const camCY = (screenH / 2 - PANEL_MARGIN) / finalZoom;
+
+  // Starting position: tight on Earth (1.0 AU), zoomed in
+  hold = { cx: 0, cy: 1.0, zoom: 600 };
+  finalState = { cx: 0, cy: camCY, zoom: finalZoom };
+
+  // Log-space zoom interpolation endpoints (for smooth perceptual zoom)
+  LOG_ZOOM_START = Math.log(550);        // matches hold zoom after drift
+  LOG_ZOOM_END = Math.log(finalState.zoom);
+}
+
+// =============================================================
+// EASING FUNCTIONS
+// easeInCubicOut: slow start (cubic), accelerates, gentle settle (quadratic)
+//   - 85% of duration is cubic ease-in, last 15% is quadratic ease-out
+//   - Used for camera zoom and ship trail
+// easeInOutCubic: standard symmetric ease (currently unused but available)
+// =============================================================
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function easeInCubicOut(t) {
+  if (t < 0.85) {
+    const st = t / 0.85;
+    return 0.85 * (st * st * st);
+  }
+  const st = (t - 0.85) / 0.15;
+  return 0.85 + 0.15 * (1 - Math.pow(1 - st, 2));
+}
+
+// =============================================================
+// COORDINATE CONVERSION
+// Converts AU coordinates to screen pixels.
+// parallax < 1 makes objects move slower (appear farther away).
+// Y-axis is inverted: higher AU = higher on screen.
+// =============================================================
+function toScreen(auX, auY, parallax = 1.0) {
+  const dx = (auX - camX) * parallax;
+  const dy = (auY - camY) * parallax;
+  return {
+    x: canvas.width / 2 + dx * camZoom,
+    y: canvas.height / 2 - dy * camZoom,
+  };
+}
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// =============================================================
+// CAMERA ANIMATION
+// Two phases:
+//   1. HOLD (0 → HOLD_END): stay tight on Earth, slight drift outward
+//   2. PULL-BACK (HOLD_END → 1): logarithmic zoom-out with easeInCubicOut
+// =============================================================
+function getCameraState(progress) {
+  if (progress <= HOLD_END) {
+    // Hold phase: gentle 50px drift outward
+    const t = progress / HOLD_END;
+    return { cx: hold.cx, cy: hold.cy, zoom: hold.zoom - t * 50 };
+  }
+  // Pull-back phase: log-interpolated zoom, eased position
+  const t = (progress - HOLD_END) / (1 - HOLD_END);
+  const e = easeInCubicOut(t);
+  const logZoom = LOG_ZOOM_START + (LOG_ZOOM_END - LOG_ZOOM_START) * e;
+  return {
+    cx: hold.cx + (finalState.cx - hold.cx) * e,
+    cy: hold.cy + (finalState.cy - hold.cy) * e,
+    zoom: Math.exp(logZoom),
+  };
+}
+
+// =============================================================
+// SHIP TRAIL
+// Dashed line from Earth to ship position, with a glowing dot at the tip.
+// Synced to same easing as camera so the ship stays in frame.
+// Disappears (dot hidden) when trail reaches 98% to avoid overlapping destination.
+// =============================================================
+function drawTrail(progress) {
+  const dest = DESTINATIONS[currentDest];
+  const earthScreen = toScreen(0, 1.0);
+  const destScreen = toScreen(0, dest.au);
+
+  const trailProgress = Math.min(1, Math.max(0, (progress - HOLD_END) / (1 - HOLD_END)));
+  const trailEnd = {
+    x: earthScreen.x + (destScreen.x - earthScreen.x) * easeInCubicOut(trailProgress),
+    y: earthScreen.y + (destScreen.y - earthScreen.y) * easeInCubicOut(trailProgress),
+  };
+
+  if (trailProgress > 0) {
+    ctx.save();
+    // Dashed line
+    ctx.setLineDash([4, 8]);
+    ctx.strokeStyle = 'rgba(126, 184, 255, 0.25)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(earthScreen.x, earthScreen.y);
+    ctx.lineTo(trailEnd.x, trailEnd.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Ship dot + glow
+    if (trailProgress < 0.98) {
+      ctx.beginPath();
+      ctx.arc(trailEnd.x, trailEnd.y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#7eb8ff';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(trailEnd.x, trailEnd.y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(126, 184, 255, 0.15)';
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+// =============================================================
+// BACKGROUND STARFIELD
+// Draws all 3 parallax layers. Each star twinkles independently.
+// Stars outside the viewport are skipped for performance.
+// =============================================================
+function drawStars(time) {
+  for (const layer of starLayers) {
+    for (const star of layer.stars) {
+      const pos = toScreen(star.x, star.y, layer.parallax);
+      if (pos.x < -10 || pos.x > canvas.width + 10 || pos.y < -10 || pos.y > canvas.height + 10) continue;
+      const twinkle = 0.5 + 0.5 * Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
+      const alpha = star.brightness * (0.4 + 0.6 * twinkle);
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, star.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+      ctx.fill();
+    }
+  }
+}
+
+// =============================================================
+// ARRIVAL HIGHLIGHT
+// Ramps from 0 to 1 between progress 0.75 and 0.90.
+// Used to trigger: destination arrow, bold label, bright color.
+// =============================================================
+let arrivalAmount = 0;
+
+// =============================================================
+// PLANET RENDERING
+// Each planet: dot + optional glow + optional Saturn rings + label.
+// Destination planet gets an arrival arrow (triangle) and highlighted label.
+// Planet size scales with zoom but is clamped to min/max pixel sizes.
+// =============================================================
+function drawPlanet(planet, time) {
+  const pos = toScreen(0, planet.au);
+  const r = planet.baseR * (camZoom / 60);              // scale with zoom
+  const minR = planet.name === 'Sun' ? 4 : 1.5;         // minimum visible size
+  const drawR = Math.max(minR, Math.min(r, planet.name === 'Sun' ? 60 : 30)); // clamp
+
+  // Skip if off-screen
+  if (pos.x < -100 || pos.x > canvas.width + 100 || pos.y < -100 || pos.y > canvas.height + 100) return;
+
+  // Is this the destination planet?
+  const isDestPlanet = planet.name === currentDest ||
+    (currentDest === 'The Moon' && planet.name === 'Moon') ||
+    (currentDest === 'The Sun' && planet.name === 'Sun');
+
+  // --- Arrival arrow (triangle pointing right at destination) ---
+  if (isDestPlanet && arrivalAmount > 0) {
+    const arrowX = pos.x - drawR - 14;
+    const arrowY = pos.y;
+    const size = 5;
+    const alpha = arrivalAmount * 0.9;
+    ctx.save();
+    ctx.fillStyle = `rgba(126, 184, 255, ${alpha})`;
+    ctx.beginPath();
+    ctx.moveTo(arrowX + size, arrowY);
+    ctx.lineTo(arrowX - size, arrowY - size);
+    ctx.lineTo(arrowX - size, arrowY + size);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // --- Glow (radial gradient behind the dot) ---
+  if (planet.glow && drawR > 3) {
+    const gradient = ctx.createRadialGradient(pos.x, pos.y, drawR, pos.x, pos.y, drawR * 3);
+    gradient.addColorStop(0, planet.glow);
+    gradient.addColorStop(1, 'transparent');
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, drawR * 3, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+  }
+
+  // --- Planet body (filled circle) ---
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, drawR, 0, Math.PI * 2);
+  ctx.fillStyle = planet.color;
+  ctx.fill();
+
+  // --- Saturn rings (two tilted ellipses) ---
+  if (planet.ring && drawR > 3) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(pos.x, pos.y, drawR * 2.2, drawR * 0.5, -0.2, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(210, 180, 120, 0.6)';
+    ctx.lineWidth = Math.max(1, drawR * 0.25);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(pos.x, pos.y, drawR * 1.7, drawR * 0.38, -0.2, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(190, 160, 100, 0.35)';
+    ctx.lineWidth = Math.max(0.5, drawR * 0.15);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // --- Label (planet name, to the right of the dot) ---
+  if (drawR > 2.5 || planet.name === 'Earth' || isDestPlanet) {
+    const arrived = isDestPlanet && arrivalAmount > 0;
+    const fontSize = arrived ? 15 : Math.max(10, Math.min(14, drawR * 1.2));
+    ctx.font = `${arrived ? '600' : '400'} ${fontSize}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.fillStyle = arrived ? `rgba(126, 184, 255, ${0.5 + arrivalAmount * 0.5})` :
+                    isDestPlanet ? 'rgba(126, 184, 255, 0.8)' : 'rgba(255,255,255,0.6)';
+    ctx.textAlign = 'left';
+    ctx.fillText(planet.name, pos.x + drawR + 8, pos.y + 4);
+  }
+}
+
+// =============================================================
+// ORBIT HINTS
+// Very faint circles around the Sun showing each planet's orbit.
+// Only drawn when the orbit radius is between 5px and 3x screen height.
+// =============================================================
+function drawOrbitHints() {
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';  // very subtle
+  ctx.lineWidth = 0.5;
+  for (const p of planets) {
+    if (p.au === 0) continue;
+    const center = toScreen(0, 0);
+    const r = p.au * camZoom;
+    if (r > 5 && r < canvas.height * 3) {
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+// =============================================================
+// MAIN ANIMATION LOOP
+// Runs at 60fps via requestAnimationFrame.
+// progress: 0 → 1 over DURATION ms.
+// Draw order: stars → orbit hints → trail → planets (back to front).
+// Trip data panel fades in at 88% progress.
+// =============================================================
+let startTime = null;
+let animId = null;
+
+function frame(timestamp) {
+  if (!startTime) startTime = timestamp;
+  const elapsed = timestamp - startTime;
+  const progress = Math.min(1, elapsed / DURATION);
+  const time = timestamp / 1000;
+
+  const cam = getCameraState(progress);
+  camX = cam.cx;
+  camY = cam.cy;
+  camZoom = cam.zoom;
+
+  // Clear canvas
+  ctx.fillStyle = '#030308';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Arrival ramps in from progress 0.75 to 0.90
+  arrivalAmount = Math.min(1, Math.max(0, (progress - 0.75) / 0.15));
+
+  // Draw layers
+  drawStars(time);
+  drawOrbitHints();
+  drawTrail(progress);
+  for (const p of planets) drawPlanet(p, time);
+
+  // Show trip data panel near end of animation
+  const dataEl = document.getElementById('trip-data');
+  if (progress > 0.88) {
+    dataEl.classList.add('visible');
+  }
+
+  if (progress < 1) {
+    animId = requestAnimationFrame(frame);
+  }
+}
+
+// =============================================================
+// LAUNCH — starts/restarts animation for a given destination
+// =============================================================
+function launchTo(destName) {
+  currentDest = destName;
+  const dest = DESTINATIONS[destName];
+
+  // Update UI text
+  document.getElementById('trip-heading').textContent = `Earth \u2192 ${destName}`;
+  document.getElementById('stat-dist').textContent = dest.distLabel;
+  document.title = `Earth \u2192 ${destName}`;
+
+  // Recompute camera framing for this destination
+  computeAnimParams(destName);
+
+  // Reset and start
+  if (animId) cancelAnimationFrame(animId);
+  startTime = null;
+  document.getElementById('trip-data').classList.remove('visible');
+  arrivalAmount = 0;
+  animId = requestAnimationFrame(frame);
+}
+
+// =============================================================
+// DROPDOWN — populate destination selector, auto-start default
+// =============================================================
+const select = document.getElementById('dest-select');
+for (const name of Object.keys(DESTINATIONS)) {
+  const opt = document.createElement('option');
+  opt.value = name;
+  opt.textContent = name;
+  if (name === currentDest) opt.selected = true;
+  select.appendChild(opt);
+}
+
+launchTo(currentDest);
+</script>
+</body>
+</html>
