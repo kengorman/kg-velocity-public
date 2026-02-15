@@ -264,10 +264,16 @@ resize();
 function getCameraState(progress) {
   const e = easeInCubicOut(progress);
   const logZoom = LOG_ZOOM_START + (LOG_ZOOM_END - LOG_ZOOM_START) * e;
+  const zoom = Math.exp(logZoom);
+  // Clamp pan so Solar System (y=0) never drops below the viewport
+  const sourceY = 0;
+  const bottomMargin = 60;
+  const maxCY = sourceY + (cssHeight / 2 - bottomMargin) / zoom;
+  const cy = Math.min(hold.cy + (finalState.cy - hold.cy) * e, maxCY);
   return {
     cx: hold.cx + (finalState.cx - hold.cx) * e,
-    cy: hold.cy + (finalState.cy - hold.cy) * e,
-    zoom: Math.exp(logZoom),
+    cy: cy,
+    zoom: zoom,
   };
 }
 
