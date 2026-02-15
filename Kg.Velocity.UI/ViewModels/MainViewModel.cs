@@ -66,18 +66,10 @@ public class MainViewModel
     public bool HasCalculated { get; set; }
     public bool IsCalculatingTrip { get; set; }
     public bool IsGeneratingContent { get; set; }
-    public string PhaseMessage { get; set; } = "";
     public bool ShowResults { get; set; }
     public bool ShowTimeChart { get; set; }
     public bool ShowSummary { get; set; }
     public bool ShowPoster { get; set; }
-    public bool ShowMovie { get; set; }
-
-    /// <summary>
-    /// Set by the UI layer when movie animation completes (JS→.NET callback).
-    /// EvaluateTripAsync awaits this to know when to transition from movie to results.
-    /// </summary>
-    public TaskCompletionSource? MovieCompletionSource { get; set; }
     public double SpeedMph { get; set; }
     public double PercentageOfLightSpeed { get; set; }
     public double DistanceMiles { get; set; }
@@ -123,7 +115,6 @@ public class MainViewModel
         && !IsCalculatingTrip
         && !IsGeneratingContent
         && !IsFetchingPosterBytes
-        && !ShowMovie
         && !ShowResults;
 
     public double? SelectedPresetSpeed
@@ -160,7 +151,6 @@ public class MainViewModel
 
         // Hide all result panels
         ShowResults = false;
-        ShowMovie = false;
         ShowTimeChart = false;
         ShowSummary = false;
         ShowPoster = false;
@@ -187,11 +177,9 @@ public class MainViewModel
         IsGeneratingContent = true;
         IsFetchingPosterBytes = true;
         ShowResults = false;
-        ShowMovie = false;
         ShowTimeChart = false;
         ShowSummary = false;
         ShowPoster = false;
-        PhaseMessage = "";
 
         // Reset display values
         DistanceMiles = 0;
@@ -245,23 +233,11 @@ public class MainViewModel
             ArrivalShipDateString = trip.ArrivedShipTime;
             IsCalculatingTrip = false;
 
-            // Start the movie — UI layer detects ShowMovie transition and starts animation
-            ShowMovie = true;
-            MovieCompletionSource = new TaskCompletionSource();
+            // Show carousel — movie is slide 1, other slides have placeholders
+            ShowResults = true;
             NotifyStateChanged();
 
-            // Wait for movie animation to finish
-            await MovieCompletionSource.Task;
-            if (requestVersion != _evaluationRequestVersion) return;
-
-            // Movie done — is AI content back yet?
-            if (!contentTask.IsCompleted)
-            {
-                PhaseMessage = "Receiving transmission...";
-                NotifyStateChanged();
-            }
-
-            // Await AI content
+            // Await AI content (carousel is already visible with movie playing)
             var content = await contentTask;
             if (requestVersion != _evaluationRequestVersion) return;
 
@@ -269,19 +245,14 @@ public class MainViewModel
             _currentPersonaId = content.PersonaId;
             await _personaIdStore.TrySetAsync(content.PersonaId);
 
-            // Store AI results
+            // Update summary in-place (Blazor re-renders the slide content)
             JourneySummary = content.Summary;
             DisplayedJourneySummary = content.Summary;
             PersonaName = content.PersonaName;
-
-            // Transition: movie out, results in
-            ShowMovie = false;
-            ShowResults = true;
             ShowSummary = true;
-            PhaseMessage = "";
             NotifyStateChanged();
 
-            // Fetch poster and travel log in background (don't block results)
+            // Fetch poster and travel log in background (don't block)
             _ = FetchMediaInBackgroundAsync(content.PosterUrl, content.TravelLogUrl, requestVersion);
         }
         catch (Exception ex)
@@ -291,8 +262,6 @@ public class MainViewModel
             IsCalculatingTrip = false;
             IsGeneratingContent = false;
             IsFetchingPosterBytes = false;
-            ShowMovie = false;
-            PhaseMessage = "";
             ShowResults = true;
             ShowSummary = true;
             JourneySummary = ex.Message;

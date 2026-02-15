@@ -99,66 +99,81 @@
                 }
                 else
                 {
-                    @* Movie animation — plays while AI generates content *@
-                    @if (ViewModel.ShowMovie)
-                    {
-                        <TripMovie @ref="_tripMovie" />
-
-                        @if (!string.IsNullOrEmpty(ViewModel.PhaseMessage))
-                        {
-                            <div class="phase-message" role="status" aria-live="polite">@ViewModel.PhaseMessage</div>
-                        }
-                    }
-
-                    @* Results carousel - horizontal paging through journey moments *@
+                    @* Results carousel — movie is slide 1, other slides fill in as content arrives *@
                     @if (ViewModel.ShowResults)
                     {
                         <div class="results-carousel-wrapper">
                             <div id="@_resultsCarouselId" class="embla results-carousel">
                                 <div class="embla__container">
-                                    @* Slide 1: Journey Summary *@
+                                    @* Slide 1: Movie Animation *@
+                                    <div class="embla__slide results-slide">
+                                        <TripMovie @ref="_tripMovie" />
+                                    </div>
+
+                                    @* Slide 2: Journey Summary *@
                                     <div class="embla__slide results-slide">
                                         <div class="results-slide-content">
-                                            <div id="journey-summary" class="journey-summary">
-                                                <div class="summary-header">
-                                                    <div class="summary-label">Your journey...</div>
+                                            @if (ViewModel.ShowSummary)
+                                            {
+                                                <div id="journey-summary" class="journey-summary">
+                                                    <div class="summary-header">
+                                                        <div class="summary-label">Your journey...</div>
+                                                    </div>
+                                                    <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
                                                 </div>
-                                                <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
-                                            </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="slide-loading">
+                                                    <div class="slide-loading-text">Receiving transmission...</div>
+                                                </div>
+                                            }
                                         </div>
                                     </div>
 
-                                    @* Slide 2: Poster *@
-                                    @if (!string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
-                                    {
-                                        <div class="embla__slide results-slide">
-                                            <div class="results-slide-content">
+                                    @* Slide 3: Poster *@
+                                    <div class="embla__slide results-slide">
+                                        <div class="results-slide-content">
+                                            @if (!string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
+                                            {
                                                 <div class="poster-panel" aria-label="Generated poster preview">
                                                     <img class="poster-preview"
                                                          src="@ViewModel.PosterDataUrl"
                                                          alt="Generated trip poster"
                                                          loading="lazy" />
                                                 </div>
-                                            </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="slide-loading">
+                                                    <div class="slide-loading-text">Generating poster...</div>
+                                                </div>
+                                            }
                                         </div>
-                                    }
+                                    </div>
 
-                                    @* Slide 3: Mission Log *@
-                                    @if (!string.IsNullOrWhiteSpace(ViewModel.TravelLogDataUrl))
-                                    {
-                                        <div class="embla__slide results-slide">
-                                            <div class="results-slide-content">
+                                    @* Slide 4: Mission Log *@
+                                    <div class="embla__slide results-slide">
+                                        <div class="results-slide-content">
+                                            @if (!string.IsNullOrWhiteSpace(ViewModel.TravelLogDataUrl))
+                                            {
                                                 <div class="travel-log-panel" aria-label="Mission log">
                                                     <img class="travel-log-preview"
                                                          src="@ViewModel.TravelLogDataUrl"
                                                          alt="Mission log"
                                                          loading="lazy" />
                                                 </div>
-                                            </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="slide-loading">
+                                                    <div class="slide-loading-text">Writing mission log...</div>
+                                                </div>
+                                            }
                                         </div>
-                                    }
+                                    </div>
 
-                                    @* Slide 4: Trip Stats *@
+                                    @* Slide 5: Trip Stats *@
                                     <div class="embla__slide results-slide">
                                         <div class="results-slide-content">
                                             <div class="results-data">
@@ -218,7 +233,7 @@
                 }
             </div>
         </div>
-        @if (!ViewModel.IsCalculatingTrip && !ViewModel.IsGeneratingContent && !ViewModel.IsFetchingPosterBytes && !ViewModel.ShowMovie && !(ViewModel.HasCalculated && !ViewModel.ShowResults))
+        @if (!ViewModel.IsCalculatingTrip && !ViewModel.IsGeneratingContent && !ViewModel.IsFetchingPosterBytes && !(ViewModel.HasCalculated && !ViewModel.ShowResults))
         {
             <div class="build-info">
                 <span>Build: @_buildVersion</span>
@@ -300,7 +315,6 @@ else
 @code {
     private bool _isInitialized = false;
     private bool _previousShowResults = false;
-    private bool _previousShowMovie = false;
     private string _buildVersion = GetShortCommitHash();
     private const string _destinationPickerId = "destination-picker";
     private const string _speedPickerId = "speed-picker";
@@ -310,7 +324,7 @@ else
     private bool _resultsCarouselInitialized = false;
     private TripMovie? _tripMovie;
 
-    private bool IsPickerDisabled => ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes || ViewModel.ShowMovie;
+    private bool IsPickerDisabled => ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes;
 
     private static string GetShortCommitHash()
     {
@@ -389,28 +403,24 @@ else
     {
         if (_isInitialized)
         {
-            // Detect transitions
-            var shouldStartMovie = !_previousShowMovie && ViewModel.ShowMovie;
+            // Detect when results become visible to initialize carousel + start movie
             var shouldInitResultsCarousel = !_previousShowResults && ViewModel.ShowResults;
-            _previousShowMovie = ViewModel.ShowMovie;
             _previousShowResults = ViewModel.ShowResults;
 
             InvokeAsync(async () =>
             {
                 StateHasChanged();
 
-                if (shouldStartMovie)
-                {
-                    // Small delay to ensure canvas is in the DOM after render
-                    await Task.Delay(50);
-                    await StartMovieAsync();
-                }
-
                 if (shouldInitResultsCarousel)
                 {
-                    // Small delay to ensure DOM is updated
+                    // Small delay to ensure DOM is updated (canvas + carousel slides)
                     await Task.Delay(50);
                     await InitializeResultsCarouselAsync();
+                    await StartMovieAsync();
+
+                    // Scroll the movie into view
+                    await JS.InvokeVoidAsync("eval",
+                        $"document.getElementById('{_resultsCarouselId}')?.scrollIntoView({{behavior:'smooth',block:'start'}})");
                 }
             });
         }
@@ -429,13 +439,6 @@ else
             earthTime: ViewModel.EarthTimeElapsed,
             distance: Formatting.FormatDistance(ViewModel.DistanceMiles),
             speed: Formatting.FormatSpeed(ViewModel.SpeedMph));
-
-        // When movie finishes (JS callback → TripMovie.OnMovieComplete → TCS),
-        // resolve the ViewModel's MovieCompletionSource so EvaluateTripAsync can continue
-        _ = _tripMovie.CompletionTask.ContinueWith(_ =>
-        {
-            ViewModel.MovieCompletionSource?.TrySetResult();
-        }, TaskScheduler.Default);
     }
 
     private async Task InitializeResultsCarouselAsync()
@@ -503,7 +506,6 @@ else
         {
             try { await _tripMovie.StopAsync(); }
             catch { }
-            _previousShowMovie = false;
         }
 
         // Destroy previous results carousel if exists

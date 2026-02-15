@@ -121,15 +121,19 @@ html, body {
     gap: 10px;
 }
 
-/* Trip Movie — canvas animation between Go and results */
+/* Trip Movie — canvas animation inside carousel slide */
 .trip-movie-container {
-    margin-left: -16px;
-    margin-right: -16px;
-    width: calc(100% + 32px);
-    height: 70vh;
+    width: 100%;
+    height: 100dvh;
+    height: 100vh; /* fallback for browsers without dvh */
     position: relative;
     overflow: hidden;
-    border-radius: 8px;
+}
+
+@supports (height: 100dvh) {
+    .trip-movie-container {
+        height: 100dvh;
+    }
 }
 
 .trip-movie-container canvas {
@@ -138,13 +142,20 @@ html, body {
     height: 100%;
 }
 
-/* Phase message - shown during hold state */
-.phase-message {
+/* Slide loading placeholder — shown while AI content is pending */
+.slide-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    padding: 24px 16px;
+}
+
+.slide-loading-text {
     font-size: 15px;
     font-style: italic;
     color: var(--text-muted);
     text-align: center;
-    padding: 24px 16px;
 }
 
 /* Results Carousel - horizontal paging */

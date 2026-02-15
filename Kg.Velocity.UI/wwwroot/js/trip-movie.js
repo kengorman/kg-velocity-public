@@ -182,10 +182,15 @@ window.tripMovie = (function () {
     const panelAlpha = Math.min(1, (progress - 0.88) / 0.08);
 
     // Panel dimensions
-    const panelW = Math.min(340, w - 40);
-    const panelH = 100;
+    const rowHeight = 32;
+    const headingHeight = 28;
+    const panelPadding = 14;
+    const panelW = Math.min(280, w - 40);
+    // 2 full rows (ship time, earth time) + 1 shared row (speed & distance)
+    const numRows = (td.shipTime ? 1 : 0) + (td.earthTime ? 1 : 0) + ((td.speed || td.distance) ? 1 : 0);
+    const panelH = headingHeight + numRows * rowHeight + panelPadding;
     const panelX = (w - panelW) / 2;
-    const panelY = h - panelH - 50; // 50px from bottom (safe area handled by Blazor)
+    const panelY = h - panelH - 50;
 
     ctx.save();
     ctx.globalAlpha = panelAlpha;
@@ -200,42 +205,71 @@ window.tripMovie = (function () {
     ctx.stroke();
 
     // Heading
-    ctx.font = "300 13px 'Segoe UI', system-ui, sans-serif";
+    ctx.font = "300 12px 'Segoe UI', system-ui, sans-serif";
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
     ctx.letterSpacing = '2px';
-    ctx.fillText(('Earth \u2192 ' + state.destinationName).toUpperCase(), w / 2, panelY + 22);
+    ctx.fillText(('Earth \u2192 ' + state.destinationName).toUpperCase(), w / 2, panelY + 20);
     ctx.letterSpacing = '0px';
 
-    // Stats row
-    const stats = [];
-    if (td.shipTime) stats.push({ value: td.shipTime, label: 'SHIP TIME' });
-    if (td.earthTime) stats.push({ value: td.earthTime, label: 'EARTH TIME' });
-    if (td.distance) stats.push({ value: td.distance, label: 'DISTANCE' });
-    if (td.speed) stats.push({ value: td.speed, label: 'SPEED' });
+    const leftX = panelX + 16;
+    const rightX = panelX + panelW - 16;
+    let rowY = panelY + headingHeight + 20;
 
-    if (stats.length > 0) {
-      const totalGap = 24;
-      const slotW = (panelW - 32) / stats.length;
-      const baseX = panelX + 16;
-      const valY = panelY + 52;
-      const lblY = panelY + 68;
+    // Ship time row
+    if (td.shipTime) {
+      ctx.font = "400 10px 'Segoe UI', system-ui, sans-serif";
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.textAlign = 'left';
+      ctx.letterSpacing = '1px';
+      ctx.fillText('SHIP TIME', leftX, rowY);
+      ctx.letterSpacing = '0px';
+      ctx.font = "600 13px 'Segoe UI', system-ui, sans-serif";
+      ctx.fillStyle = '#7eb8ff';
+      ctx.textAlign = 'right';
+      ctx.fillText(td.shipTime, rightX, rowY);
+      rowY += rowHeight;
+    }
 
-      for (let i = 0; i < stats.length; i++) {
-        const cx = baseX + slotW * i + slotW / 2;
+    // Earth time row
+    if (td.earthTime) {
+      ctx.font = "400 10px 'Segoe UI', system-ui, sans-serif";
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.textAlign = 'left';
+      ctx.letterSpacing = '1px';
+      ctx.fillText('EARTH TIME', leftX, rowY);
+      ctx.letterSpacing = '0px';
+      ctx.font = "600 13px 'Segoe UI', system-ui, sans-serif";
+      ctx.fillStyle = '#7eb8ff';
+      ctx.textAlign = 'right';
+      ctx.fillText(td.earthTime, rightX, rowY);
+      rowY += rowHeight;
+    }
 
-        // Value
-        ctx.font = "600 17px 'Segoe UI', system-ui, sans-serif";
-        ctx.fillStyle = '#7eb8ff';
-        ctx.textAlign = 'center';
-        ctx.fillText(stats[i].value, cx, valY);
-
-        // Label
-        ctx.font = "400 9px 'Segoe UI', system-ui, sans-serif";
+    // Speed & distance — shared row, two columns
+    if (td.speed || td.distance) {
+      const midX = panelX + panelW / 2;
+      if (td.speed) {
+        ctx.font = "400 10px 'Segoe UI', system-ui, sans-serif";
         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.textAlign = 'center';
         ctx.letterSpacing = '1px';
-        ctx.fillText(stats[i].label, cx, lblY);
+        ctx.fillText('SPEED', leftX + (midX - leftX) / 2, rowY - 12);
         ctx.letterSpacing = '0px';
+        ctx.font = "600 12px 'Segoe UI', system-ui, sans-serif";
+        ctx.fillStyle = '#7eb8ff';
+        ctx.fillText(td.speed, leftX + (midX - leftX) / 2, rowY + 4);
+      }
+      if (td.distance) {
+        ctx.font = "400 10px 'Segoe UI', system-ui, sans-serif";
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.textAlign = 'center';
+        ctx.letterSpacing = '1px';
+        ctx.fillText('DISTANCE', midX + (rightX - midX) / 2, rowY - 12);
+        ctx.letterSpacing = '0px';
+        ctx.font = "600 12px 'Segoe UI', system-ui, sans-serif";
+        ctx.fillStyle = '#7eb8ff';
+        ctx.fillText(td.distance, midX + (rightX - midX) / 2, rowY + 4);
       }
     }
 
@@ -389,15 +423,17 @@ window.tripMovie = (function () {
 
     computeFraming(state) {
       const screenH = state.cssHeight || 800;
-      const PANEL_MARGIN = 200;
       const TOP_MARGIN = 40;
-      const usableH = screenH - PANEL_MARGIN - TOP_MARGIN;
+      const BOTTOM_MARGIN = 200;
+      const usableH = screenH - TOP_MARGIN - BOTTOM_MARGIN;
 
-      const maxAU = Math.max(state.destAU, 1.5);
-      const totalSpan = maxAU; // minAU = 0 (Sun)
-      const finalZoom = Math.max(2, Math.min(200, usableH / Math.max(totalSpan, 0.5)));
+      const sourceY = 1.0; // Earth
+      const destY = Math.max(state.destAU, 1.5);
+      const span = destY - sourceY;
+      const finalZoom = Math.max(2, Math.min(200, usableH / Math.max(span, 0.5)));
 
-      const camCY = (screenH / 2 - PANEL_MARGIN) / finalZoom;
+      // Anchor destination to top of canvas
+      const camCY = destY - (screenH / 2 - TOP_MARGIN) / finalZoom;
 
       state.hold = { cx: 0, cy: 1.0, zoom: 600 };
       state.finalState = { cx: 0, cy: camCY, zoom: finalZoom };
@@ -591,11 +627,20 @@ window.tripMovie = (function () {
 
     computeFraming(state) {
       const screenH = state.cssHeight || 800;
-      const midpoint = state.destY / 2;
-      const finalZoom = Math.max(screenH * 0.4, (screenH * 0.55) / Math.max(state.destY, 0.15));
+      const TOP_MARGIN = 40;
+      const BOTTOM_MARGIN = 200;
+      const usableH = screenH - TOP_MARGIN - BOTTOM_MARGIN;
+
+      const sourceY = 0; // Solar System
+      const destY = Math.max(state.destY, 0.15);
+      const span = destY - sourceY;
+      const finalZoom = Math.max(screenH * 0.4, usableH / Math.max(span, 0.05));
+
+      // Anchor destination to top of canvas
+      const camCY = destY - (screenH / 2 - TOP_MARGIN) / finalZoom;
 
       state.hold = { cx: 0, cy: 0.0, zoom: screenH * 12 };
-      state.finalState = { cx: 0, cy: midpoint, zoom: finalZoom };
+      state.finalState = { cx: 0, cy: camCY, zoom: finalZoom };
       state.logZoomStart = Math.log(state.hold.zoom);
       state.logZoomEnd = Math.log(state.finalState.zoom);
     },
@@ -784,8 +829,20 @@ window.tripMovie = (function () {
 
     computeFraming(state) {
       const screenH = state.cssHeight || 800;
+      const TOP_MARGIN = 40;
+      const BOTTOM_MARGIN = 200;
+      const usableH = screenH - TOP_MARGIN - BOTTOM_MARGIN;
+
+      const sourceY = this.EARTH_Y; // 0.2
+      const destY = 0.9; // Andromeda
+      const span = destY - sourceY;
+      const finalZoom = usableH / span;
+
+      // Anchor destination to top of canvas
+      const camCY = destY - (screenH / 2 - TOP_MARGIN) / finalZoom;
+
       state.hold = { cx: 0, cy: state.earthY, zoom: screenH * 12 };
-      state.finalState = { cx: 0.015, cy: 0.55, zoom: screenH * 0.7 };
+      state.finalState = { cx: 0.015, cy: camCY, zoom: finalZoom };
       state.logZoomStart = Math.log(state.hold.zoom);
       state.logZoomEnd = Math.log(state.finalState.zoom);
     },
