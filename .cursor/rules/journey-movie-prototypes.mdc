@@ -14,6 +14,9 @@ Three standalone HTML/canvas cinematic zoom-out animations for the "movie view" 
 - **prototype-milkyway-template.html** — Light-year scale (Proxima Centauri through MW Center), log-scaled positioning, source = Solar System at y=0
 - **prototype-extragalactic-template.html** — Intergalactic scale (to Andromeda), procedural spiral galaxies, source = Solar System at EARTH_Y (0.2)
 
+## Decision: Three Separate Templates (Not Unified)
+We explored a single unified template (`prototype-unified-template.html`) with LOD layers that would zoom from Earth through all cosmic scales in one continuous animation. The experiment exists in the repo but we decided against it — each template has too much individually tuned character (planet detail, log-scaled landmarks, procedural spirals) that gets diluted when combined. The three-template approach with category-based selection is the path forward.
+
 ## Key Architecture Decisions (Feb 2026 Session)
 
 ### Mobile-First Fixes Applied
@@ -26,6 +29,13 @@ Three standalone HTML/canvas cinematic zoom-out animations for the "movie view" 
 7. **Trail emphasis**: All three use `[6, 6]` dash, 0.4 opacity, 1.5px width
 8. **Star counts reduced**: Milky Way and Extragalactic background stars at 500/350/200 per layer (~1,050 total). Solar system still at 300/500/700 (~1,500)
 
+### Mobile/MAUI Hardening (Feb 15, 2026 Session)
+9. **Safe area padding**: Overlay uses `calc(40px + env(safe-area-inset-bottom, 0px))` — clears iOS home indicator and Android gesture bars
+10. **touch-action: none** on body — prevents pull-to-refresh and scroll bounce on mobile browsers; scoped to canvas element only at integration time so carousels keep normal touch behavior
+11. **backdrop-filter fallback**: Background opacity raised to 0.75 (readable even if blur unsupported); added `-webkit-backdrop-filter` prefix for older Safari
+12. **will-change: transform** on canvas — GPU compositing hint for smoother mobile rendering
+13. **Extragalactic star trim**: MW spiral reduced from 400 to 300 stars/arm (saves ~400 draw calls/frame on mobile)
+
 ### Camera System
 - Logarithmic zoom interpolation in log-space for smooth perceptual scaling
 - `easeInCubicOut`: cubic ease-in (85%), quadratic ease-out (15%)
@@ -36,4 +46,6 @@ Three standalone HTML/canvas cinematic zoom-out animations for the "movie view" 
 - Movie plays during Phases 2-3 of `MainViewModel.EvaluateTripAsync()` (while AI calls are pending)
 - Physics data from Phase 1 (`/api/compute-trip`) populates the movie (distance, ship time, earth time)
 - Movie fades out when AI content returns and results carousel appears
+- Template selected by destination category: solar / milkyway / extragalactic
+- Canvas lives inside the Blazor WebView in `Kg.Velocity.UI` — works identically for web and MAUI
 - Integration point: `Index.razor` results section, `MainViewModel.cs` orchestration
