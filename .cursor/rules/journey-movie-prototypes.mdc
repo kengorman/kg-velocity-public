@@ -1,0 +1,39 @@
+---
+description: Context and decisions for the journey movie prototype animations
+globs: prototype-*-template.html
+alwaysApply: false
+---
+
+# Journey Movie Prototypes
+
+## What These Are
+Three standalone HTML/canvas cinematic zoom-out animations for the "movie view" of relativistic journeys. They play during the loading gap between fast physics calculations and slow AI content generation.
+
+## Three Templates by Cosmic Scale
+- **prototype-solarsystem-template.html** — AU scale (Moon through Pluto), source = Earth at 1.0 AU
+- **prototype-milkyway-template.html** — Light-year scale (Proxima Centauri through MW Center), log-scaled positioning, source = Solar System at y=0
+- **prototype-extragalactic-template.html** — Intergalactic scale (to Andromeda), procedural spiral galaxies, source = Solar System at EARTH_Y (0.2)
+
+## Key Architecture Decisions (Feb 2026 Session)
+
+### Mobile-First Fixes Applied
+1. **100dvh** with 100vh fallback for body height (mobile browser address bar)
+2. **High-DPI canvas**: `devicePixelRatio` scaling with `cssWidth`/`cssHeight` variables for all rendering math; canvas buffer at native resolution, drawing in CSS pixel coords via `ctx.setTransform(dpr, ...)`
+3. **Source always visible**: Camera pan is clamped per-frame so the source never exits the bottom viewport (`maxCY = sourceY + (cssHeight/2 - 60) / zoom`)
+4. **Ship always visible**: Trail endpoint clamped to `Math.max(60, trailEnd.y)` so the ship dot never exits the top viewport
+5. **Hold phase removed**: Was causing a stutter (quick drift then freeze before smooth zoom). Now single-phase `easeInCubicOut` from frame 1
+6. **Font sizes**: 14px floor for labels, 18px bold for arrived destination — consistent across all three
+7. **Trail emphasis**: All three use `[6, 6]` dash, 0.4 opacity, 1.5px width
+8. **Star counts reduced**: Milky Way and Extragalactic background stars at 500/350/200 per layer (~1,050 total). Solar system still at 300/500/700 (~1,500)
+
+### Camera System
+- Logarithmic zoom interpolation in log-space for smooth perceptual scaling
+- `easeInCubicOut`: cubic ease-in (85%), quadratic ease-out (15%)
+- Pan derived from zoom constraints — camera only pans as fast as zoom allows
+- Extragalactic uses delayed vertical pan (`e*e`) for Milky Way framing
+
+## Planned Integration (Not Yet Implemented)
+- Movie plays during Phases 2-3 of `MainViewModel.EvaluateTripAsync()` (while AI calls are pending)
+- Physics data from Phase 1 (`/api/compute-trip`) populates the movie (distance, ship time, earth time)
+- Movie fades out when AI content returns and results carousel appears
+- Integration point: `Index.razor` results section, `MainViewModel.cs` orchestration
