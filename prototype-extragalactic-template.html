@@ -72,9 +72,9 @@ const DURATION = 7000;
 // These stars are always present as a background, separate from the galaxy spirals
 // =============================================================
 const starLayerDefs = [
-  { count: 1200, spread: 10, parallax: 0.1 },  // Distant background
-  { count: 900,  spread: 6,  parallax: 0.2 },  // Mid-depth
-  { count: 600,  spread: 3,  parallax: 0.4 },  // Foreground
+  { count: 500, spread: 10, parallax: 0.1 },  // Distant background
+  { count: 350, spread: 6,  parallax: 0.2 },  // Mid-depth
+  { count: 200, spread: 3,  parallax: 0.4 },  // Foreground
 ];
 const starLayers = [];
 for (const def of starLayerDefs) {
@@ -321,7 +321,7 @@ function drawSolarSystemIcon() {
   // "Solar System" label (only when big enough to read)
   if (r > 8) {
     const labelR = r * 2.5;
-    ctx.font = `400 ${Math.min(12, r * 0.4)}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.font = `400 ${Math.max(14, Math.min(16, r * 0.4))}px 'Segoe UI', system-ui, sans-serif`;
     ctx.fillStyle = 'rgba(255,255,255,0.55)';
     ctx.textAlign = 'left';
     ctx.fillText('Solar System', pos.x + labelR + 8, pos.y + 4);
@@ -394,7 +394,7 @@ function drawMilkyWay(time, progress) {
   if (mwAlpha > 0.5) {
     const labelPos = toScreen(milkyWayPos.x + 0.12, milkyWayPos.y);
     if (labelPos.y > 0 && labelPos.y < cssHeight) {
-      ctx.font = '11px "Segoe UI", system-ui, sans-serif';
+      ctx.font = '14px "Segoe UI", system-ui, sans-serif';
       ctx.fillStyle = `rgba(255,255,255,${mwAlpha * 0.5})`;
       ctx.textAlign = 'left';
       ctx.fillText('Milky Way', labelPos.x, labelPos.y);
@@ -472,7 +472,7 @@ function drawAndromeda(time, progress) {
     const labelPos = toScreen(andromedaPos.x, andromedaPos.y - 0.06);
     if (labelPos.y > 0 && labelPos.y < cssHeight) {
       const arrived = arrivalAmount > 0;
-      const fontSize = arrived ? 14 : 11;
+      const fontSize = arrived ? 18 : 14;
       ctx.font = `${arrived ? '600' : '400'} ${fontSize}px "Segoe UI", system-ui, sans-serif`;
       ctx.fillStyle = arrived ? `rgba(126, 184, 255, ${0.5 + arrivalAmount * 0.5})` :
                       `rgba(255,255,255,${andAlpha * 0.5})`;
@@ -504,9 +504,9 @@ function drawTrail(progress) {
   if (trailProgress > 0) {
     ctx.save();
     // Dashed line
-    ctx.setLineDash([4, 8]);
-    ctx.strokeStyle = 'rgba(126, 184, 255, 0.15)';
-    ctx.lineWidth = 1;
+    ctx.setLineDash([6, 6]);
+    ctx.strokeStyle = 'rgba(126, 184, 255, 0.4)';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(earthPos.x, earthPos.y);
     ctx.lineTo(trailEnd.x, trailEnd.y);

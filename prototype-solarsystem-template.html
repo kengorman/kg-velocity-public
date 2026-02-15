@@ -267,9 +267,9 @@ function drawTrail(progress) {
   if (trailProgress > 0) {
     ctx.save();
     // Dashed line
-    ctx.setLineDash([4, 8]);
-    ctx.strokeStyle = 'rgba(126, 184, 255, 0.25)';
-    ctx.lineWidth = 1;
+    ctx.setLineDash([6, 6]);
+    ctx.strokeStyle = 'rgba(126, 184, 255, 0.4)';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(earthScreen.x, earthScreen.y);
     ctx.lineTo(trailEnd.x, trailEnd.y);
@@ -391,7 +391,7 @@ function drawPlanet(planet, time) {
   // --- Label (planet name, to the right of the dot) ---
   if (drawR > 2.5 || planet.name === 'Earth' || isDestPlanet) {
     const arrived = isDestPlanet && arrivalAmount > 0;
-    const fontSize = arrived ? 15 : Math.max(10, Math.min(14, drawR * 1.2));
+    const fontSize = arrived ? 18 : Math.max(14, Math.min(16, drawR * 1.2));
     ctx.font = `${arrived ? '600' : '400'} ${fontSize}px 'Segoe UI', system-ui, sans-serif`;
     ctx.fillStyle = arrived ? `rgba(126, 184, 255, ${0.5 + arrivalAmount * 0.5})` :
                     isDestPlanet ? 'rgba(126, 184, 255, 0.8)' : 'rgba(255,255,255,0.6)';
