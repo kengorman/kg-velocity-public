@@ -168,115 +168,6 @@ window.tripMovie = (function () {
   }
 
   // ================================================================
-  // SHARED: Trip data overlay panel (drawn on canvas)
-  // ================================================================
-
-  function drawTripDataPanel(state, progress) {
-    if (progress <= 0.88) return;
-    const ctx = state.ctx;
-    const w = state.cssWidth;
-    const h = state.cssHeight;
-    const td = state.tripData;
-    if (!td) return;
-
-    const panelAlpha = Math.min(1, (progress - 0.88) / 0.08);
-
-    // Panel dimensions
-    const rowHeight = 32;
-    const headingHeight = 28;
-    const panelPadding = 14;
-    const panelW = Math.min(280, w - 40);
-    // 2 full rows (ship time, earth time) + 1 shared row (speed & distance)
-    const numRows = (td.shipTime ? 1 : 0) + (td.earthTime ? 1 : 0) + ((td.speed || td.distance) ? 1 : 0);
-    const panelH = headingHeight + numRows * rowHeight + panelPadding;
-    const panelX = (w - panelW) / 2;
-    const panelY = h - panelH - 50;
-
-    ctx.save();
-    ctx.globalAlpha = panelAlpha;
-
-    // Background
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.roundRect(panelX, panelY, panelW, panelH, 12);
-    ctx.fill();
-    ctx.stroke();
-
-    // Heading
-    ctx.font = "300 12px 'Segoe UI', system-ui, sans-serif";
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.letterSpacing = '2px';
-    ctx.fillText(('Earth \u2192 ' + state.destinationName).toUpperCase(), w / 2, panelY + 20);
-    ctx.letterSpacing = '0px';
-
-    const leftX = panelX + 16;
-    const rightX = panelX + panelW - 16;
-    let rowY = panelY + headingHeight + 20;
-
-    // Ship time row
-    if (td.shipTime) {
-      ctx.font = "400 10px 'Segoe UI', system-ui, sans-serif";
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-      ctx.textAlign = 'left';
-      ctx.letterSpacing = '1px';
-      ctx.fillText('SHIP TIME', leftX, rowY);
-      ctx.letterSpacing = '0px';
-      ctx.font = "600 13px 'Segoe UI', system-ui, sans-serif";
-      ctx.fillStyle = '#7eb8ff';
-      ctx.textAlign = 'right';
-      ctx.fillText(td.shipTime, rightX, rowY);
-      rowY += rowHeight;
-    }
-
-    // Earth time row
-    if (td.earthTime) {
-      ctx.font = "400 10px 'Segoe UI', system-ui, sans-serif";
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-      ctx.textAlign = 'left';
-      ctx.letterSpacing = '1px';
-      ctx.fillText('EARTH TIME', leftX, rowY);
-      ctx.letterSpacing = '0px';
-      ctx.font = "600 13px 'Segoe UI', system-ui, sans-serif";
-      ctx.fillStyle = '#7eb8ff';
-      ctx.textAlign = 'right';
-      ctx.fillText(td.earthTime, rightX, rowY);
-      rowY += rowHeight;
-    }
-
-    // Speed & distance — shared row, two columns
-    if (td.speed || td.distance) {
-      const midX = panelX + panelW / 2;
-      if (td.speed) {
-        ctx.font = "400 10px 'Segoe UI', system-ui, sans-serif";
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.textAlign = 'center';
-        ctx.letterSpacing = '1px';
-        ctx.fillText('SPEED', leftX + (midX - leftX) / 2, rowY - 12);
-        ctx.letterSpacing = '0px';
-        ctx.font = "600 12px 'Segoe UI', system-ui, sans-serif";
-        ctx.fillStyle = '#7eb8ff';
-        ctx.fillText(td.speed, leftX + (midX - leftX) / 2, rowY + 4);
-      }
-      if (td.distance) {
-        ctx.font = "400 10px 'Segoe UI', system-ui, sans-serif";
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.textAlign = 'center';
-        ctx.letterSpacing = '1px';
-        ctx.fillText('DISTANCE', midX + (rightX - midX) / 2, rowY - 12);
-        ctx.letterSpacing = '0px';
-        ctx.font = "600 12px 'Segoe UI', system-ui, sans-serif";
-        ctx.fillStyle = '#7eb8ff';
-        ctx.fillText(td.distance, midX + (rightX - midX) / 2, rowY + 4);
-      }
-    }
-
-    ctx.restore();
-  }
-
-  // ================================================================
   // SHARED: Log-zoom camera state computation
   // ================================================================
 
@@ -486,8 +377,6 @@ window.tripMovie = (function () {
         solarSystem.drawPlanet(state, planet, arrivalAmount);
       }
 
-      // Trip data panel
-      drawTripDataPanel(state, progress);
     },
 
     drawPlanet(state, planet, arrivalAmount) {
@@ -673,8 +562,6 @@ window.tripMovie = (function () {
       // Galactic objects
       milkyWay.drawGalacticObjects(state, arrivalAmount);
 
-      // Trip data panel
-      drawTripDataPanel(state, progress);
     },
 
     drawGalacticObjects(state, arrivalAmount) {
@@ -889,8 +776,6 @@ window.tripMovie = (function () {
         ctx.fillText('Solar System', ssPos.x + labelR + 8, ssPos.y + 4);
       }
 
-      // Trip data panel
-      drawTripDataPanel(state, progress);
     },
 
     drawMilkyWay(state, time, progress) {

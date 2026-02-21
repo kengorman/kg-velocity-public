@@ -35,6 +35,7 @@ We explored a single unified template (`prototype-unified-template.html`) with L
 11. **backdrop-filter fallback**: Background opacity raised to 0.75 (readable even if blur unsupported); added `-webkit-backdrop-filter` prefix for older Safari
 12. **will-change: transform** on canvas — GPU compositing hint for smoother mobile rendering
 13. **Extragalactic star trim**: MW spiral reduced from 400 to 300 stars/arm (saves ~400 draw calls/frame on mobile)
+14. **Trip data panel removed**: The overlay that showed distance/time stats at 88% progress was removed from all three templates — it obscured the cinematic experience and the stats are already shown in the results carousel after the movie ends. Solar system PANEL_MARGIN reduced from 200 to 60.
 
 ### Camera System
 - Logarithmic zoom interpolation in log-space for smooth perceptual scaling

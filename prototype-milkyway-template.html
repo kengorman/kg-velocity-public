@@ -8,23 +8,6 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; height: 100dvh; touch-action: none; }
   canvas { display: block; will-change: transform; }
-  #overlay {
-    position: fixed; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); left: 0; right: 0;
-    text-align: center; font-family: 'Segoe UI', system-ui, sans-serif;
-    pointer-events: none; z-index: 10;
-  }
-  #trip-data {
-    display: inline-block; padding: 20px 32px;
-    background: rgba(0,0,0,0.75); border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 12px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    opacity: 0; transition: opacity 0.8s ease;
-  }
-  #trip-data.visible { opacity: 1; }
-  #trip-data h2 { color: #fff; font-size: 16px; font-weight: 300; letter-spacing: 2px; margin-bottom: 8px; text-transform: uppercase; }
-  #trip-data .stats { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
-  #trip-data .stat { text-align: center; }
-  #trip-data .stat .value { color: #7eb8ff; font-size: 20px; font-weight: 600; }
-  #trip-data .stat .label { color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
   #controls {
     position: fixed; top: 20px; right: 20px; z-index: 20;
     display: flex; gap: 8px; align-items: center;
@@ -46,14 +29,6 @@
 </head>
 <body>
 <canvas id="c"></canvas>
-<div id="overlay">
-  <div id="trip-data">
-    <h2 id="trip-heading"></h2>
-    <div class="stats">
-      <div class="stat"><div class="value" id="stat-dist">—</div><div class="label">Distance</div></div>
-    </div>
-  </div>
-</div>
 <div id="controls">
   <select id="dest-select"></select>
   <button id="restart" onclick="launchTo(document.getElementById('dest-select').value)">Go</button>
@@ -68,7 +43,7 @@ const ctx = canvas.getContext('2d');
 // Each destination specifies:
 // - ly: distance in light-years (used for log-scale positioning)
 // - tagline: descriptive text (not currently used in animation)
-// - distLabel: formatted distance shown in trip data panel
+// - distLabel: formatted distance string
 const DESTINATIONS = {
   'Proxima Centauri':    { ly: 4.24,    tagline: '4.24 light-years from home',   distLabel: '4.24 ly' },
   'Polaris':             { ly: 433,     tagline: '433 light-years from home',    distLabel: '433 ly' },
@@ -508,7 +483,6 @@ function drawTrail(progress) {
 // Tweak these timing values:
 // - arrivalAmount calculation (0.75, 0.15): when arrival highlight fades in
 //   - Currently: starts at 75% progress, reaches full by 90%
-// - trip-data visibility (0.88): when bottom panel fades in
 //
 // Draw order (back to front):
 // 1. Background fill
@@ -538,11 +512,6 @@ function frame(timestamp) {
   drawTrail(progress);
   drawGalacticObjects(time);
 
-  // Trip data panel fade-in
-  if (progress > 0.88) {
-    document.getElementById('trip-data').classList.add('visible');
-  }
-
   if (progress < 1) {
     animId = requestAnimationFrame(frame);
   }
@@ -557,15 +526,12 @@ function launchTo(destName) {
   currentDest = destName;
   const dest = DESTINATIONS[destName];
 
-  document.getElementById('trip-heading').textContent = `Earth → ${destName}`;
-  document.getElementById('stat-dist').textContent = dest.distLabel;
   document.title = `Earth → ${destName}`;
 
   computeAnimParams(destName);
 
   if (animId) cancelAnimationFrame(animId);
   startTime = null;
-  document.getElementById('trip-data').classList.remove('visible');
   arrivalAmount = 0;
   animId = requestAnimationFrame(frame);
 }
