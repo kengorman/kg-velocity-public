@@ -241,44 +241,6 @@
             </div>
         }
 
-        @* NASA Images Bottom Sheet *@
-        @if (ViewModel.IsImageSheetOpen)
-        {
-            <div class="bottom-sheet-backdrop" @onclick="ViewModel.CloseImageSheet"></div>
-            <div class="bottom-sheet">
-                <div class="bottom-sheet-handle"></div>
-                <div class="bottom-sheet-header">
-                    <h3 class="bottom-sheet-title">@ViewModel.SelectedDestination?.DisplayName</h3>
-                    <button type="button" class="bottom-sheet-close" @onclick="ViewModel.CloseImageSheet" aria-label="Close">×</button>
-                </div>
-                <div class="bottom-sheet-content">
-                    @if (ViewModel.IsLoadingNasaImages)
-                    {
-                        <div class="bottom-sheet-loading">Loading images from NASA...</div>
-                    }
-                    else if (ViewModel.NasaImages.Count == 0)
-                    {
-                        <div class="bottom-sheet-empty">No images available</div>
-                    }
-                    else
-                    {
-                        <div class="nasa-images-carousel">
-                            @foreach (var image in ViewModel.NasaImages)
-                            {
-                                <div class="nasa-image-card">
-                                    <img src="@image.ImageUrl"
-                                         alt="@image.Title"
-                                         class="nasa-image"
-                                         loading="lazy" />
-                                    <div class="nasa-image-title">@image.Title</div>
-                                </div>
-                            }
-                        </div>
-                        <div class="nasa-credit">Images: NASA</div>
-                    }
-                </div>
-            </div>
-        }
     </div>
 }
 else
