@@ -99,7 +99,10 @@ const DESTINATIONS = [
   { name: 'Milky Way Center',    category: 'Milky Way', raw: 26000, distLabel: '26,000 ly' },
 
   // --- Extragalactic ---
-  { name: 'Andromeda Galaxy', category: 'Extragalactic', raw: 2537000, distLabel: '2.5M ly' },
+  { name: 'Andromeda Galaxy',  category: 'Extragalactic', raw: 2537000,  distLabel: '2.5M ly' },
+  { name: 'Triangulum Galaxy', category: 'Extragalactic', raw: 2730000,  distLabel: '2.7M ly' },
+  { name: 'Whirlpool Galaxy',  category: 'Extragalactic', raw: 23000000, distLabel: '23M ly' },
+  { name: 'Sombrero Galaxy',   category: 'Extragalactic', raw: 29000000, distLabel: '29M ly' },
 ];
 
 // =============================================================
@@ -119,16 +122,21 @@ function lyToY(ly) {
   return (Math.log10(ly) - MW_LOG_MIN) / (MW_LOG_MAX - MW_LOG_MIN);
 }
 
-// Extragalactic: fixed positions
-const EXTRA_EARTH_Y = 0.2;              // Earth/Solar System position
-const EXTRA_ANDROMEDA_Y = 0.9;          // Andromeda position
+// Extragalactic: log-scale positioning for multiple galaxies
+const EXTRA_EARTH_Y = 0.2;                          // Earth/Solar System position
+const EXTRA_LOG_MIN = Math.log10(1000000);           // 1M ly
+const EXTRA_LOG_MAX = Math.log10(50000000);          // 50M ly
+function extraLyToY(ly) {
+  // Maps galaxy distances to Y positions above EXTRA_EARTH_Y
+  return EXTRA_EARTH_Y + 0.05 + (Math.log10(ly) - EXTRA_LOG_MIN) / (EXTRA_LOG_MAX - EXTRA_LOG_MIN) * 0.7;
+}
 
 // Get the Y coordinate for a destination in world space
 function getDestY(dest) {
   switch (dest.category) {
-    case 'Solar System':    return dest.raw;           // AU directly
-    case 'Milky Way':       return lyToY(dest.raw);    // normalized log
-    case 'Extragalactic':   return EXTRA_ANDROMEDA_Y;  // fixed
+    case 'Solar System':    return dest.raw;              // AU directly
+    case 'Milky Way':       return lyToY(dest.raw);       // normalized log
+    case 'Extragalactic':   return extraLyToY(dest.raw);  // log-scaled galaxy position
   }
 }
 
@@ -180,7 +188,7 @@ galacticObjects.find(o => o.name === 'Pillars of Creation').y += 0.02;
 
 // --- Extragalactic: Milky Way spiral + Andromeda spiral ---
 const extraMilkyWayPos = { x: 0, y: EXTRA_EARTH_Y + 0.02 };
-const extraAndromedaPos = { x: 0.03, y: EXTRA_ANDROMEDA_Y };
+// (Andromeda position now computed dynamically in extraGalaxies array)
 
 // Milky Way spiral stars
 const spiralStars = [];
@@ -207,25 +215,115 @@ for (let arm = 0; arm < MW_ARM_COUNT; arm++) {
 }
 const extraCoreGlow = { x: extraMilkyWayPos.x, y: extraMilkyWayPos.y, radius: 0.025 };
 
-// Andromeda spiral stars
-const andromedaStars = [];
-for (let arm = 0; arm < 3; arm++) {
-  const armOffset = (arm / 3) * Math.PI * 2;
-  for (let i = 0; i < 150; i++) {
-    const t = i / 150;
-    const angle = armOffset + t * Math.PI * 2;
-    const radius = 0.002 + t * 0.03;
-    const spread = 0.002 + t * 0.005;
-    const r = radius + (Math.random() - 0.5) * spread;
-    const a = angle + (Math.random() - 0.5) * 0.5;
-    andromedaStars.push({
-      x: extraAndromedaPos.x + r * Math.cos(a),
-      y: extraAndromedaPos.y + r * Math.sin(a) * 0.5,
-      brightness: 0.2 + Math.random() * 0.6,
+// Milky Way reference landmarks — shown briefly during extragalactic zoom-out
+// to give a sense of scale before they vanish into the spiral
+// Positioned using log scale within the MW spiral's visual extent
+const MW_LANDMARK_SPAN = 0.06; // how much Y-space the landmarks spread across
+const extraMilkyWayLandmarks = [
+  { name: 'Proxima Centauri',  ly: 4.24,  distLabel: '4.24 ly',   color: '#ff6b4a', x:  0.015 },
+  { name: 'Polaris',           ly: 433,   distLabel: '433 ly',     color: '#fffbe0', x: -0.015 },
+  { name: 'Betelgeuse',        ly: 700,   distLabel: '700 ly',     color: '#ff4500', x:  0.02 },
+  { name: 'Crab Nebula',       ly: 6500,  distLabel: '6,500 ly',   color: '#4ecdc4', x: -0.02 },
+  { name: 'MW Center',         ly: 26000, distLabel: '26,000 ly',  color: '#ffd700', x:  0.015 },
+];
+// Map into extragalactic coordinate space using log positioning
+for (const lm of extraMilkyWayLandmarks) {
+  lm.y = EXTRA_EARTH_Y + lyToY(lm.ly) * MW_LANDMARK_SPAN;
+}
+
+// --- Extragalactic galaxies — data-driven with generated spiral stars ---
+// Each galaxy: position, visual properties, generated stars
+function generateSpiralStars(center, arms, starsPerArm, maxRadius, tilt, turns) {
+  const stars = [];
+  for (let arm = 0; arm < arms; arm++) {
+    const armOffset = (arm / arms) * Math.PI * 2;
+    for (let i = 0; i < starsPerArm; i++) {
+      const t = i / starsPerArm;
+      const angle = armOffset + t * Math.PI * turns;
+      const radius = maxRadius * 0.06 + t * maxRadius;
+      const spread = maxRadius * (0.06 + t * 0.15);
+      const r = radius + (Math.random() - 0.5) * spread;
+      const a = angle + (Math.random() - 0.5) * 0.5;
+      stars.push({
+        x: center.x + r * Math.cos(a),
+        y: center.y + r * Math.sin(a) * tilt,
+        brightness: 0.2 + Math.random() * 0.6,
+        size: 0.3 + Math.random() * 0.8,
+        twinkleSpeed: 0.3 + Math.random() * 1,
+        twinkleOffset: Math.random() * Math.PI * 2,
+      });
+    }
+  }
+  return stars;
+}
+
+// Generate edge-on disc stars (for Sombrero)
+function generateDiscStars(center, count, width, height) {
+  const stars = [];
+  for (let i = 0; i < count; i++) {
+    // Gaussian-ish distribution: denser toward center
+    const angle = Math.random() * Math.PI * 2;
+    const rNorm = Math.random() * Math.random(); // clusters toward center
+    const r = rNorm * width;
+    stars.push({
+      x: center.x + r * Math.cos(angle),
+      y: center.y + r * Math.sin(angle) * height / width,
+      brightness: 0.2 + Math.random() * 0.6 * (1 - rNorm * 0.5),
       size: 0.3 + Math.random() * 0.8,
       twinkleSpeed: 0.3 + Math.random() * 1,
       twinkleOffset: Math.random() * Math.PI * 2,
     });
+  }
+  return stars;
+}
+
+const extraGalaxies = [
+  {
+    name: 'Andromeda Galaxy',
+    distLy: 2537000,
+    x: 0.03,
+    starColor: '200, 210, 255',        // cool blue
+    coreColor: '200, 210, 255',
+    coreRadius: 0.01,
+    arms: 3, starsPerArm: 150, maxRadius: 0.03, tilt: 0.5, turns: 2,
+  },
+  {
+    name: 'Triangulum Galaxy',
+    distLy: 2730000,
+    x: -0.04,
+    starColor: '190, 210, 240',         // softer blue
+    coreColor: '190, 210, 240',
+    coreRadius: 0.006,
+    arms: 3, starsPerArm: 80, maxRadius: 0.02, tilt: 0.45, turns: 1.8,
+  },
+  {
+    name: 'Whirlpool Galaxy',
+    distLy: 23000000,
+    x: 0.02,
+    starColor: '220, 180, 230',         // pinkish (famous HII regions)
+    coreColor: '230, 210, 240',
+    coreRadius: 0.008,
+    arms: 2, starsPerArm: 130, maxRadius: 0.025, tilt: 0.55, turns: 2.5,
+  },
+  {
+    name: 'Sombrero Galaxy',
+    distLy: 29000000,
+    x: -0.03,
+    starColor: '240, 220, 180',         // warm gold
+    coreColor: '255, 240, 200',
+    coreRadius: 0.012,                   // prominent bright core
+    edgeOn: true,                        // disc, not spiral
+    discStars: 200, discWidth: 0.03, discHeight: 0.004,
+  },
+];
+
+// Compute Y positions and generate stars for each galaxy
+for (const g of extraGalaxies) {
+  g.y = extraLyToY(g.distLy);
+  if (g.edgeOn) {
+    g.stars = generateDiscStars({ x: g.x, y: g.y }, g.discStars, g.discWidth, g.discHeight);
+  } else {
+    g.stars = generateSpiralStars({ x: g.x, y: g.y }, g.arms, g.starsPerArm, g.maxRadius, g.tilt, g.turns);
   }
 }
 
@@ -361,18 +459,20 @@ function computeFraming(dest) {
     finalCY = destY / 2; // midpoint between source and dest
 
   } else {
-    // Extragalactic — normalized [0, 1]
+    // Extragalactic — normalized, log-scaled galaxy positions
     startZoom = screenH * catCfg.startZoomFactor; // screenH * 12
 
-    finalZoom = screenH * 0.7;
+    const span = destY - EXTRA_EARTH_Y;
+    const usableH = screenH - CONFIG.TOP_MARGIN - CONFIG.BOTTOM_MARGIN;
+    finalZoom = usableH / Math.max(span, 0.15);
 
     holdCY = EXTRA_EARTH_Y;
-    finalCY = 0.55; // framed to show both galaxies
+    finalCY = EXTRA_EARTH_Y + span * 0.5; // centered between source and dest
   }
 
   hold = { cx: 0, cy: holdCY, zoom: startZoom };
   finalState = {
-    cx: category === 'Extragalactic' ? 0.015 : 0,
+    cx: 0,
     cy: finalCY,
     zoom: finalZoom,
   };
@@ -438,7 +538,8 @@ function drawTrail(progress) {
     const obj = galacticObjects.find(o => o.name === currentDest.name);
     if (obj) destX = obj.x;
   } else if (currentDest.category === 'Extragalactic') {
-    destX = extraAndromedaPos.x;
+    const gal = extraGalaxies.find(g => g.name === currentDest.name);
+    if (gal) destX = gal.x;
   }
 
   const earthScreen = toScreen(0, sourceY);
@@ -689,6 +790,9 @@ function drawMilkyWayObjects(time) {
 
 // --- Extragalactic ---
 function drawExtragalacticObjects(time, progress) {
+  const destY = getDestY(currentDest);
+  const journeySpan = destY - EXTRA_EARTH_Y;
+
   // Milky Way spiral — fades in as we zoom out
   const mwAlpha = Math.min(1, Math.max(0, (progress - 0.08) / 0.20));
   if (mwAlpha > 0) {
@@ -719,6 +823,35 @@ function drawExtragalacticObjects(time, progress) {
       ctx.fill();
     }
 
+    // Milky Way reference landmarks — fade in with spiral, fade out later
+    const lmFadeIn  = Math.min(1, Math.max(0, (progress - 0.05) / 0.10));
+    const lmFadeOut = Math.min(1, Math.max(0, (progress - 0.65) / 0.15));
+    const lmAlpha = lmFadeIn * (1 - lmFadeOut);
+    if (lmAlpha > 0) {
+      for (const lm of extraMilkyWayLandmarks) {
+        const pos = toScreen(lm.x, lm.y);
+        if (pos.y < -50 || pos.y > cssHeight + 50) continue;
+
+        const dotR = 2;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, dotR, 0, Math.PI * 2);
+        ctx.fillStyle = lm.color;
+        ctx.globalAlpha = lmAlpha * 0.7;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        ctx.font = `400 12px "Segoe UI", system-ui, sans-serif`;
+        ctx.fillStyle = `rgba(255,255,255,${lmAlpha * 0.55})`;
+        if (lm.x >= 0) {
+          ctx.textAlign = 'left';
+          ctx.fillText(lm.name, pos.x + 8, pos.y + 4);
+        } else {
+          ctx.textAlign = 'right';
+          ctx.fillText(lm.name, pos.x - 8, pos.y + 4);
+        }
+      }
+    }
+
     // Milky Way label
     if (mwAlpha > 0.5) {
       const labelPos = toScreen(extraMilkyWayPos.x + 0.12, extraMilkyWayPos.y);
@@ -731,58 +864,71 @@ function drawExtragalacticObjects(time, progress) {
     }
   }
 
-  // Andromeda galaxy — fades in later
-  const andAlpha = Math.min(1, Math.max(0, (progress - 0.45) / 0.25));
-  if (andAlpha > 0) {
-    const corePos = toScreen(extraAndromedaPos.x, extraAndromedaPos.y);
+  // --- Draw all galaxies between Earth and destination ---
+  // Each galaxy fades in based on how far along the journey it sits
+  for (const g of extraGalaxies) {
+    // Only draw galaxies up to (and including) the destination
+    if (g.y > destY + 0.01) continue;
 
-    // Arrival arrow
-    if (arrivalAmount > 0) {
-      drawArrivalArrow(corePos.x, corePos.y, 20);
+    const isDest = g.name === currentDest.name;
+
+    // Fade timing: based on galaxy's position in the journey
+    // Closer galaxies appear earlier, destination appears later
+    const journeyFrac = (g.y - EXTRA_EARTH_Y) / journeySpan; // 0..1 along the trip
+    const fadeInStart = 0.15 + journeyFrac * 0.45;            // spread across 0.15..0.60
+    const galAlpha = Math.min(1, Math.max(0, (progress - fadeInStart) / 0.20));
+    if (galAlpha <= 0) continue;
+
+    const galPos = toScreen(g.x, g.y);
+
+    // Arrival arrow (destination only)
+    if (isDest && arrivalAmount > 0) {
+      drawArrivalArrow(galPos.x, galPos.y, 20);
     }
 
     // Core glow
-    const coreR = 0.01 * camZoom;
+    const coreR = g.coreRadius * camZoom;
     if (coreR > 1 && coreR < cssWidth) {
-      const drawR = Math.min(coreR, 100);
-      const gradient = ctx.createRadialGradient(corePos.x, corePos.y, 0, corePos.x, corePos.y, drawR);
-      gradient.addColorStop(0, `rgba(200, 210, 255, ${andAlpha * 0.35})`);
-      gradient.addColorStop(0.4, `rgba(180, 190, 230, ${andAlpha * 0.1})`);
+      const drawR = Math.min(coreR, g.edgeOn ? 80 : 100);
+      const gradient = ctx.createRadialGradient(galPos.x, galPos.y, 0, galPos.x, galPos.y, drawR);
+      gradient.addColorStop(0, `rgba(${g.coreColor}, ${galAlpha * 0.35})`);
+      gradient.addColorStop(0.4, `rgba(${g.coreColor}, ${galAlpha * 0.1})`);
       gradient.addColorStop(1, 'transparent');
       ctx.beginPath();
-      ctx.arc(corePos.x, corePos.y, drawR, 0, Math.PI * 2);
+      ctx.arc(galPos.x, galPos.y, drawR, 0, Math.PI * 2);
       ctx.fillStyle = gradient;
       ctx.fill();
     }
 
-    // Spiral stars
-    for (const star of andromedaStars) {
+    // Galaxy stars (spiral or disc)
+    for (const star of g.stars) {
       const pos = toScreen(star.x, star.y);
       if (pos.x < -5 || pos.x > cssWidth + 5 || pos.y < -5 || pos.y > cssHeight + 5) continue;
       const twinkle = 0.5 + 0.5 * Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
-      const alpha = andAlpha * star.brightness * (0.3 + 0.7 * twinkle);
+      const alpha = galAlpha * star.brightness * (0.3 + 0.7 * twinkle);
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, star.size, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(200, 210, 255, ${alpha})`;
+      ctx.fillStyle = `rgba(${g.starColor}, ${alpha})`;
       ctx.fill();
     }
 
-    // Andromeda label
-    if (andAlpha > 0.3) {
-      const labelPos = toScreen(extraAndromedaPos.x, extraAndromedaPos.y - 0.06);
+    // Label
+    if (galAlpha > 0.3) {
+      const labelOffset = g.edgeOn ? -0.003 : -0.04; // tighter for edge-on disc
+      const labelPos = toScreen(g.x, g.y + labelOffset);
       if (labelPos.y > 0 && labelPos.y < cssHeight) {
-        const arrived = arrivalAmount > 0;
+        const arrived = isDest && arrivalAmount > 0;
         const fontSize = arrived ? 18 : 14;
         ctx.font = `${arrived ? '600' : '400'} ${fontSize}px "Segoe UI", system-ui, sans-serif`;
         ctx.fillStyle = arrived ? `rgba(126, 184, 255, ${0.5 + arrivalAmount * 0.5})` :
-                        `rgba(255,255,255,${andAlpha * 0.5})`;
+                        `rgba(255,255,255,${galAlpha * 0.5})`;
         ctx.textAlign = 'center';
-        ctx.fillText('Andromeda Galaxy', labelPos.x, labelPos.y);
+        ctx.fillText(g.name, labelPos.x, labelPos.y);
       }
     }
   }
 
-  // Solar System icon (on top)
+  // Solar System icon (always on top)
   const ssPos = toScreen(0, EXTRA_EARTH_Y);
   const ssR = drawSolarSystemIcon(ssPos);
 
