@@ -13,7 +13,8 @@ public class TripCatalogClient(HttpClient httpClient)
     {
         if (_destinations != null) return _destinations;
 
-        _destinations = (await _httpClient.GetFromJsonAsync<List<DestinationDto>>("/api/destinations"))
+        var cacheBuster = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        _destinations = (await _httpClient.GetFromJsonAsync<List<DestinationDto>>($"/api/destinations?_={cacheBuster}"))
                         ?? [];
         return _destinations;
     }

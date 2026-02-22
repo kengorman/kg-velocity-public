@@ -82,8 +82,9 @@ app.UseResponseCompression();
 app.UseRouting();
 
 // Get the destinations
-app.MapGet("/api/destinations", (TripCatalogService catalogs) =>
+app.MapGet("/api/destinations", (HttpContext ctx, TripCatalogService catalogs) =>
 {
+    ctx.Response.Headers.CacheControl = "no-store, no-cache";
     IReadOnlyList<DestinationDto> destinations = catalogs.GetDestinations();
     return Results.Ok(destinations);
 });
