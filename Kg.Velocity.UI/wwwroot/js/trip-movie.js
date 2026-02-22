@@ -636,6 +636,53 @@ window.tripMovie = (function () {
 
 
   // ================================================================
+  // SHARED: Spiral star generation (for extragalactic galaxies)
+  // ================================================================
+
+  function generateSpiralStars(center, arms, starsPerArm, maxRadius, tilt, turns) {
+    const stars = [];
+    for (let arm = 0; arm < arms; arm++) {
+      const armOffset = (arm / arms) * Math.PI * 2;
+      for (let i = 0; i < starsPerArm; i++) {
+        const t = i / starsPerArm;
+        const angle = armOffset + t * Math.PI * turns;
+        const radius = maxRadius * 0.06 + t * maxRadius;
+        const spread = maxRadius * (0.06 + t * 0.15);
+        const r = radius + (Math.random() - 0.5) * spread;
+        const a = angle + (Math.random() - 0.5) * 0.5;
+        stars.push({
+          x: center.x + r * Math.cos(a),
+          y: center.y + r * Math.sin(a) * tilt,
+          brightness: 0.2 + Math.random() * 0.6,
+          size: 0.3 + Math.random() * 0.8,
+          twinkleSpeed: 0.3 + Math.random() * 1,
+          twinkleOffset: Math.random() * Math.PI * 2,
+        });
+      }
+    }
+    return stars;
+  }
+
+  function generateDiscStars(center, count, width, height) {
+    const stars = [];
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const rNorm = Math.random() * Math.random(); // clusters toward center
+      const r = rNorm * width;
+      stars.push({
+        x: center.x + r * Math.cos(angle),
+        y: center.y + r * Math.sin(angle) * height / width,
+        brightness: 0.2 + Math.random() * 0.6 * (1 - rNorm * 0.5),
+        size: 0.3 + Math.random() * 0.8,
+        twinkleSpeed: 0.3 + Math.random() * 1,
+        twinkleOffset: Math.random() * Math.PI * 2,
+      });
+    }
+    return stars;
+  }
+
+
+  // ================================================================
   // ================================================================
   //  EXTRAGALACTIC RENDERER
   // ================================================================
@@ -644,24 +691,70 @@ window.tripMovie = (function () {
   const extragalactic = {
 
     EARTH_Y: 0.2,
+    EXTRA_LOG_MIN: Math.log10(1000000),    // 1M ly
+    EXTRA_LOG_MAX: Math.log10(50000000),   // 50M ly
+    MW_LOG_MIN: Math.log10(1),
+    MW_LOG_MAX: Math.log10(30000),
+    MW_LANDMARK_SPAN: 0.06,
+
+    // Log-scale mapping for galaxy distances
+    extraLyToY(ly) {
+      return this.EARTH_Y + 0.05 +
+        (Math.log10(ly) - this.EXTRA_LOG_MIN) / (this.EXTRA_LOG_MAX - this.EXTRA_LOG_MIN) * 0.7;
+    },
+
+    mwLyToY(ly) {
+      if (ly <= 0) return 0;
+      return (Math.log10(ly) - this.MW_LOG_MIN) / (this.MW_LOG_MAX - this.MW_LOG_MIN);
+    },
+
+    // Galaxy definitions (stars generated at init)
+    GALAXY_DEFS: [
+      {
+        name: 'Andromeda Galaxy', distLy: 2537000, x: 0.03,
+        starColor: '200, 210, 255', coreColor: '200, 210, 255', coreRadius: 0.01,
+        arms: 3, starsPerArm: 150, maxRadius: 0.03, tilt: 0.5, turns: 2,
+      },
+      {
+        name: 'Triangulum Galaxy', distLy: 2730000, x: -0.04,
+        starColor: '190, 210, 240', coreColor: '190, 210, 240', coreRadius: 0.006,
+        arms: 3, starsPerArm: 80, maxRadius: 0.02, tilt: 0.45, turns: 1.8,
+      },
+      {
+        name: 'Whirlpool Galaxy', distLy: 23000000, x: 0.02,
+        starColor: '220, 180, 230', coreColor: '230, 210, 240', coreRadius: 0.008,
+        arms: 2, starsPerArm: 130, maxRadius: 0.025, tilt: 0.55, turns: 2.5,
+      },
+      {
+        name: 'Sombrero Galaxy', distLy: 29000000, x: -0.03,
+        starColor: '240, 220, 180', coreColor: '255, 240, 200', coreRadius: 0.012,
+        edgeOn: true, discStars: 200, discWidth: 0.03, discHeight: 0.004,
+      },
+    ],
+
+    // MW reference landmarks shown during zoom-out
+    MW_LANDMARK_DEFS: [
+      { name: 'Proxima Centauri', ly: 4.24,  color: '#ff6b4a', x:  0.015 },
+      { name: 'Polaris',          ly: 433,   color: '#fffbe0', x: -0.015 },
+      { name: 'Betelgeuse',       ly: 700,   color: '#ff4500', x:  0.02 },
+      { name: 'Crab Nebula',      ly: 6500,  color: '#4ecdc4', x: -0.02 },
+      { name: 'MW Center',        ly: 26000, color: '#ffd700', x:  0.015 },
+    ],
 
     init(state) {
       const EARTH_Y = this.EARTH_Y;
       state.earthY = EARTH_Y;
 
-      // Milky Way center positioned so Earth sits in an outer arm
+      // Milky Way spiral center
       const milkyWayPos = { x: 0, y: EARTH_Y + 0.02 };
       state.milkyWayPos = milkyWayPos;
-
-      // Andromeda position
-      state.andromedaPos = { x: 0.03, y: 0.9 };
 
       // Star layers
       state.starLayers = generateStarLayers([
         { count: 500, spread: 10, parallax: 0.1 },
         { count: 350, spread: 6,  parallax: 0.2 },
         { count: 200, spread: 3,  parallax: 0.4 },
-      ], 0.45); // centered on mid-journey
+      ], 0.45);
 
       // Milky Way spiral stars
       state.spiralStars = [];
@@ -688,27 +781,27 @@ window.tripMovie = (function () {
       }
       state.coreGlow = { x: milkyWayPos.x, y: milkyWayPos.y, radius: 0.025 };
 
-      // Andromeda spiral stars
-      state.andromedaStars = [];
-      for (let arm = 0; arm < 3; arm++) {
-        const armOffset = (arm / 3) * Math.PI * 2;
-        for (let i = 0; i < 150; i++) {
-          const t = i / 150;
-          const angle = armOffset + t * Math.PI * 2;
-          const radius = 0.002 + t * 0.03;
-          const spread = 0.002 + t * 0.005;
-          const r = radius + (Math.random() - 0.5) * spread;
-          const a = angle + (Math.random() - 0.5) * 0.5;
-          state.andromedaStars.push({
-            x: state.andromedaPos.x + r * Math.cos(a),
-            y: state.andromedaPos.y + r * Math.sin(a) * 0.5,
-            brightness: 0.2 + Math.random() * 0.6,
-            size: 0.3 + Math.random() * 0.8,
-            twinkleSpeed: 0.3 + Math.random() * 1,
-            twinkleOffset: Math.random() * Math.PI * 2,
-          });
+      // Build galaxies with positions and stars
+      state.galaxies = this.GALAXY_DEFS.map(def => {
+        const g = { ...def };
+        g.y = this.extraLyToY(g.distLy);
+        if (g.edgeOn) {
+          g.stars = generateDiscStars({ x: g.x, y: g.y }, g.discStars, g.discWidth, g.discHeight);
+        } else {
+          g.stars = generateSpiralStars({ x: g.x, y: g.y }, g.arms, g.starsPerArm, g.maxRadius, g.tilt, g.turns);
         }
-      }
+        return g;
+      });
+
+      // Resolve destination galaxy
+      state.destGalaxy = state.galaxies.find(g => g.name === state.destinationName);
+      state.destY = state.destGalaxy ? state.destGalaxy.y : state.galaxies[0].y;
+
+      // MW reference landmarks
+      state.mwLandmarks = this.MW_LANDMARK_DEFS.map(lm => ({
+        ...lm,
+        y: EARTH_Y + this.mwLyToY(lm.ly) * this.MW_LANDMARK_SPAN,
+      }));
 
       // Source is Solar System at EARTH_Y
       state.sourceY = EARTH_Y;
@@ -720,16 +813,16 @@ window.tripMovie = (function () {
       const BOTTOM_MARGIN = 200;
       const usableH = screenH - TOP_MARGIN - BOTTOM_MARGIN;
 
-      const sourceY = this.EARTH_Y; // 0.2
-      const destY = 0.9; // Andromeda
+      const sourceY = this.EARTH_Y;
+      const destY = state.destY;
       const span = destY - sourceY;
-      const finalZoom = usableH / span;
+      const finalZoom = usableH / Math.max(span, 0.15);
 
       // Anchor destination to top of canvas
       const camCY = destY - (screenH / 2 - TOP_MARGIN) / finalZoom;
 
       state.hold = { cx: 0, cy: state.earthY, zoom: screenH * 12 };
-      state.finalState = { cx: 0.015, cy: camCY, zoom: finalZoom };
+      state.finalState = { cx: 0, cy: camCY, zoom: finalZoom };
       state.logZoomStart = Math.log(state.hold.zoom);
       state.logZoomEnd = Math.log(state.finalState.zoom);
     },
@@ -753,21 +846,24 @@ window.tripMovie = (function () {
       // Background stars
       drawStars(state, time, 0.3, 0.7);
 
-      // Milky Way
+      // Milky Way spiral
       extragalactic.drawMilkyWay(state, time, progress);
 
-      // Andromeda
-      extragalactic.drawAndromeda(state, time, progress, arrivalAmount);
+      // MW reference landmarks
+      extragalactic.drawMilkyWayLandmarks(state, progress);
+
+      // Galaxies between Earth and destination
+      extragalactic.drawGalaxies(state, time, progress, arrivalAmount);
 
       // Trail
       const earthPos = toScreen(state, 0, state.earthY, 1.0);
-      const destPos = toScreen(state, state.andromedaPos.x, state.andromedaPos.y, 1.0);
+      const destG = state.destGalaxy;
+      const destPos = toScreen(state, destG ? destG.x : 0, state.destY, 1.0);
       drawTrail(state, progress, earthPos, destPos);
 
       // Solar system icon
       const ssPos = toScreen(state, 0, state.earthY, 1.0);
       const iconR = drawSolarSystemIcon(state, ssPos);
-      // Label when big enough
       if (iconR > 8) {
         const labelR = iconR * 2.5;
         ctx.font = `400 ${Math.max(14, Math.min(16, iconR * 0.4))}px 'Segoe UI', system-ui, sans-serif`;
@@ -775,7 +871,6 @@ window.tripMovie = (function () {
         ctx.textAlign = 'left';
         ctx.fillText('Solar System', ssPos.x + labelR + 8, ssPos.y + 4);
       }
-
     },
 
     drawMilkyWay(state, time, progress) {
@@ -823,56 +918,102 @@ window.tripMovie = (function () {
       }
     },
 
-    drawAndromeda(state, time, progress, arrivalAmount) {
+    drawMilkyWayLandmarks(state, progress) {
       const ctx = state.ctx;
-      const andAlpha = Math.min(1, Math.max(0, (progress - 0.45) / 0.25));
-      if (andAlpha <= 0) return;
+      const lmFadeIn  = Math.min(1, Math.max(0, (progress - 0.05) / 0.10));
+      const lmFadeOut = Math.min(1, Math.max(0, (progress - 0.65) / 0.15));
+      const lmAlpha = lmFadeIn * (1 - lmFadeOut);
+      if (lmAlpha <= 0) return;
 
-      const corePos = toScreen(state, state.andromedaPos.x, state.andromedaPos.y, 1.0);
-      const coreR = 0.01 * state.camZoom;
+      for (const lm of state.mwLandmarks) {
+        const pos = toScreen(state, lm.x, lm.y, 1.0);
+        if (pos.y < -50 || pos.y > state.cssHeight + 50) continue;
 
-      // Arrival arrow
-      if (arrivalAmount > 0) {
-        drawArrivalArrow(ctx, corePos.x - 20, corePos.y, arrivalAmount);
-      }
-
-      // Core glow
-      if (coreR > 1 && coreR < state.cssWidth) {
-        const drawR = Math.min(coreR, 100);
-        const gradient = ctx.createRadialGradient(corePos.x, corePos.y, 0, corePos.x, corePos.y, drawR);
-        gradient.addColorStop(0, `rgba(200, 210, 255, ${andAlpha * 0.35})`);
-        gradient.addColorStop(0.4, `rgba(180, 190, 230, ${andAlpha * 0.1})`);
-        gradient.addColorStop(1, 'transparent');
+        // Small dot
         ctx.beginPath();
-        ctx.arc(corePos.x, corePos.y, drawR, 0, Math.PI * 2);
-        ctx.fillStyle = gradient;
+        ctx.arc(pos.x, pos.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = lm.color;
+        ctx.globalAlpha = lmAlpha * 0.7;
         ctx.fill();
-      }
+        ctx.globalAlpha = 1;
 
-      // Spiral stars
-      for (const star of state.andromedaStars) {
-        const pos = toScreen(state, star.x, star.y, 1.0);
-        if (pos.x < -5 || pos.x > state.cssWidth + 5 ||
-            pos.y < -5 || pos.y > state.cssHeight + 5) continue;
-        const twinkle = 0.5 + 0.5 * Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
-        const alpha = andAlpha * star.brightness * (0.3 + 0.7 * twinkle);
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, star.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200, 210, 255, ${alpha})`;
-        ctx.fill();
+        // Name label
+        ctx.font = '400 12px "Segoe UI", system-ui, sans-serif';
+        ctx.fillStyle = `rgba(255,255,255,${lmAlpha * 0.55})`;
+        if (lm.x >= 0) {
+          ctx.textAlign = 'left';
+          ctx.fillText(lm.name, pos.x + 8, pos.y + 4);
+        } else {
+          ctx.textAlign = 'right';
+          ctx.fillText(lm.name, pos.x - 8, pos.y + 4);
+        }
       }
+    },
 
-      // Label
-      if (andAlpha > 0.3) {
-        const labelPos = toScreen(state, state.andromedaPos.x, state.andromedaPos.y - 0.06, 1.0);
-        if (labelPos.y > 0 && labelPos.y < state.cssHeight) {
-          const arrived = arrivalAmount > 0;
-          const fontSize = arrived ? 18 : 14;
-          ctx.font = `${arrived ? '600' : '400'} ${fontSize}px "Segoe UI", system-ui, sans-serif`;
-          ctx.fillStyle = arrived ? `rgba(126, 184, 255, ${0.5 + arrivalAmount * 0.5})` :
-                          `rgba(255,255,255,${andAlpha * 0.5})`;
-          ctx.textAlign = 'center';
-          ctx.fillText('Andromeda Galaxy', labelPos.x, labelPos.y);
+    drawGalaxies(state, time, progress, arrivalAmount) {
+      const ctx = state.ctx;
+      const destY = state.destY;
+      const journeySpan = destY - state.earthY;
+
+      for (const g of state.galaxies) {
+        // Only draw galaxies up to the destination
+        if (g.y > destY + 0.01) continue;
+
+        const isDest = g.name === state.destinationName;
+
+        // Fade in based on position in journey
+        const journeyFrac = (g.y - state.earthY) / journeySpan;
+        const fadeInStart = 0.15 + journeyFrac * 0.45;
+        const galAlpha = Math.min(1, Math.max(0, (progress - fadeInStart) / 0.20));
+        if (galAlpha <= 0) continue;
+
+        const galPos = toScreen(state, g.x, g.y, 1.0);
+
+        // Arrival arrow (destination only)
+        if (isDest && arrivalAmount > 0) {
+          drawArrivalArrow(ctx, galPos.x - 20, galPos.y, arrivalAmount);
+        }
+
+        // Core glow
+        const coreR = g.coreRadius * state.camZoom;
+        if (coreR > 1 && coreR < state.cssWidth) {
+          const drawR = Math.min(coreR, g.edgeOn ? 80 : 100);
+          const gradient = ctx.createRadialGradient(galPos.x, galPos.y, 0, galPos.x, galPos.y, drawR);
+          gradient.addColorStop(0, `rgba(${g.coreColor}, ${galAlpha * 0.35})`);
+          gradient.addColorStop(0.4, `rgba(${g.coreColor}, ${galAlpha * 0.1})`);
+          gradient.addColorStop(1, 'transparent');
+          ctx.beginPath();
+          ctx.arc(galPos.x, galPos.y, drawR, 0, Math.PI * 2);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+        }
+
+        // Galaxy stars
+        for (const star of g.stars) {
+          const pos = toScreen(state, star.x, star.y, 1.0);
+          if (pos.x < -5 || pos.x > state.cssWidth + 5 ||
+              pos.y < -5 || pos.y > state.cssHeight + 5) continue;
+          const twinkle = 0.5 + 0.5 * Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
+          const alpha = galAlpha * star.brightness * (0.3 + 0.7 * twinkle);
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, star.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${g.starColor}, ${alpha})`;
+          ctx.fill();
+        }
+
+        // Label
+        if (galAlpha > 0.3) {
+          const labelOffset = g.edgeOn ? -0.003 : -0.04;
+          const labelPos = toScreen(state, g.x, g.y + labelOffset, 1.0);
+          if (labelPos.y > 0 && labelPos.y < state.cssHeight) {
+            const arrived = isDest && arrivalAmount > 0;
+            const fontSize = arrived ? 18 : 14;
+            ctx.font = `${arrived ? '600' : '400'} ${fontSize}px "Segoe UI", system-ui, sans-serif`;
+            ctx.fillStyle = arrived ? `rgba(126, 184, 255, ${0.5 + arrivalAmount * 0.5})` :
+                            `rgba(255,255,255,${galAlpha * 0.5})`;
+            ctx.textAlign = 'center';
+            ctx.fillText(g.name, labelPos.x, labelPos.y);
+          }
         }
       }
     },
@@ -1020,7 +1161,8 @@ window.tripMovie = (function () {
     state.dotNetObjRef = null;
     state.starLayers = null;
     state.spiralStars = null;
-    state.andromedaStars = null;
+    state.galaxies = null;
+    state.mwLandmarks = null;
     state.galacticObjects = null;
 
     delete instances[canvasId];

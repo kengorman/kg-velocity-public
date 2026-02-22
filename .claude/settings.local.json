@@ -59,7 +59,8 @@
       "Bash(apt list:*)",
       "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build /mnt/c/users/gorma/github/kg-velocity --verbosity quiet)",
       "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build --verbosity quiet)",
-      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build /mnt/c/users/gorma/github/kg-velocity)"
+      "Bash(\"/mnt/c/Program Files/dotnet/dotnet.exe\" build /mnt/c/users/gorma/github/kg-velocity)",
+      "Bash(export PATH=\"$PATH:/usr/share/dotnet:/home/gorma/.dotnet\")"
     ]
   }
 }

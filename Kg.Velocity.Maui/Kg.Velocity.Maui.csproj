@@ -31,7 +31,7 @@
 
         <!-- Versions -->
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-        <ApplicationVersion>4</ApplicationVersion>
+        <ApplicationVersion>5</ApplicationVersion>
 
         <!-- Release signing -->
         <AndroidKeyStore Condition="'$(Configuration)' == 'Release'">true</AndroidKeyStore>
@@ -45,6 +45,9 @@
         <AndroidSigningStorePass Condition="'$(Configuration)' == 'Release' And '$(ANDROID_KEYSTORE_PASSWORD)' != ''">$(ANDROID_KEYSTORE_PASSWORD)</AndroidSigningStorePass>
         <AndroidSigningStorePass Condition="'$(Configuration)' == 'Release' And '$(ANDROID_KEYSTORE_PASSWORD)' == ''">***REMOVED***</AndroidSigningStorePass>
         <AndroidPackageFormat Condition="'$(Configuration)' == 'Release'">aab</AndroidPackageFormat>
+
+        <!-- Force full APK packaging instead of Fast Deployment to avoid stale builds on emulator -->
+        <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 
         <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
         <WindowsPackageType>None</WindowsPackageType>

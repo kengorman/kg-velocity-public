@@ -37,7 +37,10 @@ public class TripCatalogService
             new() { Name = "Milky Way (center)", DistanceMiles = 26_000 * PhysicsConstants.LightYearMiles, Category = "Milky Way", Tagline = "Home of a supermassive black hole" },
 
             // Extragalactic
-            new() { Name = "Andromeda Galaxy", DistanceMiles = 2_537_000 * PhysicsConstants.LightYearMiles, Category = "Extragalactic", Tagline = "Our nearest galactic neighbor" }
+            new() { Name = "Andromeda Galaxy", DistanceMiles = 2_537_000 * PhysicsConstants.LightYearMiles, Category = "Extragalactic", Tagline = "Our nearest galactic neighbor" },
+            new() { Name = "Triangulum Galaxy", DistanceMiles = 2_730_000 * PhysicsConstants.LightYearMiles, Category = "Extragalactic", Tagline = "The third wheel of the Local Group" },
+            new() { Name = "Whirlpool Galaxy", DistanceMiles = 23_000_000 * PhysicsConstants.LightYearMiles, Category = "Extragalactic", Tagline = "A face-on spiral masterpiece" },
+            new() { Name = "Sombrero Galaxy", DistanceMiles = 29_000_000 * PhysicsConstants.LightYearMiles, Category = "Extragalactic", Tagline = "The hat at the edge of imagination" }
         };
 
         return destinations
