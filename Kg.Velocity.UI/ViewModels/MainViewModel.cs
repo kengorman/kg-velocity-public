@@ -141,6 +141,9 @@ public class MainViewModel
 
     private void ClearResults()
     {
+        // Return main panel to opening state so user sees "The universe is vast. Light is slow." again
+        HasCalculated = false;
+
         // Reset result values to placeholder
         DistanceMiles = 0;
         EarthTimeElapsed = "---";
@@ -159,6 +162,7 @@ public class MainViewModel
         DisplayedJourneySummary = "";
         PersonaName = "";
         PosterDataUrl = "";
+        TravelLogDataUrl = "";
     }
 
     public async Task EvaluateTripAsync()

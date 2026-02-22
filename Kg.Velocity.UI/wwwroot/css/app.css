@@ -561,6 +561,15 @@ html, body {
     line-height: 1.6;
 }
 
+.calculating-state .empty-state-text {
+    animation: calculating-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes calculating-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
 /* Skeleton Loading */
 .skeleton-container {
     max-width: 400px;

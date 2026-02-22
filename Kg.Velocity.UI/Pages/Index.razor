@@ -97,12 +97,18 @@
                         </div>
                     </div>
                 }
+                else if (!ViewModel.ShowResults)
+                {
+                    <div class="empty-state calculating-state">
+                        <div class="empty-state-text">
+                            Calculating trip…
+                        </div>
+                    </div>
+                }
                 else
                 {
                     @* Results carousel — movie is slide 1, other slides fill in as content arrives *@
-                    @if (ViewModel.ShowResults)
-                    {
-                        <div class="results-carousel-wrapper">
+                    <div class="results-carousel-wrapper">
                             <div id="@_resultsCarouselId" class="embla results-carousel">
                                 <div class="embla__container">
                                     @* Slide 1: Movie Animation *@
@@ -229,7 +235,6 @@
                             </div>
                             <div class="embla__dots" id="@_resultsCarouselId-dots"></div>
                         </div>
-                    }
                 }
             </div>
         </div>
