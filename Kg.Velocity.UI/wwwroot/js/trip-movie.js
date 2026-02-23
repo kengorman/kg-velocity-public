@@ -184,8 +184,9 @@ window.tripMovie = (function () {
     const r = Math.max(3, Math.min(60, state.camZoom * 0.008));
 
     const orbits = [0.35, 0.55, 0.75, 1.0];
-    const planetColors = ['#c1440e', '#c88b3a', '#d4a94b', '#3f54ba'];
+    const planetColors = ['#c1440e', '#c88b3a', '#4a90d9', '#3f54ba'];
     const planetSizes = [0.8, 1.4, 1.2, 0.9];
+    const EARTH_INDEX = 2;
 
     ctx.save();
     for (let i = 0; i < orbits.length; i++) {
@@ -209,6 +210,16 @@ window.tripMovie = (function () {
       ctx.fillStyle = planetColors[i];
       ctx.fill();
       ctx.globalAlpha = 1;
+
+      // Earth label (visible when icon is large enough)
+      if (i === EARTH_INDEX && r > 12) {
+        const labelAlpha = Math.min(1, (r - 12) / 20);
+        const fontSize = Math.max(9, Math.min(12, r * 0.22));
+        ctx.font = `400 ${fontSize}px 'Segoe UI', system-ui, sans-serif`;
+        ctx.fillStyle = `rgba(140, 200, 255, ${labelAlpha * 0.7})`;
+        ctx.textAlign = 'left';
+        ctx.fillText('Earth', px + dotR + 4, py + 3);
+      }
     }
 
     // Sun glow
