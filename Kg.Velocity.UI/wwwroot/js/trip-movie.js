@@ -149,25 +149,6 @@ window.tripMovie = (function () {
   }
 
   // ================================================================
-  // SHARED: Arrival arrow (triangle pointing at destination)
-  // ================================================================
-
-  function drawArrivalArrow(ctx, x, y, arrivalAmount) {
-    if (arrivalAmount <= 0) return;
-    const size = 5;
-    const alpha = arrivalAmount * 0.9;
-    ctx.save();
-    ctx.fillStyle = `rgba(126, 184, 255, ${alpha})`;
-    ctx.beginPath();
-    ctx.moveTo(x + size, y);
-    ctx.lineTo(x - size, y - size);
-    ctx.lineTo(x - size, y + size);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // ================================================================
   // SHARED: Log-zoom camera state computation
   // ================================================================
 
