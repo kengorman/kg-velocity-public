@@ -394,10 +394,6 @@ window.tripMovie = (function () {
         (state.destinationName === 'The Moon' && planet.name === 'Moon') ||
         (state.destinationName === 'The Sun' && planet.name === 'Sun');
 
-      // Arrival arrow
-      if (isDestPlanet && arrivalAmount > 0) {
-        drawArrivalArrow(ctx, pos.x - drawR - 14, pos.y, arrivalAmount);
-      }
 
       // Glow
       if (planet.glow && drawR > 3) {
@@ -460,25 +456,50 @@ window.tripMovie = (function () {
 
     DESTINATIONS: {
       'Proxima Centauri':    { ly: 4.24 },
-      'Polaris':             { ly: 433 },
+      'Polaris (North Star)': { ly: 433 },
       'Betelgeuse':          { ly: 700 },
       'Horsehead Nebula':    { ly: 1500 },
       'Crab Nebula':         { ly: 6500 },
       'Pillars of Creation': { ly: 6500 },
-      'Milky Way Center':    { ly: 26000 },
+      'Milky Way (center)':  { ly: 26000 },
     },
 
     // Galactic landmarks
     galacticObjects: [
       { name: 'Solar System',        ly: 0,     baseR: 5,  color: '#4a90d9', glow: '#4a90d940' },
       { name: 'Proxima Centauri',    ly: 4.24,  baseR: 4,  color: '#ff6b4a', glow: '#ff6b4a30' },
-      { name: 'Polaris',             ly: 433,   baseR: 5,  color: '#fffbe0', glow: '#fffbe040' },
+      { name: 'Polaris (North Star)', ly: 433,   baseR: 5,  color: '#fffbe0', glow: '#fffbe040' },
       { name: 'Betelgeuse',          ly: 700,   baseR: 7,  color: '#ff4500', glow: '#ff450040' },
       { name: 'Horsehead Nebula',    ly: 1500,  baseR: 6,  color: '#8b4585', glow: '#8b458540' },
       { name: 'Crab Nebula',         ly: 6500,  baseR: 6,  color: '#4ecdc4', glow: '#4ecdc430' },
       { name: 'Pillars of Creation', ly: 6500,  baseR: 6,  color: '#c79a3e', glow: '#c79a3e30' },
-      { name: 'Milky Way Center',    ly: 26000, baseR: 8,  color: '#ffd700', glow: '#ffd70050' },
+      { name: 'Milky Way (center)',   ly: 26000, baseR: 8,  color: '#ffd700', glow: '#ffd70050' },
     ],
+
+    // ── Galactic band tuning ──────────────────────────────────
+    // Visual: a warm horizontal glow suggesting the galactic plane
+    // as seen from inside the disc (like the real Milky Way band in dark skies)
+    BAND_OPACITY: 0.12,           // max alpha at band center (0–1)
+    BAND_HEIGHT_FACTOR: 0.15,     // thickness as fraction of world-space span
+    BAND_Y_CENTER: 0.35,          // world-space Y center of band (log-normalized)
+    BAND_COLOR: [255, 230, 180],  // warm RGB tone
+    BAND_CURVATURE: 0.0,          // 0 = flat, positive = concave arch (inside-disc feel)
+    BAND_FALLOFF: 2.0,            // gradient sharpness (higher = tighter edges)
+    BAND_FADE_IN_START: 0.05,     // animation progress when band begins appearing
+    BAND_FADE_IN_END: 0.25,       // animation progress when band is fully visible
+
+    // ── Galactic label tuning ─────────────────────────────────
+    // Visual: wide-tracked cartographic text, like a map labeling an ocean
+    LABEL_TEXT: 'MILKY WAY',
+    LABEL_FONT_SIZE_FACTOR: 0.08, // font size as fraction of viewport width
+    LABEL_FONT_SIZE_MIN: 28,      // minimum font size in px
+    LABEL_FONT_SIZE_MAX: 72,      // maximum font size in px
+    LABEL_OPACITY: 0.14,          // text alpha (independent of band)
+    LABEL_FONT_WEIGHT: 300,       // lighter = more atmospheric
+    LABEL_LETTER_SPACING: 0.3,    // em units of tracking between letters
+    LABEL_Y_OFFSET: 0.0,          // world-space offset from band center
+    LABEL_FADE_IN_START: 0.08,    // slightly after band starts
+    LABEL_FADE_IN_END: 0.30,      // fully visible
 
     lyToY(ly) {
       if (ly <= 0) return 0;
@@ -550,8 +571,14 @@ window.tripMovie = (function () {
       // Arrival highlight
       const arrivalAmount = Math.min(1, Math.max(0, (progress - 0.75) / 0.15));
 
+      // Galactic band (behind everything)
+      milkyWay.drawGalacticBand(state, progress);
+
       // Stars
       drawStars(state, time, 0.3, 0.7);
+
+      // Galactic label (in front of stars, behind landmarks)
+      milkyWay.drawGalacticLabel(state, progress);
 
       // Trail
       const earthPos = toScreen(state, 0, 0, 1.0);
@@ -562,6 +589,116 @@ window.tripMovie = (function () {
       // Galactic objects
       milkyWay.drawGalacticObjects(state, arrivalAmount);
 
+    },
+
+    drawGalacticBand(state, progress) {
+      const ctx = state.ctx;
+
+      // Fade in based on animation progress
+      const fadeRange = this.BAND_FADE_IN_END - this.BAND_FADE_IN_START;
+      const fade = fadeRange > 0
+        ? Math.min(1, Math.max(0, (progress - this.BAND_FADE_IN_START) / fadeRange))
+        : (progress >= this.BAND_FADE_IN_START ? 1 : 0);
+      if (fade <= 0) return;
+
+      const alpha = this.BAND_OPACITY * fade;
+      const [r, g, b] = this.BAND_COLOR;
+
+      // Band center and height in world space → screen space
+      const bandWorldSpan = (this.LOG_MAX - this.LOG_MIN) > 0 ? 1.0 : 0.5;
+      const bandHalfH = (this.BAND_HEIGHT_FACTOR * bandWorldSpan) / 2;
+      const bandCenterScreen = toScreen(state, 0, this.BAND_Y_CENTER, 1.0);
+      const bandTopScreen = toScreen(state, 0, this.BAND_Y_CENTER - bandHalfH, 1.0);
+      const bandBotScreen = toScreen(state, 0, this.BAND_Y_CENTER + bandHalfH, 1.0);
+
+      const screenCY = bandCenterScreen.y;
+      const screenTop = bandTopScreen.y;
+      const screenBot = bandBotScreen.y;
+      const screenH = screenBot - screenTop;
+
+      if (screenH < 1) return; // too small to see
+
+      if (this.BAND_CURVATURE > 0) {
+        // Curved band: render as vertical slices with cosine offset
+        const slices = 30;
+        const sliceW = Math.ceil(state.cssWidth / slices) + 1;
+
+        for (let i = 0; i < slices; i++) {
+          const xNorm = (i / (slices - 1)) * 2 - 1; // -1 to 1
+          const curveOffset = this.BAND_CURVATURE * screenH * (1 - Math.cos(xNorm * Math.PI)) / 2;
+          const sliceTop = screenTop + curveOffset;
+          const sliceBot = screenBot + curveOffset;
+          const sliceH = sliceBot - sliceTop;
+
+          const grad = ctx.createLinearGradient(0, sliceTop, 0, sliceBot);
+          const edge = Math.pow(0.05, this.BAND_FALLOFF);
+          grad.addColorStop(0, `rgba(${r},${g},${b},0)`);
+          grad.addColorStop(Math.pow(0.3, 1 / this.BAND_FALLOFF), `rgba(${r},${g},${b},${alpha * 0.5})`);
+          grad.addColorStop(0.5, `rgba(${r},${g},${b},${alpha})`);
+          grad.addColorStop(1 - Math.pow(0.3, 1 / this.BAND_FALLOFF), `rgba(${r},${g},${b},${alpha * 0.5})`);
+          grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+
+          ctx.fillStyle = grad;
+          ctx.fillRect(i * (state.cssWidth / slices), sliceTop, sliceW, sliceH);
+        }
+      } else {
+        // Flat band: single full-width gradient
+        const grad = ctx.createLinearGradient(0, screenTop, 0, screenBot);
+        grad.addColorStop(0, `rgba(${r},${g},${b},0)`);
+        grad.addColorStop(Math.pow(0.3, 1 / this.BAND_FALLOFF), `rgba(${r},${g},${b},${alpha * 0.5})`);
+        grad.addColorStop(0.5, `rgba(${r},${g},${b},${alpha})`);
+        grad.addColorStop(1 - Math.pow(0.3, 1 / this.BAND_FALLOFF), `rgba(${r},${g},${b},${alpha * 0.5})`);
+        grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, screenTop, state.cssWidth, screenH);
+      }
+    },
+
+    drawGalacticLabel(state, progress) {
+      const ctx = state.ctx;
+
+      // Fade in based on animation progress
+      const fadeRange = this.LABEL_FADE_IN_END - this.LABEL_FADE_IN_START;
+      const fade = fadeRange > 0
+        ? Math.min(1, Math.max(0, (progress - this.LABEL_FADE_IN_START) / fadeRange))
+        : (progress >= this.LABEL_FADE_IN_START ? 1 : 0);
+      if (fade <= 0) return;
+
+      const alpha = this.LABEL_OPACITY * fade;
+
+      // Font size: clamped fraction of viewport width
+      const rawSize = state.cssWidth * this.LABEL_FONT_SIZE_FACTOR;
+      const fontSize = Math.max(this.LABEL_FONT_SIZE_MIN, Math.min(this.LABEL_FONT_SIZE_MAX, rawSize));
+
+      ctx.font = `${this.LABEL_FONT_WEIGHT} ${fontSize}px 'Segoe UI', system-ui, sans-serif`;
+      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Position in world space → screen
+      const labelWorldY = this.BAND_Y_CENTER + this.LABEL_Y_OFFSET;
+      const labelScreen = toScreen(state, 0, labelWorldY, 1.0);
+
+      // Manual letter spacing (ctx.letterSpacing not universally supported)
+      const text = this.LABEL_TEXT;
+      const spacingPx = fontSize * this.LABEL_LETTER_SPACING;
+
+      // Measure total width with spacing
+      let totalW = 0;
+      for (let i = 0; i < text.length; i++) {
+        totalW += ctx.measureText(text[i]).width;
+        if (i < text.length - 1) totalW += spacingPx;
+      }
+
+      // Draw character by character, centered horizontally
+      let x = labelScreen.x - totalW / 2;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        ctx.textAlign = 'left';
+        ctx.fillText(ch, x, labelScreen.y);
+        x += ctx.measureText(ch).width + spacingPx;
+      }
     },
 
     drawGalacticObjects(state, arrivalAmount) {
@@ -579,10 +716,6 @@ window.tripMovie = (function () {
         const isDest = obj.name === state.destinationName;
         const isEarth = obj.name === 'Solar System';
 
-        // Arrival arrow
-        if (isDest && arrivalAmount > 0) {
-          drawArrivalArrow(ctx, pos.x - drawR - 14, pos.y, arrivalAmount);
-        }
 
         // Solar System gets icon rendering
         if (isEarth) {
@@ -906,13 +1039,14 @@ window.tripMovie = (function () {
         ctx.fill();
       }
 
-      // Label
+      // Label (centered below the spiral so it stays visible at all zoom levels)
       if (mwAlpha > 0.5) {
-        const labelPos = toScreen(state, state.milkyWayPos.x + 0.12, state.milkyWayPos.y, 1.0);
-        if (labelPos.y > 0 && labelPos.y < state.cssHeight) {
+        const labelPos = toScreen(state, state.milkyWayPos.x, state.milkyWayPos.y + 0.06, 1.0);
+        if (labelPos.x > -100 && labelPos.x < state.cssWidth + 100 &&
+            labelPos.y > 0 && labelPos.y < state.cssHeight) {
           ctx.font = '14px "Segoe UI", system-ui, sans-serif';
           ctx.fillStyle = `rgba(255,255,255,${mwAlpha * 0.5})`;
-          ctx.textAlign = 'left';
+          ctx.textAlign = 'center';
           ctx.fillText('Milky Way', labelPos.x, labelPos.y);
         }
       }
@@ -969,10 +1103,6 @@ window.tripMovie = (function () {
 
         const galPos = toScreen(state, g.x, g.y, 1.0);
 
-        // Arrival arrow (destination only)
-        if (isDest && arrivalAmount > 0) {
-          drawArrivalArrow(ctx, galPos.x - 20, galPos.y, arrivalAmount);
-        }
 
         // Core glow
         const coreR = g.coreRadius * state.camZoom;
