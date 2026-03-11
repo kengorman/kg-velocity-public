@@ -179,9 +179,10 @@ window.tripMovie = (function () {
   // SHARED: Solar system icon (used by Milky Way and Extragalactic)
   // ================================================================
 
-  function drawSolarSystemIcon(state, pos) {
+  function drawSolarSystemIcon(state, pos, maxR) {
     const ctx = state.ctx;
-    const r = Math.max(3, Math.min(60, state.camZoom * 0.008));
+    const upperLimit = maxR != null ? Math.min(60, maxR) : 60;
+    const r = Math.max(3, Math.min(upperLimit, state.camZoom * 0.008));
 
     const orbits = [0.35, 0.55, 0.75, 1.0];
     const planetColors = ['#c1440e', '#c88b3a', '#4a90d9', '#3f54ba'];
@@ -986,9 +987,12 @@ window.tripMovie = (function () {
       const destPos = toScreen(state, destG ? destG.x : 0, state.destY, 1.0);
       drawTrail(state, progress, earthPos, destPos);
 
-      // Solar system icon
+      // Solar system icon — cap size relative to the Milky Way's apparent radius
+      // so it shrinks to a speck as the galaxy itself becomes small on screen
+      const mwApparentR = 0.1 * state.camZoom; // MW spiral radius in pixels
+      const ssMaxR = Math.max(3, mwApparentR * 0.04); // ~4% of galaxy size
       const ssPos = toScreen(state, 0, state.earthY, 1.0);
-      const iconR = drawSolarSystemIcon(state, ssPos);
+      const iconR = drawSolarSystemIcon(state, ssPos, ssMaxR);
       if (iconR > 8) {
         const labelR = iconR * 2.5;
         ctx.font = `400 ${Math.max(14, Math.min(16, iconR * 0.4))}px 'Segoe UI', system-ui, sans-serif`;
