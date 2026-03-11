@@ -124,14 +124,14 @@ html, body {
 /* Trip Movie — canvas animation inside carousel slide */
 .trip-movie-container {
     width: 100%;
-    height: calc(100vh - 40px); /* fallback for browsers without dvh */
+    height: calc(100vh - 80px); /* fallback for browsers without dvh */
     position: relative;
     overflow: hidden;
 }
 
 @supports (height: 100dvh) {
     .trip-movie-container {
-        height: calc(100dvh - 40px);
+        height: calc(100dvh - 80px);
     }
 }
 
