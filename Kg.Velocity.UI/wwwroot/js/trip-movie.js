@@ -308,7 +308,7 @@ window.tripMovie = (function () {
     computeFraming(state) {
       const screenH = state.cssHeight || 800;
       const TOP_MARGIN = 40;
-      const BOTTOM_MARGIN = 200;
+      const BOTTOM_MARGIN = 40;
       const usableH = screenH - TOP_MARGIN - BOTTOM_MARGIN;
 
       const sourceY = 1.0; // Earth
@@ -531,7 +531,7 @@ window.tripMovie = (function () {
     computeFraming(state) {
       const screenH = state.cssHeight || 800;
       const TOP_MARGIN = 40;
-      const BOTTOM_MARGIN = 200;
+      const BOTTOM_MARGIN = 40;
       const usableH = screenH - TOP_MARGIN - BOTTOM_MARGIN;
 
       const sourceY = 0; // Solar System
@@ -936,7 +936,7 @@ window.tripMovie = (function () {
     computeFraming(state) {
       const screenH = state.cssHeight || 800;
       const TOP_MARGIN = 40;
-      const BOTTOM_MARGIN = 200;
+      const BOTTOM_MARGIN = 40;
       const usableH = screenH - TOP_MARGIN - BOTTOM_MARGIN;
 
       const sourceY = this.EARTH_Y;
