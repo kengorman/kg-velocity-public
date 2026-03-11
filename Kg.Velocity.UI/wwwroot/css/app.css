@@ -466,9 +466,9 @@ html, body {
 
 .journey-summary .summary-text {
     font-style: normal;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 450;
-    line-height: 1.65;
+    line-height: 1.6;
     color: var(--text-primary);
 }
 

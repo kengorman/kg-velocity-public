@@ -20,7 +20,7 @@ Use this to find where the jaw-drop lives:
 - Combined insights like "farewell and dilation" → weave both together
 
 Rules:
-- Write 4-7 sentences.
+- Write 3-5 sentences.
 - Every sentence must do work. No filler. No lines that just sound nice.
 - Use real facts and real comparisons — things that actually happen over that time or distance. Geological changes, evolutionary milestones, historical spans, stellar events. Be specific.
 - Get the facts credibly right. This is a fun simulator, not a textbook, but don't say anything a curious person could easily disprove.
