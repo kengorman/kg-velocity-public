@@ -31,7 +31,7 @@
 
         <!-- Versions -->
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-        <ApplicationVersion>5</ApplicationVersion>
+        <ApplicationVersion>6</ApplicationVersion>
 
         <!-- Release signing -->
         <AndroidKeyStore Condition="'$(Configuration)' == 'Release'">true</AndroidKeyStore>
