@@ -388,6 +388,22 @@ else
                     // Scroll the movie into view
                     await JS.InvokeVoidAsync("eval",
                         $"document.getElementById('{_resultsCarouselId}')?.scrollIntoView({{behavior:'smooth',block:'start'}})");
+
+                    // Auto-advance to summary after movie completes + pause,
+                    // but only if the user hasn't already swiped away
+                    if (_tripMovie != null)
+                    {
+                        await _tripMovie.CompletionTask;
+                        await Task.Delay(5000);
+
+                        var currentIndex = await JS.InvokeAsync<int>(
+                            "emblaCarousel.getSelectedIndex", _resultsCarouselId);
+                        if (currentIndex == 0)
+                        {
+                            await JS.InvokeVoidAsync(
+                                "emblaCarousel.scrollTo", _resultsCarouselId, 1);
+                        }
+                    }
                 }
             });
         }

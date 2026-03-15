@@ -22,6 +22,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D4E5F6A7-B8C9-4D0E-A1B2-C3D4E5F6A7B8}"
 	ProjectSection(SolutionItems) = preProject
 		docs\android-deployment-notes.md = docs\android-deployment-notes.md
+		docs\architecture-diagrams.md = docs\architecture-diagrams.md
+		docs\article-diagrams.md = docs\article-diagrams.md
 		docs\destination-images.md = docs\destination-images.md
 		docs\MAUI-MIGRATION-PLAN.md = docs\MAUI-MIGRATION-PLAN.md
 		docs\MISSION-LOG-DESIGN.md = docs\MISSION-LOG-DESIGN.md
@@ -131,6 +133,7 @@ Global
 		{27896F88-82E4-410C-8B96-125D346459BC}.Debug|x86.Build.0 = Debug|Any CPU
 		{27896F88-82E4-410C-8B96-125D346459BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27896F88-82E4-410C-8B96-125D346459BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27896F88-82E4-410C-8B96-125D346459BC}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{27896F88-82E4-410C-8B96-125D346459BC}.Release|x64.ActiveCfg = Release|Any CPU
 		{27896F88-82E4-410C-8B96-125D346459BC}.Release|x64.Build.0 = Release|Any CPU
 		{27896F88-82E4-410C-8B96-125D346459BC}.Release|x86.ActiveCfg = Release|Any CPU
@@ -150,5 +153,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C3E34EE2-880A-42BB-93A4-B3C4534F4E46}
 	EndGlobalSection
 EndGlobal
