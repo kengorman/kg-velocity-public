@@ -472,6 +472,23 @@ html, body {
     color: var(--text-primary);
 }
 
+/* Summary beats - wry label above each sentence */
+.journey-summary .summary-beat {
+    margin-bottom: 14px;
+}
+
+.journey-summary .summary-beat:last-child {
+    margin-bottom: 0;
+}
+
+.journey-summary .summary-beat-label {
+    font-style: italic;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent-amber);
+    margin-bottom: 2px;
+}
+
 .journey-summary .summary-text.calculating {
     font-style: italic;
 }

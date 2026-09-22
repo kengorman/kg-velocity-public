@@ -4,6 +4,7 @@
 @using Kg.Velocity.Contracts.Catalogs
 @using System.Linq
 @using System.Reflection
+@using System.Text.RegularExpressions
 @inject MainViewModel ViewModel
 @inject IJSRuntime JS
 @implements IAsyncDisposable
@@ -116,28 +117,7 @@
                                         <TripMovie @ref="_tripMovie" />
                                     </div>
 
-                                    @* Slide 2: Journey Summary *@
-                                    <div class="embla__slide results-slide">
-                                        <div class="results-slide-content">
-                                            @if (ViewModel.ShowSummary)
-                                            {
-                                                <div id="journey-summary" class="journey-summary">
-                                                    <div class="summary-header">
-                                                        <div class="summary-label">Your journey...</div>
-                                                    </div>
-                                                    <div class="summary-text">@ViewModel.DisplayedJourneySummary</div>
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <div class="slide-loading">
-                                                    <div class="slide-loading-text">Receiving transmission...</div>
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-
-                                    @* Slide 3: Poster *@
+                                    @* Slide 2: Poster *@
                                     <div class="embla__slide results-slide">
                                         <div class="results-slide-content">
                                             @if (!string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
@@ -158,7 +138,7 @@
                                         </div>
                                     </div>
 
-                                    @* Slide 4: Mission Log *@
+                                    @* Slide 3: Mission Log *@
                                     <div class="embla__slide results-slide">
                                         <div class="results-slide-content">
                                             @if (!string.IsNullOrWhiteSpace(ViewModel.TravelLogDataUrl))
@@ -174,6 +154,38 @@
                                             {
                                                 <div class="slide-loading">
                                                     <div class="slide-loading-text">Writing mission log...</div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    @* Slide 4: Journey Summary *@
+                                    <div class="embla__slide results-slide">
+                                        <div class="results-slide-content">
+                                            @if (ViewModel.ShowSummary)
+                                            {
+                                                <div id="journey-summary" class="journey-summary">
+                                                    <div class="summary-header">
+                                                        <div class="summary-label">Your journey...</div>
+                                                    </div>
+                                                    <div class="summary-text">
+                                                        @foreach (var beat in ParseSummaryBeats(ViewModel.DisplayedJourneySummary))
+                                                        {
+                                                            <div class="summary-beat">
+                                                                @if (!string.IsNullOrEmpty(beat.Label))
+                                                                {
+                                                                    <div class="summary-beat-label">@beat.Label</div>
+                                                                }
+                                                                <div class="summary-beat-text">@beat.Text</div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="slide-loading">
+                                                    <div class="slide-loading-text">Receiving transmission...</div>
                                                 </div>
                                             }
                                         </div>
@@ -389,12 +401,12 @@ else
                     await JS.InvokeVoidAsync("eval",
                         $"document.getElementById('{_resultsCarouselId}')?.scrollIntoView({{behavior:'smooth',block:'start'}})");
 
-                    // Auto-advance to summary after movie completes + pause,
+                    // Auto-advance to the poster after movie completes + pause,
                     // but only if the user hasn't already swiped away
                     if (_tripMovie != null)
                     {
                         await _tripMovie.CompletionTask;
-                        await Task.Delay(5000);
+                        await Task.Delay(500);
 
                         var currentIndex = await JS.InvokeAsync<int>(
                             "emblaCarousel.getSelectedIndex", _resultsCarouselId);
@@ -514,6 +526,84 @@ else
 
     private static string ToSlug(string name) =>
         name.ToLowerInvariant().Replace(" ", "-").Replace("(", "").Replace(")", "");
+
+    private record SummaryBeat(string Label, string Text);
+
+    private static bool IsDash(char c) => c is '-' or '\u2013' or '\u2014';
+
+    // The prompt asks for "-label-" on its own line above each sentence. Models
+    // drift on which dash they use, sometimes wrap the line in markdown bold, and
+    // sometimes run the sentence on after the closing dash - accept all of that
+    // rather than tightening the prompt further. Anything left over is body text.
+    private static bool TrySplitLabel(string line, out string label, out string rest)
+    {
+        label = string.Empty;
+        rest = line.Trim().Trim('*').Trim();
+        if (rest.Length < 3 || !IsDash(rest[0])) return false;
+
+        var close = -1;
+        for (var i = 1; i < rest.Length; i++)
+        {
+            if (IsDash(rest[i])) { close = i; break; }
+        }
+        if (close < 2) return false;
+
+        // Trailing ellipsis is added here rather than asked for in the prompt, so
+        // it stays exactly three periods even when the model adds its own full stop.
+        label = rest[1..close].Trim().TrimEnd('.', '\u2026').TrimEnd();
+        if (label.Length == 0) return false;
+        label += "...";
+
+        rest = rest[(close + 1)..].Trim().TrimEnd('*').Trim();
+        return true;
+    }
+
+    // Pairs each label line with the sentence beneath it. If the model ignores the
+    // format entirely we fall back to one unlabelled beat per sentence, so a format
+    // miss degrades to plain prose rather than looking broken.
+    private static List<SummaryBeat> ParseSummaryBeats(string? text)
+    {
+        var beats = new List<SummaryBeat>();
+        if (string.IsNullOrWhiteSpace(text)) return beats;
+
+        var pendingLabel = string.Empty;
+        foreach (var rawLine in text.Split('\n'))
+        {
+            var line = rawLine.Trim();
+            if (line.Length == 0) continue;
+
+            if (TrySplitLabel(line, out var label, out var inlineText))
+            {
+                // Sentence ran on after the closing dash - emit the pair now.
+                if (inlineText.Length > 0)
+                {
+                    beats.Add(new SummaryBeat(label, inlineText));
+                    pendingLabel = string.Empty;
+                }
+                else
+                {
+                    pendingLabel = label;
+                }
+                continue;
+            }
+
+            beats.Add(new SummaryBeat(pendingLabel, line));
+            pendingLabel = string.Empty;
+        }
+
+        if (beats.Count == 1 && beats[0].Label.Length == 0)
+        {
+            // Lookbehind only splits on punctuation followed by a space, which
+            // leaves decimals ("3.5 years", "0.9c") intact.
+            var sentences = Regex.Split(beats[0].Text, @"(?<=[.!?])[ \t]+");
+            if (sentences.Length > 1)
+            {
+                beats = sentences.Select(x => new SummaryBeat(string.Empty, x)).ToList();
+            }
+        }
+
+        return beats;
+    }
 
     public async ValueTask DisposeAsync()
     {
