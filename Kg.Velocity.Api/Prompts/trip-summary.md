@@ -20,19 +20,19 @@ Use this to find where the jaw-drop lives:
 - Combined insights like "farewell and dilation" → weave both together
 
 Structure:
-- Write 3-4 sentences.
-- Precede each sentence with a short label on its own line, written between dashes.
+- Write 3 sentences.
+- Precede each sentence with a short label on its own line, written between tildes.
 - The label is a fun, funny, odd or intriguing angle on the sentence that follows — never a restatement of it. Six words at most, no full stop.
 
 Format exactly like this, label line then sentence line:
 
--Dinosaurs bit the dust-
+~Dinosaurs bit the dust~
 In that span the Yucatán impact came and went, and mammals inherited the place.
--Your bootlace gave up-
+~Your bootlace gave up~
 Six days passed on the ship, long enough for the lace to wear through where it rubbed the airlock seal.
 
-Good label: "-Dinosaurs bit the dust-" above a sentence about twenty million years of evolution. It adds an angle the sentence does not have.
-Bad label: "-Twenty million years passed-" above a sentence that says twenty million years passed. The label must never repeat its sentence.
+Good label: "~Dinosaurs bit the dust~" above a sentence about twenty million years of evolution. It adds an angle the sentence does not have.
+Bad label: "~Twenty million years passed~" above a sentence that says twenty million years passed. The label must never repeat its sentence.
 
 Rules:
 - Every sentence must do work. No filler. No lines that just sound nice.

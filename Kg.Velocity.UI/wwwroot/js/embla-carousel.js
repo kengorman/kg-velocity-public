@@ -177,6 +177,67 @@ export function getSelectedIndex(containerId) {
 }
 
 /**
+ * Auto-scroll through a sequence of slides to show off how many there are.
+ * Cancels as soon as the user touches the carousel or its dots.
+ * @param {string} containerId - The carousel container ID
+ * @param {number[]} sequence - Slide indexes to visit in order; the last one is where it settles
+ * @param {object} options - { dwellMs, finalDwellMs, duration }
+ * @returns {Promise<boolean>} true if the tour completed, false if cancelled
+ */
+export function tour(containerId, sequence, options = {}) {
+  const embla = carousels.get(containerId);
+  if (!embla || sequence.length === 0) return Promise.resolve(false);
+
+  const { dwellMs = 400, finalDwellMs = dwellMs, duration } = options;
+  const finalIndex = sequence[sequence.length - 1];
+
+  // Respect the OS "reduce motion" setting: skip the fly-through, just land on the final slide
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    embla.scrollTo(finalIndex);
+    return Promise.resolve(true);
+  }
+
+  // Temporarily override scroll duration. scrollTo() reads this from the engine's
+  // options object on each call, so mutating it avoids a reInit.
+  const engineOptions = embla.internalEngine().options;
+  const baseDuration = engineOptions.duration;
+  if (duration) engineOptions.duration = duration;
+
+  const dotsContainer = document.getElementById(`${containerId}-dots`);
+
+  return new Promise(resolve => {
+    let step = 0;
+    let timer = null;
+
+    const finish = (completed) => {
+      clearTimeout(timer);
+      engineOptions.duration = baseDuration;
+      embla.off('pointerDown', cancel);
+      dotsContainer?.removeEventListener('pointerdown', cancel);
+      resolve(completed);
+    };
+    const cancel = () => finish(false);
+
+    const next = () => {
+      // Carousel was destroyed or replaced (e.g. a new trip started)
+      if (carousels.get(containerId) !== embla) return finish(false);
+
+      embla.scrollTo(sequence[step]);
+      step++;
+      if (step >= sequence.length) return finish(true);
+
+      // Linger a bit longer on the last panel before rewinding to the final slide
+      const isFinalHold = step === sequence.length - 1;
+      timer = setTimeout(next, isFinalHold ? finalDwellMs : dwellMs);
+    };
+
+    embla.on('pointerDown', cancel);
+    dotsContainer?.addEventListener('pointerdown', cancel);
+    next();
+  });
+}
+
+/**
  * Destroy a carousel instance
  * @param {string} containerId - The carousel container ID
  */
@@ -195,5 +256,6 @@ window.emblaCarousel = {
   scrollPrev,
   scrollTo,
   getSelectedIndex,
+  tour,
   destroyCarousel
 };

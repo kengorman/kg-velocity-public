@@ -117,49 +117,7 @@
                                         <TripMovie @ref="_tripMovie" />
                                     </div>
 
-                                    @* Slide 2: Poster *@
-                                    <div class="embla__slide results-slide">
-                                        <div class="results-slide-content">
-                                            @if (!string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
-                                            {
-                                                <div class="poster-panel" aria-label="Generated poster preview">
-                                                    <img class="poster-preview"
-                                                         src="@ViewModel.PosterDataUrl"
-                                                         alt="Generated trip poster"
-                                                         loading="lazy" />
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <div class="slide-loading">
-                                                    <div class="slide-loading-text">Generating poster...</div>
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-
-                                    @* Slide 3: Mission Log *@
-                                    <div class="embla__slide results-slide">
-                                        <div class="results-slide-content">
-                                            @if (!string.IsNullOrWhiteSpace(ViewModel.TravelLogDataUrl))
-                                            {
-                                                <div class="travel-log-panel" aria-label="Mission log">
-                                                    <img class="travel-log-preview"
-                                                         src="@ViewModel.TravelLogDataUrl"
-                                                         alt="Mission log"
-                                                         loading="lazy" />
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <div class="slide-loading">
-                                                    <div class="slide-loading-text">Writing mission log...</div>
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-
-                                    @* Slide 4: Journey Summary *@
+                                    @* Slide 2: Journey Summary *@
                                     <div class="embla__slide results-slide">
                                         <div class="results-slide-content">
                                             @if (ViewModel.ShowSummary)
@@ -190,6 +148,48 @@
                                             }
                                         </div>
                                     </div>
+                                    @* Slide 3: Poster *@
+                                    <div class="embla__slide results-slide">
+                                        <div class="results-slide-content">
+                                            @if (!string.IsNullOrWhiteSpace(ViewModel.PosterDataUrl))
+                                            {
+                                                <div class="poster-panel" aria-label="Generated poster preview">
+                                                    <img class="poster-preview"
+                                                         src="@ViewModel.PosterDataUrl"
+                                                         alt="Generated trip poster"
+                                                         loading="lazy" />
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="slide-loading">
+                                                    <div class="slide-loading-text">Generating poster...</div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    @* Slide 4: Mission Log *@
+                                    <div class="embla__slide results-slide">
+                                        <div class="results-slide-content">
+                                            @if (!string.IsNullOrWhiteSpace(ViewModel.TravelLogDataUrl))
+                                            {
+                                                <div class="travel-log-panel" aria-label="Mission log">
+                                                    <img class="travel-log-preview"
+                                                         src="@ViewModel.TravelLogDataUrl"
+                                                         alt="Mission log"
+                                                         loading="lazy" />
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="slide-loading">
+                                                    <div class="slide-loading-text">Writing mission log...</div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
 
                                     @* Slide 5: Trip Stats *@
                                     <div class="embla__slide results-slide">
@@ -301,6 +301,13 @@ else
     private DotNetObjectReference<Index>? _dotNetRef;
     private bool _carouselInitialized = false;
     private bool _resultsCarouselInitialized = false;
+
+    // Panel tour: plays once per app session (static survives page re-creation)
+    private static bool _hasShownPanelTour = false;
+    private const int TourDwellMs = 400;          // time on each panel
+    private const int TourFinalDwellMs = 600;     // pause on last panel before rewinding to summary
+    private const int TourScrollDuration = 20;    // embla scroll speed; carousel default is 20, try 28 for a slower glide
+    private const int TourContentWaitMs = 3000;   // max wait for poster/log after movie ends; skip tour on timeout
     private TripMovie? _tripMovie;
 
     private bool IsPickerDisabled => ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes;
@@ -401,24 +408,63 @@ else
                     await JS.InvokeVoidAsync("eval",
                         $"document.getElementById('{_resultsCarouselId}')?.scrollIntoView({{behavior:'smooth',block:'start'}})");
 
-                    // Auto-advance to the poster after movie completes + pause,
+                    // Auto-advance to the summary after movie completes + pause,
                     // but only if the user hasn't already swiped away
                     if (_tripMovie != null)
                     {
                         await _tripMovie.CompletionTask;
                         await Task.Delay(500);
 
+                        // First trip of the session: tour all panels so users see how much
+                        // content there is — but only once it's loaded, not past placeholders
+                        var playTour = !_hasShownPanelTour && await WaitForResultsContentAsync();
+
                         var currentIndex = await JS.InvokeAsync<int>(
                             "emblaCarousel.getSelectedIndex", _resultsCarouselId);
                         if (currentIndex == 0)
                         {
-                            await JS.InvokeVoidAsync(
-                                "emblaCarousel.scrollTo", _resultsCarouselId, 1);
+                            if (playTour)
+                            {
+                                _hasShownPanelTour = true;
+                                try
+                                {
+                                    await JS.InvokeAsync<bool>("emblaCarousel.tour", _resultsCarouselId,
+                                        new[] { 1, 2, 3, 4, 1 },
+                                        new { dwellMs = TourDwellMs, finalDwellMs = TourFinalDwellMs, duration = TourScrollDuration });
+                                }
+                                catch (JSException)
+                                {
+                                    // Browser has a cached pre-tour bundle — just go to the summary
+                                    await JS.InvokeVoidAsync(
+                                        "emblaCarousel.scrollTo", _resultsCarouselId, 1);
+                                }
+                            }
+                            else
+                            {
+                                await JS.InvokeVoidAsync(
+                                    "emblaCarousel.scrollTo", _resultsCarouselId, 1);
+                            }
                         }
                     }
                 }
             });
         }
+    }
+
+    /// <summary>
+    /// Waits for the poster and travel log to finish loading, up to TourContentWaitMs.
+    /// Returns false on timeout or if the results were cleared (new trip started).
+    /// </summary>
+    private async Task<bool> WaitForResultsContentAsync()
+    {
+        var deadline = DateTime.UtcNow.AddMilliseconds(TourContentWaitMs);
+        while (DateTime.UtcNow < deadline)
+        {
+            if (!ViewModel.ShowResults) return false;
+            if (ViewModel.ShowPoster) return true;
+            await Task.Delay(100);
+        }
+        return false;
     }
 
     private async Task StartMovieAsync()
@@ -529,32 +575,30 @@ else
 
     private record SummaryBeat(string Label, string Text);
 
-    private static bool IsDash(char c) => c is '-' or '\u2013' or '\u2014';
-
-    // The prompt asks for "-label-" on its own line above each sentence. Models
-    // drift on which dash they use, sometimes wrap the line in markdown bold, and
-    // sometimes run the sentence on after the closing dash - accept all of that
-    // rather than tightening the prompt further. Anything left over is body text.
+    // The prompt asks for "~label~" on its own line above each sentence. Tildes
+    // rather than dashes because labels legitimately contain hyphens ("bit-the-dust").
+    // Models sometimes double the tildes (markdown strikethrough), wrap the line in
+    // markdown bold, or run the sentence on after the closing tilde - accept all of
+    // that rather than tightening the prompt further. Anything left over is body text.
     private static bool TrySplitLabel(string line, out string label, out string rest)
     {
         label = string.Empty;
         rest = line.Trim().Trim('*').Trim();
-        if (rest.Length < 3 || !IsDash(rest[0])) return false;
+        if (rest.Length < 3 || rest[0] != '~') return false;
 
-        var close = -1;
-        for (var i = 1; i < rest.Length; i++)
-        {
-            if (IsDash(rest[i])) { close = i; break; }
-        }
-        if (close < 2) return false;
+        var open = 0;
+        while (open < rest.Length && rest[open] == '~') open++;
+
+        var close = rest.IndexOf('~', open);
+        if (close <= open) return false;
 
         // Trailing ellipsis is added here rather than asked for in the prompt, so
         // it stays exactly three periods even when the model adds its own full stop.
-        label = rest[1..close].Trim().TrimEnd('.', '\u2026').TrimEnd();
+        label = rest[open..close].Trim().TrimEnd('.', '\u2026').TrimEnd();
         if (label.Length == 0) return false;
         label += "...";
 
-        rest = rest[(close + 1)..].Trim().TrimEnd('*').Trim();
+        rest = rest[close..].TrimStart('~').Trim().TrimEnd('*').Trim();
         return true;
     }
 
@@ -574,7 +618,7 @@ else
 
             if (TrySplitLabel(line, out var label, out var inlineText))
             {
-                // Sentence ran on after the closing dash - emit the pair now.
+                // Sentence ran on after the closing tilde - emit the pair now.
                 if (inlineText.Length > 0)
                 {
                     beats.Add(new SummaryBeat(label, inlineText));

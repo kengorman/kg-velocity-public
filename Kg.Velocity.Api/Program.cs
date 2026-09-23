@@ -239,8 +239,21 @@ app.MapGet("/api/travel-log.svg", (HttpRequest httpRequest, TravelLogService tra
 });
 
 // Static files and fallback after API routes
+// Force browsers to revalidate index.html, JS and CSS on every load (cheap 304 via ETag
+// when unchanged). Without a Cache-Control header, browsers guess a lifetime and can
+// keep serving a stale bundle for days after a deploy. _framework files are left alone
+// because Blazor fingerprints and cache-manages them itself.
+var revalidateStaticFiles = new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        if (!ctx.Context.Request.Path.StartsWithSegments("/_framework"))
+            ctx.Context.Response.Headers.CacheControl = "no-cache";
+    }
+};
+
 app.UseBlazorFrameworkFiles();
-app.UseStaticFiles();
-app.MapFallbackToFile("index.html");
+app.UseStaticFiles(revalidateStaticFiles);
+app.MapFallbackToFile("index.html", revalidateStaticFiles);
 
 app.Run();
