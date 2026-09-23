@@ -3,12 +3,21 @@ using static System.Math;
 
 namespace Kg.Velocity.Engine;
 
+/// <summary>
+/// Turns a trip's distance, speed, and ship time into seven "journey weights"
+/// (emotion, distance, awe, time gone by, memories, patience, loneliness) that add up to 100%.
+/// </summary>
+/// <remarks>
+/// I designed what this class measures; the formulas and numbers are hand-tuned guesses, not science,
+/// worked out with help from Google, Claude, and ChatGPT.
+/// </remarks>
 public static class JourneyWeightCalculator
 {
 
     /// <summary>
     /// Computes perceptual journey weights by comparing how long the universe waits versus how long the traveler experiences.
-    /// These weights guide the AI narrative tone for each trip.
+    /// These weights guide the tone of the AI-generated travel log (travel-log.md). The trip summary
+    /// does not use them; it uses <see cref="JourneyInsightClassifier"/> instead.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -29,7 +38,8 @@ public static class JourneyWeightCalculator
     /// <param name="distanceMiles">Physical separation (sets scale regime and awe).</param>
     /// <param name="speedMph">Reference speed used to estimate outside time.</param>
     /// <param name="shipTimeHours">Time experienced by the traveler (may differ from outside time for relativistic/FTL travel).</param>
-    /// <param name="random">Small noise (0-1) to avoid deterministic outputs.</param>
+    /// <param name="random">Optional small nudge (0-1) to a few of the weights. Defaults to 0.5, and no caller
+    /// currently passes it, so the same trip always gets the same weights.</param>
     public static JourneyWeights Compute(
         double distanceMiles,
         double speedMph,
@@ -49,11 +59,11 @@ public static class JourneyWeightCalculator
         bool isFtl = shipTimeHours <= 0;
 
         // -----------------------------
-        // Time core (this is the soul)
+        // Outside time: how long the universe waits
         // -----------------------------
 
-        // Raw outside time from kinematics
-        double tOutside = distanceMiles / speedMph;     // hours
+        // Travel time as seen from Earth: distance ÷ speed, in hours
+        double tOutside = distanceMiles / speedMph;
 
         // -----------------------------
         // Distance scale
@@ -78,7 +88,9 @@ public static class JourneyWeightCalculator
         // -----------------------------
         double outsideFloorHours =
             Pow(10, Max(-2, (Ld - AstronomicalDistancePivot) * TimeFloorGrowthRate));
-        // Ld < 7  -> 0.01 h (36 seconds)
+        // Ld ≤ 5.3 -> 0.01 h (36 seconds), about the Moon's distance and closer
+        // Ld = 6  -> ~4 minutes
+        // Ld = 7  -> 1 hour
         // Ld = 8  -> ~16 hours
         // Ld = 9  -> ~10 days
         // Ld = 11 -> ~7 years

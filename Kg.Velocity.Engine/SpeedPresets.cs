@@ -3,8 +3,25 @@ using Kg.Velocity.Math;
 
 namespace Kg.Velocity.Engine;
 
+/// <summary>
+/// The fixed list of speeds the user can choose from, from walking pace to 1,000 times the speed of light.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Why: most people can't picture "99% of light speed", but they can picture walking, driving, or a jet.
+/// Mixing real-world speeds with light-speed ones lets the user see how the same trip changes as speed
+/// climbs, and pick contrasting trips (e.g. the Moon at walking pace vs. at 99% of light speed).
+/// </para>
+/// <para>
+/// Where it's used: the API sends this list to the app through <c>GET /api/speed-presets</c>
+/// (see <c>TripCatalogService</c>), and the app shows it in the speed carousel in this same order.
+/// The poster test console app (Kg.Velocity.PosterTests) also looks up speeds here by name.
+/// It lives in the Engine so every project shares one list.
+/// </para>
+/// </remarks>
 public static class SpeedPresets
 {
+    /// <summary>All speed presets, slowest first. The order here is the order shown in the app.</summary>
     public static readonly List<SpeedPreset> All = new()
     {
         // Slow Pokes

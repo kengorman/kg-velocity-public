@@ -2,15 +2,30 @@ using Kg.Velocity.Math;
 
 namespace Kg.Velocity.Engine;
 
+/// <summary>
+/// How much detail <see cref="FlightComputer.FormatDuration"/> shows.
+/// </summary>
 public enum DurationFormat
 {
+    /// <summary>Full detail down to the second, e.g. "2y 153d 04:15:30".</summary>
     Verbose,
+
+    /// <summary>Just the two largest units, e.g. "3d 4h" or "15m 30s".</summary>
     Compact
 }
 
+/// <summary>
+/// Turns trip times (in seconds) into readable text: durations, the Earth-vs-ship time gap, and arrival dates.
+/// </summary>
 public static class FlightComputer
 {
-    /// <summary>Converts raw seconds to human-readable format, scaling from seconds up to quadrillions of years for astronomical journeys.</summary>
+    /// <summary>
+    /// Converts seconds into readable text, from "00:00:05" up to "2.54 million years" and beyond.
+    /// </summary>
+    /// <remarks>
+    /// Returns "N/A" for infinite or invalid values, and zero ("0m" or "00:00:00") for negative values.
+    /// A million years or more always uses the short "X million/billion/trillion/quadrillion years" form.
+    /// </remarks>
     public static string FormatDuration(double totalSeconds, DurationFormat format = DurationFormat.Verbose)
     {
         if (double.IsInfinity(totalSeconds) || double.IsNaN(totalSeconds))
@@ -87,7 +102,12 @@ public static class FlightComputer
         }
     }
 
-    /// <summary>Displays the time dilation effect - how much more time passed on Earth than aboard the ship.</summary>
+    /// <summary>
+    /// Returns how much more time passed on Earth than on the ship, as text, e.g. "3d 4h" or "0.52ms".
+    /// </summary>
+    /// <remarks>
+    /// Gaps under one second are shown in milliseconds; anything under a microsecond is "0ms".
+    /// </remarks>
     public static string CalculateTimeDifference(double earthTimeSeconds, double shipTimeSeconds)
     {
         double diffSeconds = earthTimeSeconds - shipTimeSeconds;
@@ -105,7 +125,13 @@ public static class FlightComputer
         return FormatDuration(diffSeconds, DurationFormat.Compact);
     }
 
-    /// <summary>Projects arrival date from travel time, switching to "Year X Million" format when beyond DateTime limits.</summary>
+    /// <summary>
+    /// Adds travel time to a start date and returns the result as text, e.g. "03/14/2027 9:30:00 PM".
+    /// </summary>
+    /// <remarks>
+    /// Dates past the year 9999 (the most <see cref="DateTime"/> can hold) are shown as just a year,
+    /// e.g. "Year 12,345", or "Year 2.54 Million" from a million years on.
+    /// </remarks>
     public static string FormatDateTime(DateTime baseDate, double secondsToAdd)
     {
         try 
