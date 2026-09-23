@@ -7,16 +7,3 @@ public sealed record DestinationDto(
     string DisplayName,
     string Tagline
 );
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -27,12 +27,12 @@ var promptTemplate = File.ReadAllText(promptTemplatePath);
 // ── Destinations & Speeds (from the Engine, not hardcoded) ──────────
 var destinations = new Dictionary<string, Destination>(StringComparer.OrdinalIgnoreCase)
 {
-    ["The Moon"]          = new() { Name = "The Moon", DistanceMiles = 238_855 },
-    ["Mars"]              = new() { Name = "Mars", DistanceMiles = 140_000_000 },
-    ["Pluto"]             = new() { Name = "Pluto", DistanceMiles = 3_700_000_000 },
-    ["Proxima Centauri"]  = new() { Name = "Proxima Centauri", DistanceMiles = 4.24 * PhysicsConstants.LightYearMiles },
-    ["Crab Nebula"]       = new() { Name = "Crab Nebula", DistanceMiles = 6_500 * PhysicsConstants.LightYearMiles },
-    ["Andromeda Galaxy"]  = new() { Name = "Andromeda Galaxy", DistanceMiles = 2_537_000 * PhysicsConstants.LightYearMiles },
+    ["The Moon"]          = new("The Moon", 238_855, "Solar System", "Our closest neighbor"),
+    ["Mars"]              = new("Mars", 140_000_000, "Solar System", "The Red Planet"),
+    ["Pluto"]             = new("Pluto", 3_700_000_000, "Solar System", "The frozen frontier"),
+    ["Proxima Centauri"]  = new("Proxima Centauri", 4.24 * PhysicsConstants.LightYearMiles, "Milky Way", "Nearest star beyond the Sun"),
+    ["Crab Nebula"]       = new("Crab Nebula", 6_500 * PhysicsConstants.LightYearMiles, "Milky Way", "Remnant of a supernova"),
+    ["Andromeda Galaxy"]  = new("Andromeda Galaxy", 2_537_000 * PhysicsConstants.LightYearMiles, "Extragalactic", "Our nearest galactic neighbor"),
 };
 
 var speeds = SpeedPresets.All.ToDictionary(s => s.Name, s => s, StringComparer.OrdinalIgnoreCase);

@@ -8,30 +8,30 @@ public static class SpeedPresets
     public static readonly List<SpeedPreset> All = new()
     {
         // Slow Pokes
-        new SpeedPreset { Name = "Walking Speed", SpeedMph = 3, Group = "— Slow Pokes —" },
-        new SpeedPreset { Name = "Car (Highway) Speed", SpeedMph = 65, Group = "— Slow Pokes —" },
-        new SpeedPreset { Name = "Boeing 747 Speed", SpeedMph = 570, Group = "— Slow Pokes —" },
-        new SpeedPreset { Name = "SR-71 Blackbird Speed", SpeedMph = 2200, Group = "— Slow Pokes —" },
+        new("Walking Speed", 3, "— Slow Pokes —"),
+        new("Car (Highway) Speed", 65, "— Slow Pokes —"),
+        new("Boeing 747 Speed", 570, "— Slow Pokes —"),
+        new("SR-71 Blackbird Speed", 2200, "— Slow Pokes —"),
 
         // Space
-        new SpeedPreset { Name = "ISS Orbit Speed", SpeedMph = 17500, Group = "— Space Vehicles —" },
-        new SpeedPreset { Name = "Apollo 10 Speed", SpeedMph = 24791, Group = "— Space Vehicles —" },
-        new SpeedPreset { Name = "Voyager 1 Speed", SpeedMph = 38000, Group = "— Space Vehicles —" },
-        new SpeedPreset { Name = "Parker Solar Probe Speed", SpeedMph = 430000, Group = "— Space Vehicles —" },
+        new("ISS Orbit Speed", 17500, "— Space Vehicles —"),
+        new("Apollo 10 Speed", 24791, "— Space Vehicles —"),
+        new("Voyager 1 Speed", 38000, "— Space Vehicles —"),
+        new("Parker Solar Probe Speed", 430000, "— Space Vehicles —"),
 
         // Relativistic
-        new SpeedPreset { Name = "1% Light Speed", SpeedMph = PhysicsConstants.SpeedOfLightMph * 0.01, Group = "— Light Speeds —" },
-        new SpeedPreset { Name = "10% Light Speed", SpeedMph = PhysicsConstants.SpeedOfLightMph * 0.10, Group = "— Light Speeds —" },
-        new SpeedPreset { Name = "50% Light Speed", SpeedMph = PhysicsConstants.SpeedOfLightMph * 0.50, Group = "— Light Speeds —" },
-        new SpeedPreset { Name = "90% Light Speed", SpeedMph = PhysicsConstants.SpeedOfLightMph * 0.90, Group = "— Light Speeds —" },
-        new SpeedPreset { Name = "99% Light Speed", SpeedMph = PhysicsConstants.SpeedOfLightMph * 0.99, Group = "— Light Speeds —" },
-        new SpeedPreset { Name = "Light Speed (c)", SpeedMph = PhysicsConstants.SpeedOfLightMph, Group = "— Light Speeds —" },
+        new("1% Light Speed", PhysicsConstants.SpeedOfLightMph * 0.01, "— Light Speeds —"),
+        new("10% Light Speed", PhysicsConstants.SpeedOfLightMph * 0.10, "— Light Speeds —"),
+        new("50% Light Speed", PhysicsConstants.SpeedOfLightMph * 0.50, "— Light Speeds —"),
+        new("90% Light Speed", PhysicsConstants.SpeedOfLightMph * 0.90, "— Light Speeds —"),
+        new("99% Light Speed", PhysicsConstants.SpeedOfLightMph * 0.99, "— Light Speeds —"),
+        new("Light Speed (c)", PhysicsConstants.SpeedOfLightMph, "— Light Speeds —"),
 
         // FTL
-        new SpeedPreset { Name = "2x Light Speed", SpeedMph = PhysicsConstants.SpeedOfLightMph * 2.0, Group = "— Faster than Light —" },
-        new SpeedPreset { Name = "10x Light Speed", SpeedMph = PhysicsConstants.SpeedOfLightMph * 10.0, Group = "— Faster than Light —" },
-        new SpeedPreset { Name = "100x Light Speed", SpeedMph = PhysicsConstants.SpeedOfLightMph * 100.0, Group = "— Faster than Light —" },
-        new SpeedPreset { Name = "1,000x Light Speed", SpeedMph = PhysicsConstants.SpeedOfLightMph * 1000.0, Group = "— Faster than Light —" }
+        new("2x Light Speed", PhysicsConstants.SpeedOfLightMph * 2.0, "— Faster than Light —"),
+        new("10x Light Speed", PhysicsConstants.SpeedOfLightMph * 10.0, "— Faster than Light —"),
+        new("100x Light Speed", PhysicsConstants.SpeedOfLightMph * 100.0, "— Faster than Light —"),
+        new("1,000x Light Speed", PhysicsConstants.SpeedOfLightMph * 1000.0, "— Faster than Light —")
     };
 }
 

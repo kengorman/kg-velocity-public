@@ -18,29 +18,28 @@ public class TripCatalogService
         var destinations = new List<Destination>
         {
             // Solar System (Moon → Pluto)
-            new() { Name = "The Moon", DistanceMiles = 238_855, Category = "Solar System", Tagline = "Our closest neighbor" },
-            new() { Name = "Mercury", DistanceMiles = 56_000_000, Category = "Solar System", Tagline = "Swift messenger of the gods" },
-            new() { Name = "The Sun", DistanceMiles = 93_000_000, Category = "Solar System", Tagline = "Heart of the solar system" },
-            new() { Name = "Mars", DistanceMiles = 140_000_000, Category = "Solar System", Tagline = "The Red Planet" },
-            new() { Name = "Jupiter", DistanceMiles = 484_000_000, Category = "Solar System", Tagline = "King of the planets" },
-            new() { Name = "Saturn", DistanceMiles = 886_000_000, Category = "Solar System", Tagline = "The ringed giant" },
-            new() { Name = "Pluto", DistanceMiles = 3_700_000_000, Category = "Solar System", Tagline = "The frozen frontier" },
+            new("The Moon", 238_855, "Solar System", "Our closest neighbor"),
+            new("Mercury", 56_000_000, "Solar System", "Swift messenger of the gods"),
+            new("The Sun", 93_000_000, "Solar System", "Heart of the solar system"),
+            new("Mars", 140_000_000, "Solar System", "The Red Planet"),
+            new("Jupiter", 484_000_000, "Solar System", "King of the planets"),
+            new("Saturn", 886_000_000, "Solar System", "The ringed giant"),
+            new("Pluto", 3_700_000_000, "Solar System", "The frozen frontier"),
 
             // Milky Way (Proxima Centauri → Milky Way center)
-            // Milky Way
-            new() { Name = "Proxima Centauri", DistanceMiles = 4.24 * PhysicsConstants.LightYearMiles, Category = "Milky Way", Tagline = "Nearest star beyond the Sun" },
-            new() { Name = "Polaris (North Star)", DistanceMiles = 433 * PhysicsConstants.LightYearMiles, Category = "Milky Way", Tagline = "Guiding light of navigators" },
-            new() { Name = "Betelgeuse", DistanceMiles = 700 * PhysicsConstants.LightYearMiles, Category = "Milky Way", Tagline = "A dying red supergiant" },
-            new() { Name = "Horsehead Nebula", DistanceMiles = 1_500 * PhysicsConstants.LightYearMiles, Category = "Milky Way", Tagline = "Dark silhouette in Orion" },
-            new() { Name = "Crab Nebula", DistanceMiles = 6_500 * PhysicsConstants.LightYearMiles, Category = "Milky Way", Tagline = "Remnant of a supernova" },
-            new() { Name = "Pillars of Creation", DistanceMiles = 6_500 * PhysicsConstants.LightYearMiles, Category = "Milky Way", Tagline = "Stellar nursery in the Eagle" },
-            new() { Name = "Milky Way (center)", DistanceMiles = 26_000 * PhysicsConstants.LightYearMiles, Category = "Milky Way", Tagline = "Home of a supermassive black hole" },
+            new("Proxima Centauri", 4.24 * PhysicsConstants.LightYearMiles, "Milky Way", "Nearest star beyond the Sun"),
+            new("Polaris (North Star)", 433 * PhysicsConstants.LightYearMiles, "Milky Way", "Guiding light of navigators"),
+            new("Betelgeuse", 700 * PhysicsConstants.LightYearMiles, "Milky Way", "A dying red supergiant"),
+            new("Horsehead Nebula", 1_500 * PhysicsConstants.LightYearMiles, "Milky Way", "Dark silhouette in Orion"),
+            new("Crab Nebula", 6_500 * PhysicsConstants.LightYearMiles, "Milky Way", "Remnant of a supernova"),
+            new("Pillars of Creation", 6_500 * PhysicsConstants.LightYearMiles, "Milky Way", "Stellar nursery in the Eagle"),
+            new("Milky Way (center)", 26_000 * PhysicsConstants.LightYearMiles, "Milky Way", "Home of a supermassive black hole"),
 
             // Extragalactic
-            new() { Name = "Andromeda Galaxy", DistanceMiles = 2_537_000 * PhysicsConstants.LightYearMiles, Category = "Extragalactic", Tagline = "Our nearest galactic neighbor" },
-            new() { Name = "Triangulum Galaxy", DistanceMiles = 2_730_000 * PhysicsConstants.LightYearMiles, Category = "Extragalactic", Tagline = "The third wheel of the Local Group" },
-            new() { Name = "Whirlpool Galaxy", DistanceMiles = 23_000_000 * PhysicsConstants.LightYearMiles, Category = "Extragalactic", Tagline = "A face-on spiral masterpiece" },
-            new() { Name = "Sombrero Galaxy", DistanceMiles = 29_000_000 * PhysicsConstants.LightYearMiles, Category = "Extragalactic", Tagline = "The hat at the edge of imagination" }
+            new("Andromeda Galaxy", 2_537_000 * PhysicsConstants.LightYearMiles, "Extragalactic", "Our nearest galactic neighbor"),
+            new("Triangulum Galaxy", 2_730_000 * PhysicsConstants.LightYearMiles, "Extragalactic", "The third wheel of the Local Group"),
+            new("Whirlpool Galaxy", 23_000_000 * PhysicsConstants.LightYearMiles, "Extragalactic", "A face-on spiral masterpiece"),
+            new("Sombrero Galaxy", 29_000_000 * PhysicsConstants.LightYearMiles, "Extragalactic", "The hat at the edge of imagination")
         };
 
         return destinations
@@ -53,16 +52,3 @@ public class TripCatalogService
             .ToList();
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
