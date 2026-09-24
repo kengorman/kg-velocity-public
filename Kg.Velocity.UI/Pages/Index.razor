@@ -581,7 +581,7 @@ else
         if (_tripMovie != null)
         {
             try { await _tripMovie.StopAsync(); }
-            catch { }
+            catch { /* Just cleanup before the next trip; a failure here shouldn't block it */ }
         }
 
         // Destroy previous results carousel if exists
@@ -591,7 +591,10 @@ else
             {
                 await JS.InvokeVoidAsync("emblaCarousel.destroyCarousel", _resultsCarouselId);
             }
-            catch { }
+            catch
+            {
+                // Same here: if the old carousel can't be removed, start the new trip anyway
+            }
             _resultsCarouselInitialized = false;
             _previousShowResults = false;
         }
