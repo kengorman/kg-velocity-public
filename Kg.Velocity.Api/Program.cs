@@ -16,12 +16,21 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
 {
     options.GeneralRules =
     [
+        // generate-content calls OpenAI (summary, poster events, travel log), so it's the one worth limiting
         new RateLimitRule
         {
-            Endpoint = "POST:/api/evaluate-trip",
+            Endpoint = "POST:/api/generate-content",
             Period = "1m",
             Limit = 30
         }
+
+        // Not used: evaluate-trip is commented out below; the app now uses compute-trip + generate-content.
+        // new RateLimitRule
+        // {
+        //     Endpoint = "POST:/api/evaluate-trip",
+        //     Period = "1m",
+        //     Limit = 30
+        // }
     ];
 });
 builder.Services.AddInMemoryRateLimiting();
@@ -174,53 +183,57 @@ app.MapPost("/api/generate-content", async (
     return Results.Ok(new TripContentResponse(summary, persona.Id, persona.Name, posterUrl, travelLogUrl));
 });
 
-// Evaluate the trip including generating a summary and a poster svg
-app.MapPost("/api/evaluate-trip", async (
-    TripEvaluateRequest request,
-    TripComputationService tripComputationService,
-    AiSummaryService aiService,
-    AiPosterEventsService posterEventsService,
-    PosterEventsCache posterEventsCache) =>
-{
-    // Input validation
-    const int maxLength = 100;
-    if (string.IsNullOrWhiteSpace(request.Destination) || request.Destination.Length > maxLength)
-        return Results.BadRequest("Invalid destination");
-    if (string.IsNullOrWhiteSpace(request.SpeedName) || request.SpeedName.Length > maxLength)
-        return Results.BadRequest("Invalid speed name");
-
-    if (request.SpeedMph <= 0 || double.IsNaN(request.SpeedMph) || double.IsInfinity(request.SpeedMph))
-        return Results.BadRequest("Invalid speed");
-    if (request.DistanceMiles <= 0 || double.IsNaN(request.DistanceMiles) || double.IsInfinity(request.DistanceMiles))
-        return Results.BadRequest("Invalid distance");
-    if (request.StartTime == default)
-        return Results.BadRequest("Invalid start time");
-
-    // 1. Compute physics
-    var trip = tripComputationService.Compute(request);
-
-    // 2. AI calls: Generate summary and poster events concurrently
-    var summaryTask = aiService.GenerateSummaryAsync(request, trip);
-    var posterEventsTask = posterEventsService.GenerateEventsAsync(trip);
-    await Task.WhenAll(summaryTask, posterEventsTask);
-
-    var (summary, persona) = summaryTask.Result;
-    var posterEvents = posterEventsTask.Result;
-
-    var nonce = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
-
-    // 4. Cache events by nonce for poster endpoint to retrieve
-    posterEventsCache.Store(nonce, posterEvents);
-
-    var posterUrl =
-        $"/api/poster.svg?nonce={nonce}" +
-        $"&destination={Uri.EscapeDataString(request.Destination)}" +
-        $"&speed={Uri.EscapeDataString(request.SpeedName)}" +
-        $"&earthTime={Uri.EscapeDataString(trip.EarthTimeFormatted)}" +
-        $"&shipTime={Uri.EscapeDataString(trip.ShipTimeFormatted)}";
-
-    return Results.Ok(new TripEvaluateResponse(trip, summary, persona.Id, persona.Name, PosterUrl: posterUrl));
-});
+// Not used: the app no longer calls /api/evaluate-trip. It was replaced by two calls:
+// /api/compute-trip (physics only, fast) and /api/generate-content (AI summary, poster, travel log).
+// Kept here for reference.
+//
+// // Evaluate the trip including generating a summary and a poster svg
+// app.MapPost("/api/evaluate-trip", async (
+//     TripEvaluateRequest request,
+//     TripComputationService tripComputationService,
+//     AiSummaryService aiService,
+//     AiPosterEventsService posterEventsService,
+//     PosterEventsCache posterEventsCache) =>
+// {
+//     // Input validation
+//     const int maxLength = 100;
+//     if (string.IsNullOrWhiteSpace(request.Destination) || request.Destination.Length > maxLength)
+//         return Results.BadRequest("Invalid destination");
+//     if (string.IsNullOrWhiteSpace(request.SpeedName) || request.SpeedName.Length > maxLength)
+//         return Results.BadRequest("Invalid speed name");
+//
+//     if (request.SpeedMph <= 0 || double.IsNaN(request.SpeedMph) || double.IsInfinity(request.SpeedMph))
+//         return Results.BadRequest("Invalid speed");
+//     if (request.DistanceMiles <= 0 || double.IsNaN(request.DistanceMiles) || double.IsInfinity(request.DistanceMiles))
+//         return Results.BadRequest("Invalid distance");
+//     if (request.StartTime == default)
+//         return Results.BadRequest("Invalid start time");
+//
+//     // 1. Compute physics
+//     var trip = tripComputationService.Compute(request);
+//
+//     // 2. AI calls: Generate summary and poster events concurrently
+//     var summaryTask = aiService.GenerateSummaryAsync(request, trip);
+//     var posterEventsTask = posterEventsService.GenerateEventsAsync(trip);
+//     await Task.WhenAll(summaryTask, posterEventsTask);
+//
+//     var (summary, persona) = summaryTask.Result;
+//     var posterEvents = posterEventsTask.Result;
+//
+//     var nonce = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
+//
+//     // 4. Cache events by nonce for poster endpoint to retrieve
+//     posterEventsCache.Store(nonce, posterEvents);
+//
+//     var posterUrl =
+//         $"/api/poster.svg?nonce={nonce}" +
+//         $"&destination={Uri.EscapeDataString(request.Destination)}" +
+//         $"&speed={Uri.EscapeDataString(request.SpeedName)}" +
+//         $"&earthTime={Uri.EscapeDataString(trip.EarthTimeFormatted)}" +
+//         $"&shipTime={Uri.EscapeDataString(trip.ShipTimeFormatted)}";
+//
+//     return Results.Ok(new TripEvaluateResponse(trip, summary, persona.Id, persona.Name, PosterUrl: posterUrl));
+// });
 
 // Get the poster svg using the nonce created for the summary
 app.MapGet("/api/poster.svg", (HttpRequest httpRequest, TripPosterService posterService) =>

@@ -1,7 +1,6 @@
 using Kg.Velocity.UI.Services;
 using Kg.Velocity.UI.Utilities;
 using Kg.Velocity.Contracts.Catalogs;
-using Kg.Velocity.Contracts.Nasa;
 using Kg.Velocity.Contracts.Trips;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -91,11 +90,6 @@ public class MainViewModel
     public bool IsFetchingPosterBytes { get; set; }
     public ObservableCollection<DestinationDto> Destinations { get; set; } = new();
     public List<SpeedPresetDto> SpeedPresets { get; set; } = [];
-
-    // NASA Images bottom sheet state
-    public bool IsImageSheetOpen { get; set; }
-    public bool IsLoadingNasaImages { get; set; }
-    public List<NasaImageDto> NasaImages { get; set; } = [];
 
     private DestinationDto? _selectedDestination;
     public DestinationDto? SelectedDestination
@@ -325,15 +319,6 @@ public class MainViewModel
         {
             TravelLogDataUrl = "";
         }
-    }
-
-    /// <summary>
-    /// Closes the destination images bottom sheet.
-    /// </summary>
-    public void CloseImageSheet()
-    {
-        IsImageSheetOpen = false;
-        NotifyStateChanged();
     }
 
 }

@@ -10,7 +10,7 @@ namespace Kg.Velocity.Engine.Models;
 public sealed record Destination(string Name, double DistanceMiles, string Category, string Tagline)
 {
     /// <summary>
-    /// Name shown to the user and sent with trip requests. Currently the same as <see cref="Name"/>;
+    /// Name shown to the user in the destination list and the trip animation. Currently the same as <see cref="Name"/>;
     /// kept as a separate hook so a destination can later have a friendlier display label without changing its name.
     /// </summary>
     public string DisplayName => Name;

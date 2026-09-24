@@ -17,7 +17,7 @@ dotnet run --project Kg.Velocity.Api
 # Run tests
 dotnet run --project Kg.Velocity.InsightTests
 
-# Build MAUI Android
+# Build MAUI Android (no longer under development)
 dotnet build Kg.Velocity.Maui -f net9.0-android
 
 # Bundle Embla carousel (after npm install)
@@ -40,7 +40,7 @@ Kg.Velocity.Contracts     # DTOs shared between UI and API
 Kg.Velocity.UI            # Razor components (Index.razor is the main UI)
     ↓
 ├── Kg.Velocity.Blazor    # WebAssembly frontend
-├── Kg.Velocity.Maui      # Android app
+├── Kg.Velocity.Maui      # Android app (no longer under development; web/Blazor only going forward)
 └── Kg.Velocity.Api       # ASP.NET Core backend with OpenAI integration
 ```
 
@@ -56,12 +56,16 @@ Kg.Velocity.UI            # Razor components (Index.razor is the main UI)
 - `GET /api/destinations` - Available travel destinations
 - `GET /api/speed-presets` - Speed preset options
 - `POST /api/compute-trip` - Calculate trip physics (no AI)
-- `POST /api/evaluate-trip` - Full evaluation with AI-generated summary and poster
+- `POST /api/generate-content` - AI-generated summary, poster events, and travel log; returns poster and travel log URLs
+- `GET /api/poster.svg` - Trip poster image (uses the nonce from generate-content)
+- `GET /api/travel-log.svg` - Travel log image (uses the nonce from generate-content)
+
+The app calls `compute-trip` and `generate-content` in parallel. The old `POST /api/evaluate-trip` endpoint is commented out in `Program.cs` (kept for reference).
 
 ## Configuration
 
 - User secrets ID: `kg-velocity-api` (for OpenAI API key)
-- Rate limiting: 30 requests/minute on evaluate-trip endpoint
+- Rate limiting: 30 requests/minute on generate-content endpoint (the one that calls OpenAI)
 - CORS: Configured for Azure deployment + localhost:5100-5101
 
 ## LLM Prompt Design Philosophy
