@@ -107,92 +107,84 @@ public class TripPosterService(PosterEventsCache eventsCache, DestinationIconSer
     /// <summary>Renders the trip poster SVG using cached AI-generated events, destination icons, and Scriban templating.</summary>
     public byte[] GeneratePoster(HttpRequest httpRequest)
     {
-        try
+        var destination = httpRequest.Query["destination"].ToString();
+        var speed = httpRequest.Query["speed"].ToString();
+        var nonce = httpRequest.Query["nonce"].ToString();
+        var earthTime = httpRequest.Query["earthTime"].ToString();
+        var shipTime = httpRequest.Query["shipTime"].ToString();
+
+        var generatedAt = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss 'UTC'", CultureInfo.InvariantCulture);
+
+        // Simple, deterministic-ish color variation based on nonce.
+        _ = int.TryParse(new string(nonce.Where(char.IsDigit).TakeLast(6).ToArray()), out int seed);
+        var accentHue = (seed % 40) + 15;
+
+        // Generate subtle background stars (seeded for reproducibility)
+        var stars = GenerateStars(seed, starCount: 30);
+
+        static string Esc(string? s) =>
+            string.IsNullOrEmpty(s) ? "" :
+            s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
+             .Replace("\"", "&quot;").Replace("'", "&apos;");
+
+        // Try to get AI-generated events from cache, fall back to mock events
+        var events = _eventsCache.TryGet(nonce) ?? GenerateFallbackEvents(destination, seed);
+
+        // Render via Scriban
+        var template = ParsedTemplate.Value;
+
+        var globals = new ScriptObject
         {
-            var destination = httpRequest.Query["destination"].ToString();
-            var speed = httpRequest.Query["speed"].ToString();
-            var nonce = httpRequest.Query["nonce"].ToString();
-            var earthTime = httpRequest.Query["earthTime"].ToString();
-            var shipTime = httpRequest.Query["shipTime"].ToString();
+            { "destination_esc", Esc(destination) },
+            { "speed_esc", Esc(speed) },
+            { "nonce_esc", Esc(nonce) },
+            { "generated_at", generatedAt },
+            { "earth_time", Esc(earthTime) },
+            { "ship_time", Esc(shipTime) },
+            // Each unique nonce gets a different but reproducible color pair. Same nonce = same colors every time.
+            { "accent_hue", accentHue }
+        };
 
-            var generatedAt = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss 'UTC'", CultureInfo.InvariantCulture);
+        // Load destination icon SVG content
+        var (iconContent, iconViewBox) = _iconService.GetIconSvgContent(destination);
+        globals.Add("destination_icon", iconContent);
+        globals.Add("destination_icon_viewbox", iconViewBox);
 
-            // Simple, deterministic-ish color variation based on nonce.
-            _ = int.TryParse(new string(nonce.Where(char.IsDigit).TakeLast(6).ToArray()), out int seed);
-            var accentHue = (seed % 40) + 15;
-
-            // Generate subtle background stars (seeded for reproducibility)
-            var stars = GenerateStars(seed, starCount: 30);
-
-            static string Esc(string? s) =>
-                string.IsNullOrEmpty(s) ? "" :
-                s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
-                 .Replace("\"", "&quot;").Replace("'", "&apos;");
-
-            // Try to get AI-generated events from cache, fall back to mock events
-            var events = _eventsCache.TryGet(nonce) ?? GenerateFallbackEvents(destination, seed);
-
-            // Render via Scriban
-            var template = ParsedTemplate.Value;
-
-            var globals = new ScriptObject
+        // Convert events to ScriptArray for Scriban iteration
+        var scriptEvents = new ScriptArray();
+        foreach (var evt in events)
+        {
+            var scriptEvent = new ScriptObject
             {
-                { "destination_esc", Esc(destination) },
-                { "speed_esc", Esc(speed) },
-                { "nonce_esc", Esc(nonce) },
-                { "generated_at", generatedAt },
-                { "earth_time", Esc(earthTime) },
-                { "ship_time", Esc(shipTime) },
-                // Each unique nonce gets a different but reproducible color pair. Same nonce = same colors every time.
-                { "accent_hue", accentHue }
+                { "text", Esc(evt.Text) }
             };
- 
-            // Load destination icon SVG content
-            var (iconContent, iconViewBox) = _iconService.GetIconSvgContent(destination);
-            globals.Add("destination_icon", iconContent);
-            globals.Add("destination_icon_viewbox", iconViewBox);
-
-            // Convert events to ScriptArray for Scriban iteration
-            var scriptEvents = new ScriptArray();
-            foreach (var evt in events)
+            if (!string.IsNullOrEmpty(evt.Description))
             {
-                var scriptEvent = new ScriptObject
-                {
-                    { "text", Esc(evt.Text) }
-                };
-                if (!string.IsNullOrEmpty(evt.Description))
-                {
-                    scriptEvent.Add("description", Esc(evt.Description));
-                }
-                scriptEvents.Add(scriptEvent);
+                scriptEvent.Add("description", Esc(evt.Description));
             }
-            globals.Add("events", scriptEvents);
-
-            // Convert stars to ScriptArray for Scriban iteration
-            var scriptStars = new ScriptArray();
-            foreach (var star in stars)
-            {
-                var scriptStar = new ScriptObject
-                {
-                    { "x", star.X },
-                    { "y", star.Y },
-                    { "r", star.R },
-                    { "opacity", star.Opacity }
-                };
-                scriptStars.Add(scriptStar);
-            }
-            globals.Add("stars", scriptStars);
-
-            var context = new TemplateContext();
-            context.PushGlobal(globals);
-            var svg = template.Render(context);
-
-            return Encoding.UTF8.GetBytes(svg);
+            scriptEvents.Add(scriptEvent);
         }
-        catch (Exception ex)
+        globals.Add("events", scriptEvents);
+
+        // Convert stars to ScriptArray for Scriban iteration
+        var scriptStars = new ScriptArray();
+        foreach (var star in stars)
         {
-            string s = ex.ToString();
-            throw;
+            var scriptStar = new ScriptObject
+            {
+                { "x", star.X },
+                { "y", star.Y },
+                { "r", star.R },
+                { "opacity", star.Opacity }
+            };
+            scriptStars.Add(scriptStar);
         }
+        globals.Add("stars", scriptStars);
+
+        var context = new TemplateContext();
+        context.PushGlobal(globals);
+        var svg = template.Render(context);
+
+        return Encoding.UTF8.GetBytes(svg);
     }
 }
