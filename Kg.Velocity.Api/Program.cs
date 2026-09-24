@@ -8,7 +8,15 @@ using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddApplicationInsightsTelemetry();
+// Telemetry is only turned on when a connection string is set (in Azure, the APPLICATIONINSIGHTS_CONNECTION_STRING
+// app setting). Without one, App Insights 3.x stops the app at startup, so local runs and forks skip it.
+var appInsightsConnectionString =
+    builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"] ??
+    builder.Configuration["ApplicationInsights:ConnectionString"];
+if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
+{
+    builder.Services.AddApplicationInsightsTelemetry();
+}
 
 // Rate limiting configuration
 builder.Services.AddMemoryCache();
