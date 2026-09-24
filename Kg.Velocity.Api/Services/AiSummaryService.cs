@@ -3,6 +3,10 @@ using OpenAI.Chat;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Asks the AI model for the short written trip summary (prompt: Prompts/trip-summary.md).
+/// If the AI call fails, returns an "AI unavailable" message instead of throwing.
+/// </summary>
 public class AiSummaryService
 {
     private readonly ChatClient _chatClient;

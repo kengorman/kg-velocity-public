@@ -3,6 +3,9 @@ using Kg.Velocity.Engine;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Fills in the poster events prompt (Prompts/poster-events.md) with this trip's details.
+/// </summary>
 public class PosterEventsPromptBuilder(PromptStore prompts)
 {
     private const string PosterEventsPromptPath = "Prompts/poster-events.md";

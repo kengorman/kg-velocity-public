@@ -2,6 +2,9 @@ using System.Text;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Replaces {{Name}} placeholders in a prompt with real values. Shared by all the prompt builders.
+/// </summary>
 public static class PromptRenderer
 {
     /// <summary>Replaces {{token}} placeholders in prompt templates with trip-specific values.</summary>

@@ -4,6 +4,10 @@ using OpenAI.Chat;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Asks the AI model for the first-person travel log entries (prompt: Prompts/travel-log.md).
+/// Falls back to a fixed set of entries if the AI call fails or its reply can't be read.
+/// </summary>
 public class AiTravelLogService
 {
     private readonly ChatClient _chatClient;

@@ -4,6 +4,10 @@ using System.Text;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Draws the travel log image (SVG) for /api/travel-log.svg, using the Templates/travel-log.svg.sbn template
+/// and the cached AI entries. Uses fixed entries if the cache has expired.
+/// </summary>
 public class TravelLogService(TravelLogEventsCache eventsCache)
 {
     private const string TemplateResourceName = "Kg.Velocity.Api.Templates.travel-log.svg.sbn";

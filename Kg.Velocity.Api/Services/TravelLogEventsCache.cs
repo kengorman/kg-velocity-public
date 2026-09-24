@@ -2,6 +2,10 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Holds AI travel log entries for 10 minutes, keyed by a nonce (a one-time ID for each trip).
+/// generate-content stores them; the /api/travel-log.svg request that follows reads them back.
+/// </summary>
 public class TravelLogEventsCache
 {
     private readonly IMemoryCache _cache;
@@ -30,6 +34,9 @@ public class TravelLogEventsCache
     private static string GetCacheKey(string nonce) => $"travel_log_{nonce}";
 }
 
+/// <summary>
+/// One entry in the travel log.
+/// </summary>
 public class TravelLogEntry
 {
     public string Text { get; set; } = string.Empty;

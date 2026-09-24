@@ -4,6 +4,10 @@ using OpenAI.Chat;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Asks the AI model for the short milestone events printed on the trip poster (prompt: Prompts/poster-events.md).
+/// Falls back to a fixed set of events if the AI call fails or its reply can't be read.
+/// </summary>
 public class AiPosterEventsService
 {
     private readonly ChatClient _chatClient;
@@ -118,6 +122,9 @@ public class AiPosterEventsService
     }
 }
 
+/// <summary>
+/// One milestone event on the trip poster: a short headline plus an optional longer description.
+/// </summary>
 public class JourneyEvent
 {
     public string Text { get; set; } = string.Empty;

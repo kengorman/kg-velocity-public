@@ -2,6 +2,10 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Holds AI poster events for 10 minutes, keyed by a nonce (a one-time ID for each trip).
+/// generate-content stores them; the /api/poster.svg request that follows reads them back.
+/// </summary>
 public class PosterEventsCache
 {
     private readonly IMemoryCache _cache;

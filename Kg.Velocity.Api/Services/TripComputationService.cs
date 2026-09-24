@@ -4,6 +4,10 @@ using Kg.Velocity.Math;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Works out the trip physics for /api/compute-trip: Earth time, ship time, and ready-to-show text.
+/// No AI involved.
+/// </summary>
 public class TripComputationService
 {
     /// <summary>Calculates all relativistic physics for a trip: time dilation, Lorentz factor, and formatted outputs.</summary>

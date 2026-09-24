@@ -3,6 +3,9 @@ using System.Reflection;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Loads the prompt files (Prompts/*.md), which are built into the API as embedded files, and keeps them in memory.
+/// </summary>
 public class PromptStore
 {
     private static readonly Assembly Assembly = typeof(PromptStore).Assembly;

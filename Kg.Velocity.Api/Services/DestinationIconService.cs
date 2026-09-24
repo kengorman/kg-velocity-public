@@ -4,6 +4,10 @@ using System.Text.RegularExpressions;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Supplies the small SVG icon for each destination, drawn on the trip poster.
+/// Icons are embedded files; destinations without their own icon get default.svg.
+/// </summary>
 public partial class DestinationIconService
 {
     private static readonly Assembly Assembly = typeof(DestinationIconService).Assembly;

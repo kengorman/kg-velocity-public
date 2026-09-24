@@ -4,6 +4,10 @@ using Kg.Velocity.Math;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Fills in the trip summary prompt (Prompts/trip-summary.md) with this trip's details and its journey insight
+/// (what the trip is really about), from JourneyInsightClassifier.
+/// </summary>
 public class TripSummaryPromptBuilder(PromptStore prompts)
 {
     private const string TripSummaryPromptPath = "Prompts/trip-summary.md";

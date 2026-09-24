@@ -5,6 +5,10 @@ using System.Text;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Draws the trip poster image (SVG) for /api/poster.svg, using the Templates/trip-poster.svg.sbn template,
+/// the cached AI events, and the destination icon. Uses fallback events if the cache has expired.
+/// </summary>
 public class TripPosterService(PosterEventsCache eventsCache, DestinationIconService iconService)
 {
     private const string TemplateResourceName = "Kg.Velocity.Api.Templates.trip-poster.svg.sbn";

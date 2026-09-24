@@ -2,6 +2,9 @@ using Kg.Velocity.Contracts.Trips;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Fills in the travel log prompt (Prompts/travel-log.md) with this trip's details and journey weights.
+/// </summary>
 public class TravelLogPromptBuilder(PromptStore prompts)
 {
     private const string TravelLogPromptPath = "Prompts/travel-log.md";

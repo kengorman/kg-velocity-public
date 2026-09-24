@@ -4,6 +4,9 @@ using Kg.Velocity.Math;
 
 namespace Kg.Velocity.Api.Services;
 
+/// <summary>
+/// Supplies the lists the user picks from: destinations and speed presets.
+/// </summary>
 public class TripCatalogService
 {
     /// <summary>Provides speed options for the UI, from walking pace to faster-than-light.</summary>

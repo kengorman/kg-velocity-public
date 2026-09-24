@@ -16,7 +16,7 @@ builder.Services.Configure<IpRateLimitOptions>(options =>
 {
     options.GeneralRules =
     [
-        // generate-content calls OpenAI (summary, poster events, travel log), so it's the one worth limiting
+        // generate-content calls the AI model (summary, poster events, travel log), so it's the one worth limiting
         new RateLimitRule
         {
             Endpoint = "POST:/api/generate-content",
@@ -64,7 +64,8 @@ builder.Services.AddSingleton<ChatClient>(sp =>
     sp.GetRequiredService<OpenAIChatClientFactory>()
       .CreateChatClient("gpt-5.2"));
 builder.Services.AddSingleton<PromptStore>();
-builder.Services.AddSingleton<IPersonaSelector, RandomPersonaSelector>();
+// Not used: personas were replaced by JourneyInsightClassifier (see Services/PersonaCatalog.cs).
+// builder.Services.AddSingleton<IPersonaSelector, RandomPersonaSelector>();
 builder.Services.AddSingleton<TripSummaryPromptBuilder>();
 builder.Services.AddSingleton<AiSummaryService>();
 builder.Services.AddSingleton<TripComputationService>();
