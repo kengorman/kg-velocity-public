@@ -57,6 +57,7 @@ public class AiTravelLogService
     {
         try
         {
+            // The model sometimes wraps its JSON in a ```json ... ``` block; strip it (same as the poster events).
             var json = responseText.Trim();
             if (json.StartsWith("```"))
             {

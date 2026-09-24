@@ -20,6 +20,8 @@ public class TripComputationService
         double hoursElapsed = request.DistanceMiles / request.SpeedMph;
         double earthTimeSeconds = hoursElapsed * 3600.0;
 
+        // At or above light speed the factor is infinite, so ship time comes out as 0:
+        // the trip is instant for the traveler while Earth still waits the full time.
         double lorentzFactor = RelativisticPhysics.CalculateLorentzFactor(request.SpeedMph);
         double shipTimeSeconds = earthTimeSeconds / lorentzFactor;
 
@@ -59,18 +61,3 @@ public class TripComputationService
         );
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

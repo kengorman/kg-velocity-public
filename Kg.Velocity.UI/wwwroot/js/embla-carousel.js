@@ -238,6 +238,14 @@ export function tour(containerId, sequence, options = {}) {
 }
 
 /**
+ * Smoothly scroll the page so the carousel's top edge is in view
+ * @param {string} containerId - The carousel container ID
+ */
+export function scrollIntoView(containerId) {
+  document.getElementById(containerId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/**
  * Destroy a carousel instance
  * @param {string} containerId - The carousel container ID
  */
@@ -257,5 +265,6 @@ window.emblaCarousel = {
   scrollTo,
   getSelectedIndex,
   tour,
+  scrollIntoView,
   destroyCarousel
 };

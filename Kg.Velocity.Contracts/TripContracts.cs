@@ -29,14 +29,12 @@ public sealed record JourneyWeights(
 /// <param name="SpeedMph">Speed in miles per hour.</param>
 /// <param name="DistanceMiles">Distance to the destination, in miles.</param>
 /// <param name="StartTime">When the trip starts; used to work out the arrival dates.</param>
-/// <param name="PersonaId">Narrator style the app last used. Currently ignored: the API always uses its default narrator.</param>
 public sealed record TripEvaluateRequest(
     string Destination,
     string SpeedName,
     double SpeedMph,
     double DistanceMiles,
-    DateTimeOffset StartTime,
-    int? PersonaId = null
+    DateTimeOffset StartTime
 );
 
 /// <summary>

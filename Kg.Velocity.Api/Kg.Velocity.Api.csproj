@@ -12,6 +12,8 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="3.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.0" />
     <PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+    <!-- Not used directly. Application Insights pulls in 1.15.0, which has a security warning; this forces the fixed version. -->
+    <PackageReference Include="OpenTelemetry.Api" Version="1.15.3" />
     <PackageReference Include="Scriban" Version="7.5.0" />
   </ItemGroup>
 

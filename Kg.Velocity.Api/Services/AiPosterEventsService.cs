@@ -58,7 +58,8 @@ public class AiPosterEventsService
     {
         try
         {
-            // Try to extract JSON if wrapped in markdown code blocks
+            // The prompt asks for plain JSON, but the model sometimes wraps it in a
+            // ```json ... ``` block anyway. Keep just the part from the first { to the last }.
             var json = responseText.Trim();
             if (json.StartsWith("```"))
             {

@@ -15,12 +15,10 @@ namespace Kg.Velocity.UI.ViewModels;
 public class MainViewModel
 {
     private readonly TripEvaluationService _tripEvaluationService;
-    private readonly IPersonaIdStore _personaIdStore;
     private readonly TripCatalogClient _catalogClient;
     private DateTimeOffset _startTime;
     private double _selectedSpeedMph;
     private int _evaluationRequestVersion;
-    private int? _currentPersonaId;
 
     // Event to notify UI of state changes
     public event Action? StateChanged;
@@ -30,11 +28,9 @@ public class MainViewModel
     /// </summary>
     public MainViewModel(
         TripEvaluationService tripEvaluationService,
-        IPersonaIdStore personaIdStore,
         TripCatalogClient catalogClient)
     {
         _tripEvaluationService = tripEvaluationService;
-        _personaIdStore = personaIdStore;
         _catalogClient = catalogClient;
         _startTime = DateTimeOffset.Now;
         _selectedSpeedMph = 0;
@@ -237,7 +233,6 @@ public class MainViewModel
 
         try
         {
-            _currentPersonaId ??= await _personaIdStore.TryGetAsync();
             _startTime = DateTimeOffset.Now;
 
             var request = new TripEvaluateRequest(
@@ -245,8 +240,7 @@ public class MainViewModel
                 SpeedName: speedName,
                 SpeedMph: _selectedSpeedMph,
                 DistanceMiles: SelectedDestination.DistanceMiles,
-                StartTime: _startTime,
-                PersonaId: _currentPersonaId
+                StartTime: _startTime
             );
 
             // Fire both API calls in parallel
@@ -280,8 +274,6 @@ public class MainViewModel
             if (requestVersion != _evaluationRequestVersion) return;
 
             IsGeneratingContent = false;
-            _currentPersonaId = content.PersonaId;
-            await _personaIdStore.TrySetAsync(content.PersonaId);
 
             // Update summary in-place (Blazor re-renders the slide content)
             JourneySummary = content.Summary;

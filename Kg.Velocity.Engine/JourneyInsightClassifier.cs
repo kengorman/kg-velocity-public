@@ -1,5 +1,10 @@
 namespace Kg.Velocity.Engine;
 
+/// <summary>
+/// Decides what a trip's story is about (e.g. "speed", "farewell", "dilation and farewell").
+/// The answer goes into the AI prompt so the summary talks about what's actually
+/// remarkable for this distance and speed, instead of every trip sounding the same.
+/// </summary>
 public static class JourneyInsightClassifier
 {
     private const double SecondsPerYear = 365.25 * 24 * 3600;
@@ -11,23 +16,7 @@ public static class JourneyInsightClassifier
         double speedMph,
         double lorentzFactor)
     {
-        double earthYears = earthTimeSeconds / SecondsPerYear;
-        double shipYears = shipTimeSeconds / SecondsPerYear;
-        double dilationRatio = shipTimeSeconds > 0
-            ? earthTimeSeconds / shipTimeSeconds
-            : 1;
-
-        // Score each dimension (0-100)
-        var scores = new Dictionary<string, double>
-        {
-            ["speed"] = ScoreSpeed(earthTimeSeconds),
-            ["duration"] = ScoreDuration(earthYears, speedMph),
-            ["dilation"] = ScoreDilation(dilationRatio, lorentzFactor),
-            ["scale"] = ScoreScale(earthYears),
-            ["farewell"] = ScoreFarewell(earthYears, shipYears)
-        };
-
-        var ranked = scores
+        var ranked = GetScores(earthTimeSeconds, shipTimeSeconds, speedMph, lorentzFactor)
             .OrderByDescending(kv => kv.Value)
             .ToList();
 
@@ -52,7 +41,8 @@ public static class JourneyInsightClassifier
     }
 
     /// <summary>
-    /// Returns all scores for debugging/testing purposes.
+    /// Scores each possible story from 0 to 100. Classify picks from these;
+    /// the test app also prints them.
     /// </summary>
     public static Dictionary<string, double> GetScores(
         double earthTimeSeconds,
@@ -62,6 +52,8 @@ public static class JourneyInsightClassifier
     {
         double earthYears = earthTimeSeconds / SecondsPerYear;
         double shipYears = shipTimeSeconds / SecondsPerYear;
+        // Faster than light, ship time is 0 and the ratio would be infinite. Use 1 so
+        // "dilation" doesn't score; "farewell" tells that story (Earth time still passes).
         double dilationRatio = shipTimeSeconds > 0
             ? earthTimeSeconds / shipTimeSeconds
             : 1;

@@ -434,8 +434,7 @@ else
                     await StartMovieAsync();
 
                     // Scroll the movie into view
-                    await JS.InvokeVoidAsync("eval",
-                        $"document.getElementById('{_resultsCarouselId}')?.scrollIntoView({{behavior:'smooth',block:'start'}})");
+                    await JS.InvokeVoidAsync("emblaCarousel.scrollIntoView", _resultsCarouselId);
 
                     // Auto-advance to the summary after movie completes + pause,
                     // but only if the user hasn't already swiped away
@@ -570,27 +569,6 @@ else
     {
         if (IsPickerDisabled) return;
         await JS.InvokeVoidAsync("emblaCarousel.scrollPrev", pickerId);
-    }
-
-    // Legacy method - can be removed once confirmed working
-    private async Task ScrollPicker(string pickerId, int direction)
-    {
-        if (IsPickerDisabled) return;
-        var cardWidth = pickerId == _destinationPickerId ? 212 : 190; // card width + gap
-        var scrollAmount = direction * cardWidth;
-        var script = $"(function(){{ var p=document.getElementById('{pickerId}'); if(p){{ p.scrollBy({{left:{scrollAmount},behavior:'smooth'}}); }} }})()";
-        await JS.InvokeVoidAsync("eval", script);
-    }
-
-    /// <summary>
-    /// Scrolls a picker so the card with the given destination name or speed is centered.
-    /// Not currently called anywhere (the carousel's own scrollTo does this now).
-    /// </summary>
-    private async Task ScrollToSelectedCard(string pickerId, string dataValue)
-    {
-        var attr = pickerId == _destinationPickerId ? "data-destination" : "data-speed";
-        var script = $"(function(){{ var p=document.getElementById('{pickerId}'); if(!p)return; var c=p.querySelector('[{attr}=\"{dataValue}\"]'); if(c){{ var o=c.offsetLeft-(p.clientWidth/2)+(c.clientWidth/2); p.scrollTo({{left:o,behavior:'smooth'}}); }} }})()";
-        await JS.InvokeVoidAsync("eval", script);
     }
 
     /// <summary>
