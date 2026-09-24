@@ -13,11 +13,19 @@ var config = new ConfigurationBuilder()
     .AddUserSecrets("kg-velocity-api")
     .Build();
 
-var apiKey = config["OpenAI:ApiKey"]
-    ?? throw new InvalidOperationException("OpenAI:ApiKey not configured. Run: dotnet user-secrets set OpenAI:ApiKey <key>");
+// Same settings as the API (see Kg.Velocity.Api/Services/ModelClientFactory.cs)
+var endpoint = config["OpenAI:Endpoint"];
+var model = config["OpenAI:Model"] is { Length: > 0 } m ? m : "gpt-5.2";
+var maxTemperature = float.TryParse(config["OpenAI:MaxTemperature"], System.Globalization.NumberStyles.Float,
+    System.Globalization.CultureInfo.InvariantCulture, out var max) ? max : float.MaxValue;
 
-var chatClient = new OpenAIClient(new ApiKeyCredential(apiKey))
-    .GetChatClient("gpt-5.2");
+var chatClient = string.IsNullOrWhiteSpace(endpoint)
+    ? new OpenAIClient(new ApiKeyCredential(config["OpenAI:ApiKey"]
+        ?? throw new InvalidOperationException("OpenAI:ApiKey not configured. Run: dotnet user-secrets set OpenAI:ApiKey <key>")))
+        .GetChatClient(model)
+    : new OpenAIClient(new ApiKeyCredential(config["OpenAI:ApiKey"] ?? "none"),
+        new OpenAIClientOptions { Endpoint = new Uri(endpoint) })
+        .GetChatClient(model);
 
 // ── Prompt template (read directly from file) ───────────────────────
 var solutionRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
@@ -84,7 +92,7 @@ foreach (var (destName, speedName) in scenarios)
     try
     {
         var messages = new List<ChatMessage> { new UserChatMessage(prompt) };
-        var options = new ChatCompletionOptions { Temperature = 0.9f };
+        var options = new ChatCompletionOptions { Temperature = System.Math.Min(0.9f, maxTemperature) };
 
         var completion = await chatClient.CompleteChatAsync(messages, options);
         var responseText = completion.Value.Content[0].Text;

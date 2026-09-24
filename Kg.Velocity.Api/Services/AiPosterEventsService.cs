@@ -11,15 +11,18 @@ namespace Kg.Velocity.Api.Services;
 public class AiPosterEventsService
 {
     private readonly ChatClient _chatClient;
+    private readonly ModelClientFactory _modelClientFactory;
     private readonly PosterEventsPromptBuilder _promptBuilder;
     private readonly ILogger<AiPosterEventsService> _logger;
 
     public AiPosterEventsService(
         ChatClient chatClient,
+        ModelClientFactory modelClientFactory,
         PosterEventsPromptBuilder promptBuilder,
         ILogger<AiPosterEventsService> logger)
     {
         _chatClient = chatClient;
+        _modelClientFactory = modelClientFactory;
         _promptBuilder = promptBuilder;
         _logger = logger;
     }
@@ -37,10 +40,7 @@ public class AiPosterEventsService
                 new UserChatMessage(prompt)
             };
 
-            var chatOptions = new ChatCompletionOptions
-            {
-                Temperature = 0.9f // Balanced creativity with factual accuracy
-            };
+            var chatOptions = _modelClientFactory.CreateOptions(temperature: 0.9f); // Balanced creativity with factual accuracy
 
             var completion = await _chatClient.CompleteChatAsync(messages, chatOptions);
             var responseText = completion.Value.Content[0].Text;

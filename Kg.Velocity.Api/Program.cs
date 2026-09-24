@@ -67,10 +67,10 @@ builder.Services.AddResponseCompression(options =>
         ["application/octet-stream", "application/wasm"]);
 });
 
-builder.Services.AddSingleton<OpenAIChatClientFactory>();
+builder.Services.AddSingleton<ModelClientFactory>();
 builder.Services.AddSingleton<ChatClient>(sp =>
-    sp.GetRequiredService<OpenAIChatClientFactory>()
-      .CreateChatClient("gpt-5.2"));
+    sp.GetRequiredService<ModelClientFactory>()
+      .CreateChatClient());
 builder.Services.AddSingleton<PromptStore>();
 // Not used: personas were replaced by JourneyInsightClassifier (see Services/PersonaCatalog.cs).
 // builder.Services.AddSingleton<IPersonaSelector, RandomPersonaSelector>();

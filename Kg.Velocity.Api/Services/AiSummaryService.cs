@@ -10,6 +10,7 @@ namespace Kg.Velocity.Api.Services;
 public class AiSummaryService
 {
     private readonly ChatClient _chatClient;
+    private readonly ModelClientFactory _modelClientFactory;
     private readonly TripSummaryPromptBuilder _tripSummaryPromptBuilder;
 
     // Default persona returned when personas are bypassed
@@ -17,9 +18,11 @@ public class AiSummaryService
 
     public AiSummaryService(
         ChatClient chatClient,
+        ModelClientFactory modelClientFactory,
         TripSummaryPromptBuilder tripSummaryPromptBuilder)
     {
         _chatClient = chatClient;
+        _modelClientFactory = modelClientFactory;
         _tripSummaryPromptBuilder = tripSummaryPromptBuilder;
     }
 
@@ -37,10 +40,7 @@ public class AiSummaryService
                 new UserChatMessage(prompt)
             };
 
-            var chatOptions = new ChatCompletionOptions
-            {
-                Temperature = 1.1f
-            };
+            var chatOptions = _modelClientFactory.CreateOptions(temperature: 1.1f);
 
             var completion = await _chatClient.CompleteChatAsync(messages, chatOptions);
             var summary = completion.Value.Content[0].Text;

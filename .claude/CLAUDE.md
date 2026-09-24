@@ -8,14 +8,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Build entire solution
 dotnet build
 
-# Run Blazor frontend (https://localhost:5001)
-dotnet run --project Kg.Velocity.Blazor
-
-# Run API backend (https://localhost:5100)
+# Run the app (https://localhost:5100). The API also serves the Blazor app, so this is all you need.
+# Needs the OpenAI key: dotnet user-secrets set OpenAI:ApiKey <key> --project Kg.Velocity.Api
 dotnet run --project Kg.Velocity.Api
 
-# Run tests
+# Print insight classifier results for many trips (no AI calls)
 dotnet run --project Kg.Velocity.InsightTests
+
+# Print AI-written poster events for many trips (calls OpenAI)
+dotnet run --project Kg.Velocity.PosterTests
 
 # Bundle Embla carousel (after npm install)
 npm run build:embla
@@ -23,26 +24,24 @@ npm run build:embla
 
 ## Architecture
 
-**Relativistic travel simulator** with a Blazor web frontend and an API backend sharing a common physics engine. (An Android/MAUI version existed earlier; it was removed and lives only in git history.)
+**Relativistic travel simulator** with a Blazor web frontend and an API backend. All physics runs in the API. (An Android/MAUI version existed earlier; it was removed and lives only in git history.)
 
-### Project Dependencies (bottom-up)
+### Project Dependencies (each project uses the ones below it)
 
 ```
-Kg.Velocity.Math          # Pure physics: Lorentz factor, time dilation
-    ↓
-Kg.Velocity.Engine        # Simulation logic: FlightComputer, destinations, presets
-    ↓
-Kg.Velocity.Contracts     # DTOs shared between UI and API
-    ↓
-Kg.Velocity.UI            # Razor components (Index.razor is the main UI)
-    ↓
-├── Kg.Velocity.Blazor    # WebAssembly frontend
-└── Kg.Velocity.Api       # ASP.NET Core backend with OpenAI integration
+Kg.Velocity.Blazor              # WebAssembly frontend
+└── Kg.Velocity.UI              # Razor components (Index.razor is the main UI)
+    └── Kg.Velocity.Contracts   # DTOs shared between UI and API
+
+Kg.Velocity.Api                 # ASP.NET Core backend with OpenAI integration; also hosts the Blazor app
+├── Kg.Velocity.Contracts
+└── Kg.Velocity.Engine          # Simulation logic: FlightComputer, presets, JourneyInsightClassifier
+    └── Kg.Velocity.Math        # Pure physics: Lorentz factor, time dilation
 ```
 
 ### Key Patterns
 
-- **Shared library strategy**: ~95% code reuse via Kg.Velocity.Math/Engine
+- **Shared library strategy**: physics in Kg.Velocity.Math/Engine (no UI or web code), used by the API and both test apps
 - **MVVM**: MainViewModel in Kg.Velocity.UI handles state, services handle business logic
 - **Scriban templates**: SVG poster generation in Api/Templates/*.sbn
 - **LLM prompts**: Embedded resources in Api/Prompts/*.md

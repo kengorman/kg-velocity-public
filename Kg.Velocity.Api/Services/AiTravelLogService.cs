@@ -11,15 +11,18 @@ namespace Kg.Velocity.Api.Services;
 public class AiTravelLogService
 {
     private readonly ChatClient _chatClient;
+    private readonly ModelClientFactory _modelClientFactory;
     private readonly TravelLogPromptBuilder _promptBuilder;
     private readonly ILogger<AiTravelLogService> _logger;
 
     public AiTravelLogService(
         ChatClient chatClient,
+        ModelClientFactory modelClientFactory,
         TravelLogPromptBuilder promptBuilder,
         ILogger<AiTravelLogService> logger)
     {
         _chatClient = chatClient;
+        _modelClientFactory = modelClientFactory;
         _promptBuilder = promptBuilder;
         _logger = logger;
     }
@@ -36,10 +39,7 @@ public class AiTravelLogService
                 new UserChatMessage(prompt)
             };
 
-            var chatOptions = new ChatCompletionOptions
-            {
-                Temperature = 0.9f
-            };
+            var chatOptions = _modelClientFactory.CreateOptions(temperature: 0.9f);
 
             var completion = await _chatClient.CompleteChatAsync(messages, chatOptions);
             var responseText = completion.Value.Content[0].Text;
