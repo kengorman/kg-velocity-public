@@ -126,6 +126,10 @@ Web application using Blazor WebAssembly
 
 Both UIs share ~95% of the business logic through the `Kg.Velocity.Math` library. ViewModels are ported with minimal changes between platforms.
 
+## How this evolved
+
+- **The trip movie started as standalone prototypes.** The zoom-out animation that plays while the AI text is being written began as three separate HTML pages, one for each scale: the solar system (measured in distances from the Sun), the Milky Way (light-years, spaced on a log scale so near and far stars both fit), and other galaxies (out to Andromeda). We also tried a single animation that zooms through all three scales in one go. It was dropped because each scale had its own hand-tuned look (planet detail, star landmarks, spiral galaxies) that got lost when combined. The three versions now live together in `Kg.Velocity.UI/wwwroot/js/trip-movie.js`, and the app picks one based on the destination.
+
 ## License
 
 See LICENSE file for details.
