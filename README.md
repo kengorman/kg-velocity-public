@@ -6,6 +6,10 @@ Its intention is to make the user think: "Wow, that is amazing how long a trip f
 
 **Try it live: [absurdtravelsimulator.com](https://www.absurdtravelsimulator.com/)**
 
+<p align="center">
+  <img src="docs/readme_images/atsHome.png" width="300" alt="Home screen: pick a destination and a speed, then press Go">
+</p>
+
 ## Project Overview
 
 This repository contains a relativistic physics simulation:
@@ -32,11 +36,29 @@ The core relativity math, used by the API (and the test apps).
 - **Multiple Destinations** - New destinations can be added easily
 
 ## What you see
-- **Canvas/JS Movie** - Overall view of the journey displayed while content is loaded in the backend.
-- **Journey Summary** - An always-unique summary of the trip in terms of major historic happenings while on the journey.
-- **Absurd Travel Simulator Poster** - An always-unique tree-based poster displaying additional unique, sometimes fun, happenings due to the distance and length of the trip.
-- **Mission Log** - Written from the perspective of the captain of the ship. First person experiences during the journey.
-- **Data Points** - The distance, Earth time and ship time for the trip, the gap between them, and the arrival date by Earth and ship calendars.
+
+<table>
+  <tr>
+    <td width="260"><img src="docs/readme_images/atsMovie.png" width="240" alt="Trip movie flying through the Milky Way"></td>
+    <td><b>Canvas/JS Movie</b> - Overall view of the journey displayed while content is loaded in the backend.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/readme_images/atsSummary.png" width="240" alt="Journey summary"></td>
+    <td><b>Journey Summary</b> - An always-unique summary of the trip in terms of major historic happenings while on the journey.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/readme_images/atsPoster.png" width="240" alt="Absurd Travel Simulator poster"></td>
+    <td><b>Absurd Travel Simulator Poster</b> - An always-unique tree-based poster displaying additional unique, sometimes fun, happenings due to the distance and length of the trip.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/readme_images/atsTripLog.png" width="240" alt="Mission log"></td>
+    <td><b>Mission Log</b> - Written from the perspective of the captain of the ship. First person experiences during the journey.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/readme_images/atsTripData.png" width="240" alt="Trip data points"></td>
+    <td><b>Data Points</b> - The distance, Earth time and ship time for the trip, the gap between them, and the arrival date by Earth and ship calendars.</td>
+  </tr>
+</table>
 
 ## Local Quick Start
 
