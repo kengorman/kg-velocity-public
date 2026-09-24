@@ -1,22 +1,19 @@
-# Velocity — Relativistic Travel Simulation
+# Absurd Travel Simulator — Relativistic and Fun Travel Simulation
 
-Experience the mind-bending effects of special relativity as you travel through space at near-light speeds!
+Showing the vastness of space, and in that context the near crawl-speed of light.
+See the impact in time and space by going at car speed to Mars, or twice the speed of light to Polaris.
+It's intention is to make the user think: "Wow, that is amazing how long a trip from [a] to [b] would really take!"!
 
 ## Project Overview
 
-This repository contains **two implementations** of the same relativistic physics simulation:
-
-### 🖥️ Avalonia Desktop App (`Kg.Velocity.Avalonia`)
-A cross-platform desktop application built with Avalonia UI.
-- Native performance
-- Rich desktop UI
-- Runs on Windows, macOS, Linux
+This repository contains a relativistic physics simulation:
 
 ### 🌐 Blazor WebAssembly App (`Kg.Velocity.Blazor`)
-A browser-based version that runs entirely in your web browser.
+A browser-based version that runs entirely in a web browser.
 - No installation required
 - Pure C# running via WebAssembly
 - Works on any device with a modern browser
+- Tuned for mobile display
 
 ### 🧮 Shared Physics Library (`Kg.Velocity.Math`)
 The core simulation engine used by **both** applications.
@@ -28,26 +25,27 @@ The core simulation engine used by **both** applications.
 ## Features
 
 - **Realistic Physics** - Accurate special relativity calculations
-- **Time Dilation** - Watch Earth and ship clocks diverge
-- **Multiple Destinations** - From Los Angeles to Andromeda Galaxy
-- **Variable Speed** - Accelerate and decelerate during flight
+- **Time Dilation** - See how Earth and ship clocks diverge over long distances based upon speed.
+- **Multiple Destinations** - New destinations can be added easily
 - **Real-time Stats** - Average speed, ETA, distance tracking
-- **Journey Progress** - Visual track with spaceship indicator
 
-## Quick Start
+## Displays
+- **Canvas/JS Movie** - Overall view of the journey displayed while content is loaded in the backend
+loaded in the backend
+- **Journey Summary** - An always-unique summary of the trip in terms of major historic happenings while on the journey.
+- **Absurd Travel Simulator Poster** - An always-unique tree-based poster displaying additional unique, sometimes fun, happenings due to the distance and length of the trip.
+- **Mission Log** - Written from the perspective of the captain of the ship. First person experiences during the journey.
+- **Data Points** - Displaying the distance, the arrival date by earth and ship calendar, the duration in earth years of the trip, the arrival date by ship calendar, the length of time travel, and the difference in time between the earth and ship.
 
-### Desktop (Avalonia)
-```bash
-cd Kg.Velocity.Avalonia
-dotnet run
-```
+
+## Local Quick Start 
 
 ### Web (Blazor)
 ```bash
-cd Kg.Velocity.Blazor
+cd Kg.Velocity.Api
 dotnet run
 ```
-Then open browser to `https://localhost:5001`
+Browser will open to: `https://localhost:5001`
 
 ## Architecture
 
@@ -66,7 +64,6 @@ Kg.Velocity/
 
 - **.NET 9** - Modern, cross-platform framework
 - **C#** - Type-safe, high-performance language
-- **Avalonia UI** - Cross-platform desktop UI
 - **Blazor WebAssembly** - C# in the browser
 - **WebAssembly** - Near-native performance in browsers
 
@@ -85,17 +82,6 @@ The simulation accurately models:
 ```bash
 dotnet build
 ```
-
-### Build Specific Project
-```bash
-dotnet build Kg.Velocity.Avalonia/Kg.Velocity.Avalonia.csproj
-dotnet build Kg.Velocity.Blazor/Kg.Velocity.Blazor.csproj
-```
-
-### Publish for Distribution
-```bash
-# Desktop
-dotnet publish Kg.Velocity.Avalonia/ -c Release
 
 # Web
 dotnet publish Kg.Velocity.Blazor/ -c Release
@@ -136,11 +122,9 @@ See LICENSE file for details.
 
 ## Contributing
 
-This is an educational project exploring special relativity concepts through interactive simulation.
+This is a fun, educational project exploring special relativity concepts through interactive simulation.
 
 ## Future Ideas
-
-- [x] Add rocket icon dragging in Blazor version
 - [ ] More destinations (black holes, edge of observable universe)
 - [ ] Visualization of length contraction
 - [ ] Multiple reference frames
