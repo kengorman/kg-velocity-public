@@ -3,15 +3,26 @@ using Kg.Velocity.Contracts.Trips;
 
 namespace Kg.Velocity.UI.Services;
 
+/// <summary>
+/// Makes the trip calls to the API: the trip numbers, the AI content,
+/// and downloading the finished images.
+/// </summary>
 public class TripEvaluationService
 {
     private readonly HttpClient _httpClient;
 
+    /// <summary>
+    /// Sets up the service with the HTTP client used to reach the API.
+    /// </summary>
     public TripEvaluationService(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
 
+    /// <summary>
+    /// Asks the API to work out the trip numbers (times, distance, arrival dates). No AI involved.
+    /// Any failure is rethrown with a readable "Error connecting to API" message.
+    /// </summary>
     public async Task<TripComputationResult> ComputeTripAsync(TripEvaluateRequest request)
     {
         try
@@ -28,6 +39,10 @@ public class TripEvaluationService
         }
     }
 
+    /// <summary>
+    /// Asks the API for the AI-written summary, plus the addresses of the poster and mission log images.
+    /// Any failure is rethrown with a readable "Error connecting to API" message.
+    /// </summary>
     public async Task<TripContentResponse> GenerateContentAsync(TripEvaluateRequest request)
     {
         try
@@ -44,6 +59,10 @@ public class TripEvaluationService
         }
     }
 
+    /// <summary>
+    /// Downloads an image from the given address. Despite the name, it's used for
+    /// both the poster and the mission log.
+    /// </summary>
     public async Task<byte[]> GetPosterBytesAsync(string posterUrl)
     {
         if (string.IsNullOrWhiteSpace(posterUrl))

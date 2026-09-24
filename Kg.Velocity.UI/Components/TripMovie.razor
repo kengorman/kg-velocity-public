@@ -19,7 +19,8 @@
     public Task CompletionTask => _completionSource?.Task ?? Task.CompletedTask;
 
     /// <summary>
-    /// Starts the movie animation.
+    /// Starts the movie animation on the canvas (drawn by trip-movie.js).
+    /// The time, distance and speed values are already formatted for display.
     /// </summary>
     public async Task StartAsync(string category, string destinationName, double destinationDistance,
         string shipTime, string earthTime, string distance, string speed)
@@ -35,7 +36,8 @@
     }
 
     /// <summary>
-    /// Stops the movie and cleans up.
+    /// Stops the movie and cleans up. Also marks it finished, so anything
+    /// waiting on CompletionTask carries on.
     /// </summary>
     public async Task StopAsync()
     {
@@ -55,12 +57,20 @@
         _completionSource = null;
     }
 
+    /// <summary>
+    /// Called from trip-movie.js when the animation reaches the end.
+    /// Marks the movie finished so CompletionTask completes.
+    /// </summary>
     [JSInvokable]
     public void OnMovieComplete()
     {
         _completionSource?.TrySetResult();
     }
 
+    /// <summary>
+    /// Runs when the component is removed from the page. Stops the movie and
+    /// releases the link that lets the JavaScript call back into this component.
+    /// </summary>
     public async ValueTask DisposeAsync()
     {
         await StopAsync();

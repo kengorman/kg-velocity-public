@@ -1,7 +1,14 @@
 namespace Kg.Velocity.UI.Utilities;
 
+/// <summary>
+/// Turns large numbers into short, readable text for the screen.
+/// </summary>
 public static class Formatting
 {
+    /// <summary>
+    /// Formats a distance in miles, shortened with k, M, B or T (e.g. "238.9k miles").
+    /// Returns a dash if the distance is zero or less.
+    /// </summary>
     public static string FormatDistance(double miles)
     {
         if (miles <= 0)
@@ -17,6 +24,9 @@ public static class Formatting
         return $"{miles / 1_000_000_000_000:N2}T miles";
     }
 
+    /// <summary>
+    /// Formats a speed in mph, shortened with k, M or B (e.g. "670.6M mph").
+    /// </summary>
     public static string FormatSpeed(double mph)
     {
         if (mph < 1_000)

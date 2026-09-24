@@ -40,7 +40,7 @@ graph TB
 
     subgraph Hosts["Platform Hosts"]
         Blazor["Kg.Velocity.Blazor<br/><i>WebAssembly</i>"]
-        Maui["Kg.Velocity.Maui<br/><i>Android</i>"]
+        Maui["Kg.Velocity.Maui<br/><i>Android (archived)</i>"]
     end
 
     Math --> Engine
@@ -48,7 +48,7 @@ graph TB
     Contracts --> UI
     Contracts --> Api
     UI --> Blazor
-    UI --> Maui
+    UI -.-> Maui
     Engine --> Api
     Math --> Api
 ```

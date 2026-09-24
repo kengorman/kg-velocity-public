@@ -7,6 +7,11 @@ using System.Globalization;
 
 namespace Kg.Velocity.UI.ViewModels;
 
+/// <summary>
+/// Holds everything the main page shows: the destination and speed choices,
+/// the trip results, and the AI-written summary, poster and mission log.
+/// The page redraws whenever StateChanged fires.
+/// </summary>
 public class MainViewModel
 {
     private readonly TripEvaluationService _tripEvaluationService;
@@ -20,6 +25,9 @@ public class MainViewModel
     // Event to notify UI of state changes
     public event Action? StateChanged;
 
+    /// <summary>
+    /// Sets up the view model with the services it needs and blank starting values.
+    /// </summary>
     public MainViewModel(
         TripEvaluationService tripEvaluationService,
         IPersonaIdStore personaIdStore,
@@ -35,6 +43,10 @@ public class MainViewModel
         UpdatePropertiesWithoutNotification();
     }
 
+    /// <summary>
+    /// Fills in placeholder values for the first draw of the page,
+    /// without telling the page anything changed.
+    /// </summary>
     private void UpdatePropertiesWithoutNotification()
     {
         // Initialize properties to safe defaults for first render
@@ -49,6 +61,10 @@ public class MainViewModel
         ArrivalShipDateString = "N/A";
     }
 
+    /// <summary>
+    /// Loads the destinations and speed presets from the API.
+    /// Called once when the page first opens.
+    /// </summary>
     public async Task InitializeAsync()
     {
         var destinations = await _catalogClient.GetDestinationsAsync();
@@ -92,6 +108,9 @@ public class MainViewModel
     public List<SpeedPresetDto> SpeedPresets { get; set; } = [];
 
     private DestinationDto? _selectedDestination;
+    /// <summary>
+    /// The destination the user has picked. Changing it clears any results on screen.
+    /// </summary>
     public DestinationDto? SelectedDestination
     {
         get => _selectedDestination;
@@ -104,6 +123,10 @@ public class MainViewModel
         }
     }
 
+    /// <summary>
+    /// True when the Go button should be enabled: a destination and speed are picked,
+    /// nothing is loading, and no results are on screen.
+    /// </summary>
     public bool CanStart => SelectedDestination != null
         && _selectedSpeedMph > 0
         && !IsCalculatingTrip
@@ -111,6 +134,10 @@ public class MainViewModel
         && !IsFetchingPosterBytes
         && !ShowResults;
 
+    /// <summary>
+    /// The speed the user has picked, in mph. Changing it clears any results on screen.
+    /// Reads as null if the stored speed doesn't match any preset.
+    /// </summary>
     public double? SelectedPresetSpeed
     {
         get
@@ -131,8 +158,14 @@ public class MainViewModel
         }
     }
 
+    /// <summary>
+    /// Tells the page something changed so it redraws.
+    /// </summary>
     private void NotifyStateChanged() => StateChanged?.Invoke();
 
+    /// <summary>
+    /// Puts the results area back to its opening state and empties all result panels.
+    /// </summary>
     private void ClearResults()
     {
         // Return main panel to opening state so user sees "The universe is vast. Light is slow." again
@@ -159,6 +192,13 @@ public class MainViewModel
         TravelLogDataUrl = "";
     }
 
+    /// <summary>
+    /// Runs a trip for the chosen destination and speed. Asks the API for the trip
+    /// numbers and the AI content at the same time, shows the numbers (and starts the
+    /// movie) as soon as they arrive, then the summary, then fetches the images.
+    /// If the user starts a new trip before this one finishes, the old results are ignored.
+    /// On error, the error message is shown in place of the summary.
+    /// </summary>
     public async Task EvaluateTripAsync()
     {
         if (SelectedDestination == null) return;
@@ -269,6 +309,10 @@ public class MainViewModel
         }
     }
 
+    /// <summary>
+    /// Downloads the poster and mission log images together, then shows them.
+    /// Runs without holding up the rest of the trip.
+    /// </summary>
     private async Task FetchMediaInBackgroundAsync(string? posterUrl, string? travelLogUrl, int requestVersion)
     {
         var posterTask = FetchPosterBytesAsync(posterUrl, requestVersion);
@@ -282,6 +326,10 @@ public class MainViewModel
         NotifyStateChanged();
     }
 
+    /// <summary>
+    /// Downloads the poster image and stores it in a form the page can show directly.
+    /// Also sets a time-stamped file name for it. Leaves the poster empty if the download fails.
+    /// </summary>
     private async Task FetchPosterBytesAsync(string? posterUrl, int requestVersion)
     {
         if (string.IsNullOrWhiteSpace(posterUrl)) return;
@@ -304,6 +352,10 @@ public class MainViewModel
         }
     }
 
+    /// <summary>
+    /// Downloads the mission log image and stores it in a form the page can show directly.
+    /// Leaves it empty if the download fails.
+    /// </summary>
     private async Task FetchTravelLogBytesAsync(string? travelLogUrl, int requestVersion)
     {
         if (string.IsNullOrWhiteSpace(travelLogUrl)) return;

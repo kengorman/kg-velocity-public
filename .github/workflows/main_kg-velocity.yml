@@ -30,20 +30,8 @@ jobs:
         with:
           dotnet-version: '9.x'
 
-      - name: Install MAUI workloads
-        run: dotnet workload install maui-android
-
-      - name: Decode Android keystore
-        shell: pwsh
-        run: |
-          $keystoreBytes = [Convert]::FromBase64String("${{ secrets.ANDROID_KEYSTORE_BASE64 }}")
-          [IO.File]::WriteAllBytes("${{ github.workspace }}\ats-release.keystore", $keystoreBytes)
-
       - name: Build with dotnet
         run: dotnet build --configuration Release
-        env:
-          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}\ats-release.keystore
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
 
       - name: dotnet publish
         run: dotnet publish Kg.Velocity.Api/Kg.Velocity.Api.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"

@@ -312,6 +312,10 @@ else
 
     private bool IsPickerDisabled => ViewModel.IsCalculatingTrip || ViewModel.IsGeneratingContent || ViewModel.IsFetchingPosterBytes;
 
+    /// <summary>
+    /// Returns the first 7 characters of the git commit this build came from,
+    /// shown in the footer. Returns "dev" if the commit isn't recorded in the build.
+    /// </summary>
     private static string GetShortCommitHash()
     {
         var version = Assembly.GetExecutingAssembly()
@@ -326,6 +330,11 @@ else
         return "dev";
     }
 
+    /// <summary>
+    /// Runs once when the page loads. Listens for view model changes and loads
+    /// the destinations and speed presets. Until this finishes, the page shows
+    /// the grey placeholder layout.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         ViewModel.StateChanged += OnViewModelStateChanged;
@@ -333,6 +342,10 @@ else
         _isInitialized = true;
     }
 
+    /// <summary>
+    /// Runs after each time the page is drawn. The first time the pickers are
+    /// actually on screen, sets up the destination and speed carousels (only once).
+    /// </summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         // Initialize carousel after DOM is ready (when _isInitialized becomes true)
@@ -344,6 +357,10 @@ else
         }
     }
 
+    /// <summary>
+    /// Sets up the destination and speed carousels, each starting on a random card,
+    /// and makes the view model's selection match what's on screen.
+    /// </summary>
     private async Task InitializeCarouselsAsync()
     {
         // Random starting positions for destination and speed carousels.
@@ -368,6 +385,12 @@ else
             ViewModel.SelectedPresetSpeed = ViewModel.SpeedPresets[speedStartIndex].SpeedMph;
     }
 
+    /// <summary>
+    /// Called from embla-carousel.js whenever a carousel settles on a new card
+    /// (swipe, arrow or dot). Updates the selected destination or speed to match.
+    /// Ignored while a trip is being worked out, so the choice can't change mid-trip.
+    /// The results carousel calls this too, but it matches neither picker, so nothing happens.
+    /// </summary>
     [JSInvokable]
     public void OnCarouselSelect(string containerId, int index)
     {
@@ -385,6 +408,12 @@ else
         }
     }
 
+    /// <summary>
+    /// Runs whenever the view model reports a change, and redraws the page.
+    /// When results first appear for a trip, it also runs the results sequence:
+    /// set up the results carousel, play the movie, then move on to the summary
+    /// (with a one-time tour of all the panels on the first trip of the session).
+    /// </summary>
     private void OnViewModelStateChanged()
     {
         if (_isInitialized)
@@ -467,6 +496,10 @@ else
         return false;
     }
 
+    /// <summary>
+    /// Starts the trip movie using the selected destination and the trip results.
+    /// Does nothing if the movie isn't on the page yet or no destination is selected.
+    /// </summary>
     private async Task StartMovieAsync()
     {
         if (_tripMovie == null || ViewModel.SelectedDestination == null) return;
@@ -482,6 +515,10 @@ else
             speed: Formatting.FormatSpeed(ViewModel.SpeedMph));
     }
 
+    /// <summary>
+    /// Sets up the results carousel (movie, summary, poster, log, stats), starting
+    /// on the movie. Unlike the pickers, its cards don't grow or shrink as they move.
+    /// </summary>
     private async Task InitializeResultsCarouselAsync()
     {
         if (_resultsCarouselInitialized) return;
@@ -491,6 +528,9 @@ else
         _resultsCarouselInitialized = true;
     }
 
+    /// <summary>
+    /// Handles a click on a destination card: selects it and scrolls it to the centre.
+    /// </summary>
     private async Task SelectDestinationByIndex(int index)
     {
         if (IsPickerDisabled) return;
@@ -501,6 +541,9 @@ else
         }
     }
 
+    /// <summary>
+    /// Handles a click on a speed card: selects it and scrolls it to the centre.
+    /// </summary>
     private async Task SelectSpeedByIndex(int index)
     {
         if (IsPickerDisabled) return;
@@ -511,12 +554,18 @@ else
         }
     }
 
+    /// <summary>
+    /// Right arrow on a picker: moves one card forward.
+    /// </summary>
     private async Task ScrollNext(string pickerId)
     {
         if (IsPickerDisabled) return;
         await JS.InvokeVoidAsync("emblaCarousel.scrollNext", pickerId);
     }
 
+    /// <summary>
+    /// Left arrow on a picker: moves one card back.
+    /// </summary>
     private async Task ScrollPrev(string pickerId)
     {
         if (IsPickerDisabled) return;
@@ -533,6 +582,10 @@ else
         await JS.InvokeVoidAsync("eval", script);
     }
 
+    /// <summary>
+    /// Scrolls a picker so the card with the given destination name or speed is centered.
+    /// Not currently called anywhere (the carousel's own scrollTo does this now).
+    /// </summary>
     private async Task ScrollToSelectedCard(string pickerId, string dataValue)
     {
         var attr = pickerId == _destinationPickerId ? "data-destination" : "data-speed";
@@ -540,6 +593,10 @@ else
         await JS.InvokeVoidAsync("eval", script);
     }
 
+    /// <summary>
+    /// Handles the Go button. Clears away the previous trip's movie and results
+    /// carousel, then asks the view model to work out the new trip.
+    /// </summary>
     private async Task OnStartClicked()
     {
         // Stop any existing movie animation
@@ -563,6 +620,9 @@ else
         await ViewModel.EvaluateTripAsync();
     }
 
+    /// <summary>
+    /// Width of the "Ship" bar in the time chart, as a percentage of the Earth bar.
+    /// </summary>
     private double GetShipTimePercentage()
     {
         if (ViewModel.EarthTimeSeconds <= 0) return 0;
@@ -570,9 +630,14 @@ else
         return Math.Max(1, Math.Min(100, percentage)); // Clamp between 1-100 for visibility
     }
 
+    /// <summary>
+    /// Turns a destination name into its image file name,
+    /// e.g. "Polaris (North Star)" becomes "polaris-north-star".
+    /// </summary>
     private static string ToSlug(string name) =>
         name.ToLowerInvariant().Replace(" ", "-").Replace("(", "").Replace(")", "");
 
+    // One sentence of the trip summary, with the short label shown above it (label may be empty).
     private record SummaryBeat(string Label, string Text);
 
     // The prompt asks for "~label~" on its own line above each sentence. Tildes
@@ -649,6 +714,10 @@ else
         return beats;
     }
 
+    /// <summary>
+    /// Runs when the page is removed. Stops listening to the view model, stops the
+    /// movie and removes all three carousels.
+    /// </summary>
     public async ValueTask DisposeAsync()
     {
         if (ViewModel != null)
