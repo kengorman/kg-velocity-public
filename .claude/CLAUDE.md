@@ -17,16 +17,13 @@ dotnet run --project Kg.Velocity.Api
 # Run tests
 dotnet run --project Kg.Velocity.InsightTests
 
-# Build MAUI Android (archived: not in the solution, may not build)
-dotnet build Kg.Velocity.Maui -f net9.0-android
-
 # Bundle Embla carousel (after npm install)
 npm run build:embla
 ```
 
 ## Architecture
 
-**Relativistic travel simulator** with multi-platform frontends sharing a common physics engine.
+**Relativistic travel simulator** with a Blazor web frontend and an API backend sharing a common physics engine. (An Android/MAUI version existed earlier; it was removed and lives only in git history.)
 
 ### Project Dependencies (bottom-up)
 
@@ -40,7 +37,6 @@ Kg.Velocity.Contracts     # DTOs shared between UI and API
 Kg.Velocity.UI            # Razor components (Index.razor is the main UI)
     ↓
 ├── Kg.Velocity.Blazor    # WebAssembly frontend
-├── Kg.Velocity.Maui      # Android app (archived: removed from the solution and CI; web/Blazor only going forward)
 └── Kg.Velocity.Api       # ASP.NET Core backend with OpenAI integration
 ```
 

@@ -19,7 +19,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kg.Velocity.UI", "Kg.Veloci
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D4E5F6A7-B8C9-4D0E-A1B2-C3D4E5F6A7B8}"
 	ProjectSection(SolutionItems) = preProject
-		docs\android-deployment-notes.md = docs\android-deployment-notes.md
 		docs\architecture-diagrams.md = docs\architecture-diagrams.md
 		docs\article-diagrams.md = docs\article-diagrams.md
 		docs\destination-images.md = docs\destination-images.md
