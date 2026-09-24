@@ -12,7 +12,7 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="3.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.0" />
     <PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
-    <PackageReference Include="Scriban" Version="6.5.2" />
+    <PackageReference Include="Scriban" Version="7.5.0" />
   </ItemGroup>
 
   <ItemGroup>
