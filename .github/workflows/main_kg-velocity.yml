@@ -33,6 +33,9 @@ jobs:
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
+      - name: Run tests
+        run: dotnet test --configuration Release --no-build
+
       - name: dotnet publish
         run: dotnet publish Kg.Velocity.Api/Kg.Velocity.Api.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 

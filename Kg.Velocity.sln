@@ -38,6 +38,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "readme_images", "readme_ima
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kg.Velocity.PosterTests", "Kg.Velocity.PosterTests\Kg.Velocity.PosterTests.csproj", "{DDA5D309-D4B6-4872-BE1C-700B04E80A21}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kg.Velocity.Tests", "Kg.Velocity.Tests\Kg.Velocity.Tests.csproj", "{850010FD-B1CF-41C0-844A-7EA4929875FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -144,6 +146,18 @@ Global
 		{DDA5D309-D4B6-4872-BE1C-700B04E80A21}.Release|x64.Build.0 = Release|Any CPU
 		{DDA5D309-D4B6-4872-BE1C-700B04E80A21}.Release|x86.ActiveCfg = Release|Any CPU
 		{DDA5D309-D4B6-4872-BE1C-700B04E80A21}.Release|x86.Build.0 = Release|Any CPU
+		{850010FD-B1CF-41C0-844A-7EA4929875FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{850010FD-B1CF-41C0-844A-7EA4929875FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{850010FD-B1CF-41C0-844A-7EA4929875FD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{850010FD-B1CF-41C0-844A-7EA4929875FD}.Debug|x64.Build.0 = Debug|Any CPU
+		{850010FD-B1CF-41C0-844A-7EA4929875FD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{850010FD-B1CF-41C0-844A-7EA4929875FD}.Debug|x86.Build.0 = Debug|Any CPU
+		{850010FD-B1CF-41C0-844A-7EA4929875FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{850010FD-B1CF-41C0-844A-7EA4929875FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{850010FD-B1CF-41C0-844A-7EA4929875FD}.Release|x64.ActiveCfg = Release|Any CPU
+		{850010FD-B1CF-41C0-844A-7EA4929875FD}.Release|x64.Build.0 = Release|Any CPU
+		{850010FD-B1CF-41C0-844A-7EA4929875FD}.Release|x86.ActiveCfg = Release|Any CPU
+		{850010FD-B1CF-41C0-844A-7EA4929875FD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

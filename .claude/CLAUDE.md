@@ -12,6 +12,9 @@ dotnet build
 # Needs the OpenAI key: dotnet user-secrets set OpenAI:ApiKey <key> --project Kg.Velocity.Api
 dotnet run --project Kg.Velocity.Api
 
+# Run the automated tests (physics, formatting, insight classifier)
+dotnet test
+
 # Print insight classifier results for many trips (no AI calls)
 dotnet run --project Kg.Velocity.InsightTests
 
@@ -69,7 +72,7 @@ The app uses GPT to generate trip summaries. These principles emerged from itera
 
 ### Core Approach: Insights, Not Emotions
 
-The `JourneyInsightClassifier` determines what each trip is *about* (speed, duration, dilation, scale, farewell). This single insight guides the narrative—no emotion weights, no binary flags, just one mechanism.
+The `JourneyInsightClassifier` determines what each trip is *about* (speed, duration, dilation, scale, farewell). This single insight guides the summary and poster narratives—no emotion weights, no binary flags, just one mechanism. (The travel log still uses the older `JourneyWeights` emotion weights; moving it to the insight is future work.)
 
 **Why this works**: Telling users "you felt lonely" falls flat. Describing concrete details that *evoke* loneliness lets users feel it themselves.
 

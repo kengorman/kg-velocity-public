@@ -1,4 +1,4 @@
-# Absurd Travel Simulator — Relativistic and Fun Travel Simulation
+# Absurd Travel Simulator — Relativistic Travel Simulation
 
 Showing the vastness of space, and in that context the near crawl-speed of light.
 See the impact in time and space by going at car speed to Mars, or twice the speed of light to Polaris.
@@ -6,13 +6,15 @@ Its intention is to make the user think: "Wow, that is amazing how long a trip f
 
 **Try it live: [absurdtravelsimulator.com](https://www.absurdtravelsimulator.com/)**
 
+Built by Ken Gorman · [LinkedIn](https://www.linkedin.com/in/kengormansoftware/)
+
 <p align="center">
   <img src="docs/readme_images/atsHome.png" width="300" alt="Home screen: pick a destination and a speed, then press Go">
 </p>
 
 ## Project Overview
 
-This repository contains a relativistic physics simulation:
+This repository contains a simplified relativistic travel simulation:
 
 ### 🌐 Blazor WebAssembly App (`Kg.Velocity.Blazor`)
 The user interface, running in the web browser. It gets trip results and AI content from the API.
@@ -31,7 +33,7 @@ The core relativity math, used by the API (and the test apps).
 
 ## Features
 
-- **Realistic Physics** - Accurate special relativity calculations
+- **Real physics, simplified** - Correct special relativity math for a trip at one constant speed
 - **Time Dilation** - See how Earth and ship clocks diverge over long distances based upon speed.
 - **Multiple Destinations** - New destinations can be added easily
 
@@ -124,7 +126,10 @@ Kg.Velocity.Api                 # ASP.NET Core API: hosts the web app, calls Ope
 
 All the physics runs on the server; the browser app only shows the results.
 
-Two small console apps help with testing:
+Testing:
+- `Kg.Velocity.Tests` - automated tests (xUnit) for the physics, time formatting, and insight classifier, including the example trips in this README. They run on every push.
+
+The AI writing is different every time (that's the point), so it has no automated tests. Two small console apps help check it by eye:
 - `Kg.Velocity.InsightTests` - prints what the insight classifier decides for many trips (no AI calls)
 - `Kg.Velocity.PosterTests` - prints AI-written poster events for many trips (calls the AI model)
 
@@ -148,10 +153,16 @@ Each trip is a single, constant speed.
 - **Ship time** = Earth time ÷ γ. The faster you go, the less time passes for the traveler.
 - **Faster than light** - not physically possible, but allowed for fun. The trip is instant for the traveler (ship time 0) while Earth still waits the full distance ÷ speed.
 
+What's simplified:
+- Instant top speed: no speeding up or slowing down
+- Distances are fixed averages (Mars is always 140 million miles, even though planets move)
+- No gravity effects (no general relativity)
+
 ## Building
 
 ```bash
 dotnet build
+dotnet test
 dotnet publish Kg.Velocity.Api -c Release   # includes the web app
 ```
 
@@ -163,6 +174,42 @@ npm run build:embla
 ```
 
 ## How this evolved
+
+- **It began as a simple prompt sent to a model.** Challenge what the user thinks about a 'trip' to some faraway point anywhere in the universe. Tell some interesting - possibly fun or quirky - details about how far time on Earth vs time in the spaceship went out of sync. Drop in historical references used for comparison to show the true scope of the journey. But I wasn't happy with the plain, repetitive, and uncreative responses.
+
+- **Adding subtlety with weights.** I split the text into three calls - for the summary, poster, and travel log - made at the same time, each with its own prompt ([Kg.Velocity.Api/Prompts](Kg.Velocity.Api/Prompts)). Each prompt also got a set of weights worked out from the trip's numbers ([JourneyWeights](Kg.Velocity.Engine/JourneyWeights.cs)): how much the story should lean on awe, patience, loneliness, and so on. Here's an excerpt from `travel-log.md`:
+  ```
+  Journey Weights (guide which consequences to emphasize, but never name them):
+  - Emotion: {{WeightEmotion}}%
+  - Distance: {{WeightDistance}}%
+  - Awe: {{WeightAwe}}%
+  - TimeGoneBy: {{WeightTimeGoneBy}}%
+  - Memories: {{WeightMemories}}%
+  - Patience: {{WeightPatience}}%
+  - Loneliness: {{WeightLoneliness}}%
+
+  Interpret the weights as:
+  - High Distance → emphasize scale, crossings, separation thresholds
+  - High TimeGoneBy → emphasize aging, calendar shifts, historical distance
+  - High Loneliness → emphasize isolation, communication asymmetry, signal delay
+  - High Awe → emphasize surprise at scale, sky changes, and loss of familiar reference
+  - High Emotion / Memories → emphasize irreversibility and generational effects
+  - High Patience → emphasize long waits, delayed outcomes, slow crossings
+
+  Journey Data:
+  - From: Earth
+  - To: {{Destination}}
+  - Departed: {{DepartedTime}}
+  - Distance: {{DistanceLightYears}} light-years ({{DistanceMiles}} miles)
+  - Speed: {{SpeedName}} ({{PercentageOfLightSpeed}} percent of light speed)
+  - Earth time elapsed: {{EarthTimeFormatted}}
+  - Ship time elapsed: {{ShipTimeFormatted}}
+  - Time dilation difference: {{TimeDifference}}
+  ```
+
+- **From weights to one insight.** The number of weights turned out to push the writing toward naming feelings ("you felt lonely"), which falls flat. For the summary and poster I replaced them with a single *insight*: what this trip is really about. [JourneyInsightClassifier](Kg.Velocity.Engine/JourneyInsightClassifier.cs) scores the trip on speed, duration, dilation, scale, and farewell, and picks the winner - sometimes two, like "speed and dilation" - or "journey" when nothing stands out. Walking to the Moon (9 years) is about duration; the Moon at 99% light speed is about speed and dilation; Andromeda at 1000x light speed is about farewell - everything that carried on back home without the traveler. The prompts then describe concrete details and let the reader feel the rest. The travel log still uses the weights; moving it to the insight is on the list.
+
+- **The end result...** There are interesting points here. 1) The typical user has no idea that multiple model calls are generating arguably a totally unique answer. In fact most may guess that these are hard-coded replies. 2) The separate calls to the model help vary the tone of the responses. The travel poster - displaying interesting 'think about this' points - has a different feel than the travel log which is written in first-person as an occupant on the journey.
 
 - **The trip movie started as standalone prototypes.** The zoom-out animation that plays while the AI text is being written began as three separate HTML pages, one for each scale: the solar system (measured in distances from the Sun), the Milky Way (light-years, spaced on a log scale so near and far stars both fit), and other galaxies (out to Andromeda). We also tried a single animation that zooms through all three scales in one go. It was dropped because each scale had its own hand-tuned look (planet detail, star landmarks, spiral galaxies) that got lost when combined. The three versions now live together in `Kg.Velocity.UI/wwwroot/js/trip-movie.js`, and the app picks one based on the destination.
 
@@ -183,4 +230,4 @@ If you're interested in contributing, please contact me at gorman.kenneth@gmail.
 
 ---
 
-**Made with ❤️ to explore the wonders of special relativity**
+**Enjoy the trip!**
