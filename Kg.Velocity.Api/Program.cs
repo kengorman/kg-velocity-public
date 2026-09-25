@@ -72,8 +72,6 @@ builder.Services.AddSingleton<ChatClient>(sp =>
     sp.GetRequiredService<ModelClientFactory>()
       .CreateChatClient());
 builder.Services.AddSingleton<PromptStore>();
-// Not used: personas were replaced by JourneyInsightClassifier (see Services/PersonaCatalog.cs).
-// builder.Services.AddSingleton<IPersonaSelector, RandomPersonaSelector>();
 builder.Services.AddSingleton<TripSummaryPromptBuilder>();
 builder.Services.AddSingleton<AiSummaryService>();
 builder.Services.AddSingleton<TripComputationService>();

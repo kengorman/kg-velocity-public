@@ -12,6 +12,7 @@ public class AiSummaryService
     private readonly ChatClient _chatClient;
     private readonly ModelClientFactory _modelClientFactory;
     private readonly TripSummaryPromptBuilder _tripSummaryPromptBuilder;
+    private readonly ILogger<AiSummaryService> _logger;
 
     // Default persona returned when personas are bypassed
     private static readonly Persona DefaultPersona = new(0, "Narrator", "");
@@ -19,11 +20,13 @@ public class AiSummaryService
     public AiSummaryService(
         ChatClient chatClient,
         ModelClientFactory modelClientFactory,
-        TripSummaryPromptBuilder tripSummaryPromptBuilder)
+        TripSummaryPromptBuilder tripSummaryPromptBuilder,
+        ILogger<AiSummaryService> logger)
     {
         _chatClient = chatClient;
         _modelClientFactory = modelClientFactory;
         _tripSummaryPromptBuilder = tripSummaryPromptBuilder;
+        _logger = logger;
     }
 
     /// <summary>Generates a narrative summary of the trip via LLM, making raw physics results emotionally engaging.</summary>
@@ -48,7 +51,9 @@ public class AiSummaryService
         }
         catch (Exception ex)
         {
-            return ($"AI unavailable: {ex.Message}", DefaultPersona);
+            // Keep error details in the server log; users only see a plain message.
+            _logger.LogError(ex, "AI summary generation failed");
+            return ("AI unavailable. Please try again in a moment.", DefaultPersona);
         }
     }
 }
